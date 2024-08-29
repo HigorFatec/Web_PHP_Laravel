@@ -12,7 +12,7 @@ class SobreController extends Controller
      */
     public function index()
     {
-        return view('empresa.sobre');
+        return view('reserva.sobre');
     }
 
     /**

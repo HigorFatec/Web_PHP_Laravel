@@ -16,24 +16,26 @@ class FornecedorFisicoController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nome' => 'required|string',
-            'cpf' => 'required|integer',
-            'rg' => 'required|integer',
-            'rua' => 'required|string',
-            'numero' => 'required|integer',
-            'bairro' => 'required|string',
-            'cidade' => 'required|string',
-            'estado' => 'required|string',
-            'cep' => 'required|integer',
-            'complemento' => 'required|string',
-            'banco' => 'required|string',
-            'agencia' => 'required|integer',
-            'conta' => 'required|integer',
-            'tipo_conta' => 'required|string',
-            'pix' => 'required|string',
-            'telefone_fixo' => 'required|string',
-            'celular' => 'required|string',
-            'email' => 'required|email',
+            'nome_remetente' => 'required|string',
+            'email_remetente' => 'required|email',
+            'nome' => 'nullable|string',
+            'cpf' => 'nullable|string',
+            'rg' => 'nullable|string',
+            'rua' => 'nullable|string',
+            'numero' => 'nullable|string',
+            'bairro' => 'nullable|string',
+            'cidade' => 'nullable|string',
+            'estado' => 'nullable|string',
+            'cep' => 'nullable|string',
+            'complemento' => 'nullable|string',
+            'banco' => 'nullable|string',
+            'agencia' => 'nullable|string',
+            'conta' => 'nullable|string',
+            'tipo_conta' => 'nullable|string',
+            'pix' => 'nullable|string',
+            'telefone_fixo' => 'nullable|string',
+            'celular' => 'nullable|string',
+            'email' => 'nullable|email',
         ]);
 
         // Adicionar debug para verificar se os dados estão corretos
@@ -44,6 +46,7 @@ class FornecedorFisicoController extends Controller
 
         // Envia o email com os dados do fornecedor físico
         Mail::send('emails.fornecedor_fisico', ['dados' => $data], function($message) {
+            //$message->to('higor.05@hotmail.com');
             $message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
             $message->subject('Novo Fornecedor Físico Registrado');
         });

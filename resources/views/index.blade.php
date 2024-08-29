@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Home Page</title>
+    <title>Formulario - CargoPolo</title>
         <!-- Compiled and minified CSS -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
         
@@ -59,9 +59,9 @@
             window.onload = function() {
                 alert('Seja bem vindo! Escolha uma das opções de preenchimento de formulário!');
                 // Você também pode redirecionar para outra página após o pop-up se desejar
-                // window.location.href = '/';
+            //window.location.href = '/fornecedor_fisico';
+
             };
-            
         </script>
 
         <section class="elementor-section elementor-top-section elementor-element elementor-element-1194f43 elementor-section-height-full elementor-section-boxed elementor-section-height-default elementor-section-items-middle elementskit-parallax-multi-container" data-id="1194f43" data-element_type="section" data-settings="{&quot;background_background&quot;:&quot;video&quot;,&quot;background_video_link&quot;:&quot;https:\/\/benasantana.com\/wp-content\/uploads\/2024\/03\/cargopolo-site.mp4&quot;,&quot;background_play_on_mobile&quot;:&quot;yes&quot;,&quot;ekit_has_onepagescroll_dot&quot;:&quot;yes&quot;}">

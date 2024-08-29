@@ -4,6 +4,8 @@
     <title>Novo Registro Incluido</title>
 </head>
 <body>
+    <p><b>Nome do Solicitante: {{ $dados['nome_remetente'] }}</b></p><br>
+    <p><b>E-mail do Rementente: {{ $dados['email_remetente']}}</b></p><br>
     <p>Nome Completo: {{ $dados['nome'] }}</p>
     <p>CPF: {{ $dados['cpf'] }}</p>
     <p>RG: {{ $dados['rg'] }}</p>

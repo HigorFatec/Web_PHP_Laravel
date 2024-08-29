@@ -4,6 +4,8 @@
     <title>Nova Empresa Registrada</title>
 </head>
 <body>
+    <p><b>Nome do Solicitante: {{ $dados['nome_remetente'] }}</b></p><br>
+    <p><b>E-mail do Rementente: {{ $dados['email_remetente']}}</b></p><br>
     <p>Razao Social: {{ $dados['razao_social'] }}</p>
     <p>Inscricao Estadual: {{ $dados['inscricao_estadual'] }}</p>
     <p>CNPJ: {{ $dados['cnpj'] }}</p>
