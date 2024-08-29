@@ -76,7 +76,7 @@ Route::post('/finalizar-adiantamento/{id}', [AdiantamentoController::class, 'fin
 
 
 Route::get('/reserva/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-Route::get('/reserva/sobre}', [SobreController::class, 'index'])->name('reserva.sobre');
+Route::get('/reserva/sobre', [SobreController::class, 'index'])->name('reserva.sobre');
 
 
 

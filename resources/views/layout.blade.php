@@ -88,16 +88,21 @@
         <a href="#" data-target="slide-out" class="sidenav-trigger left  show-on-large"><i class="material-icons">menu</i></a>
       </ul>
 
+      <ul id="nav-mobile" class="brand-logo center">
+        <li class="hide-on-med-and-down">
+          <i class="material-icons left" style="margin-left:400px">visibility</i>{{ \Illuminate\Support\Facades\DB::table('sessions')->where('user_id','!=',null)->count() }}
+        </li>
+      </ul>
+
       @auth
       <ul id="nav-mobile" class="right">
-        <li class="hide-on-med-and-down"><a href="{{route('reserva.sobre')}}"><i class="material-icons">help</i> </a> </li>
-        <li><a href="" class="dropdown-trigger" data-target='dropdown2'> Olá {{auth()->user()->name}}  <i class="material-icons right">expand_more</i> </a></li>
+        <li><a href="" class="dropdown-trigger" data-target='dropdown2'> Olá {{auth()->user()->name}} <i class="material-icons right">expand_more</i></a></li>
       </ul>
-      @else
+    @else
       <ul id="nav-mobile" class="right">
-        <li><a href="{{route('login.form')}}" > Login <i class="material-icons right">lock</i> </a></li>
+        <li><a href="{{route('login.form')}}">Login <i class="material-icons right">lock</i></a></li>
       </ul>
-      @endauth
+    @endauth
 
       @if (@auth()->user()->id != null)
         

@@ -29,6 +29,11 @@
         <a href="#" class="brand-logo" href="index.html">
           <img src="{{ asset('img/logo2.png') }}" style="width: 100px; height: auto; margin-left:80px">
       </a>
+      <ul id="nav-mobile" class="brand-logo center">
+        <li class="hide-on-med-and-down">
+          <i class="material-icons left" style="margin-left:400px">visibility</i>{{ \Illuminate\Support\Facades\DB::table('sessions')->where('user_id','!=',null)->count() }}
+        </li>
+      </ul>
               <ul class="right ">                                 
             <li class="hide-on-med-and-down"><a href="#" onclick="fullScreen()"><i class="material-icons">settings_overscan</i> </a> </li>
             <li><a href="#" class="dropdown-trigger" data-target='dropdown2'> Olá {{auth()->user()->name}}  <i class="material-icons right">expand_more</i> </a></li>     
