@@ -2,9 +2,8 @@
 @section('title', 'Adiantamento de Viagem')
 @section('conteudo')
 
-<br>
 
-<div class="row container">
+<div class="row">
 
   @if ($message = Session::get('error_dias'))
   <div class="card red darken-1">
@@ -35,7 +34,7 @@
   </div>
 @endif
 
-
+<div class="container">
 <div class="card">
   <div class="card-content">
       <span class="card-title center"><b>Adiantamento de Viagem</b></span><br>
@@ -89,6 +88,6 @@
 </div>
 
 </div>
-
+</div>
 
 @endsection

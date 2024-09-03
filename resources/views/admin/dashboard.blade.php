@@ -15,7 +15,9 @@
     <li><a href="{{route('reserva.reservas')}}">Minhas reservas</a></li>
     @auth
       @if (auth()->user()->admin == 1)
-        <li><a href="{{route('admin.dashboard')}}">Dashboard</a></li>
+      <li><a href="{{route('admin.dashboard')}}">Dashboard</a></li>
+      <li><a href="{{route('admin.canceladas')}}">Canceladas</a></li>
+      <li><a href="{{route('admin.finalizadas')}}">Finalizadas</a></li>
       @endif 
     @endauth
     <li><a href="{{route('login.logout')}}">Sair</a></li>
@@ -216,6 +218,7 @@
 </div>
 
 
+
 @endsection
 
 @push('graficos')
@@ -390,12 +393,15 @@ var ctx1 = document.getElementById('foraDoPrazoPorFilial').getContext('2d');
     });
     
 </script>
+
+
     
 @endpush
 
 @else
 <br><br>
 <h1> <center>Você não tem permissão para acessar essa página </center></h1>
+
 
 @endif
 @endauth

@@ -15,11 +15,11 @@
     <p>Nome Completo: {{ $veiculo->nome }}</p>
     <p>CPF: {{ $veiculo->cpf }}</p>
     <p>RG: {{ $veiculo->rg }}</p>
-    <p>Data de Nascimento: {{ $veiculo->data_nascimento }}</p>
+    <p>Data de Nascimento: {{ \Carbon\Carbon::parse($veiculo->data_nascimento)->format('d/m/Y') }}</p>
     <p>Local de Retirada: {{ $veiculo->origem }}</p>
     <p>Local de Devolução: {{ $veiculo->destino }}</p>
-    <p>Data de Ida: {{ $veiculo->ida }}</p>
-    <p>Data de Volta: {{ $veiculo->volta }}</p>
+    <p>Data de Ida: {{ \Carbon\Carbon::parse($veiculo->ida)->format('d/m/Y') }}</p>
+    <p>Data de Volta: {{ \Carbon\Carbon::parse($veiculo->volta )->format('d/m/Y')  }}</p>
     <p>Motivo: {{ $veiculo->motivo }}</p>
     <p>Validacao: {{ $veiculo->validacao }}</p>
     <p>Email_Gestor: {{ $veiculo->email_gestor }}</p>

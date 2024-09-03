@@ -1,10 +1,8 @@
 @extends('layout')
 @section('title', 'Reserva - Solicitações')
 @section('conteudo')
-
-<br>
     
-<div class="row container">
+<div class="row">
       
   @if ($message = Session::get('success'))
   <div class="card green darken-1">
@@ -31,65 +29,60 @@
   @endif
 
   @if (@auth()->user()->id != null)
-      
 
-    <div class="col s12 m4">
+
+
+    <div class="col s12 m3">
         <div class="card">
-          <span class="card-title" style="color: red"><center><b>Reserva de Passagem</b></center></span>
+          <span class="card-title" style="color: black"><center><b>Reserva de Passagem</b></center></span>
             <div class="card-image">
               <img src="{{asset('img/aviao.png')}}" class="custom-image">
               <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route("reserva.passagem-aerea")}}"><i class="material-icons">add</i></a>
             </div>
             <div class="card-content">
-              <p>Reserve a sua passagem Áerea ou Rodoviária</p>
             </div>
           </div>
     </div>
 
 
-    <div class="col s12 m4">
+    <div class="col s12 m3">
         <div class="card">
-          <span class="card-title" style="color: red"><center><b>Reserva de Veiculo Leve</b></center></span>
+          <span class="card-title" style="color: black"><center><b>Reserva de Veiculo Leve</b></center></span>
             <div class="card-image">
               <img src="{{asset('img/veiculo.png')}}" class="custom-image">
               <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.veiculo')}}"><i class="material-icons">add</i></a>
             </div>
             <div class="card-content">
-              <p>Reserve o seu veículo leve</p>
             </div>
           </div>
     </div>
 
-    <div class="col s12 m4">
+    <div class="col s12 m3">
         <div class="card">
-          <span class="card-title" style="color: red"><center><b>Hotel/Hospedagem</b></center></span>
+          <span class="card-title" style="color: black"><center><b>Hotel/Hospedagem</b></center></span>
             <div class="card-image">
               <img src="{{asset('img/hotel.png')}}" class="custom-image">
               <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.hospedagem')}}"><i class="material-icons">add</i></a>
             </div>
             <div class="card-content">
-              <p>Reserve a sua locação</p>
             </div>
           </div>
     </div>
 
-    <div class="col s12 m4">
+    <div class="col s12 m3">
         <div class="card">
-          <span class="card-title" style="color: red"><center><b>Adiantamento Viagem</b></center></span>
+          <span class="card-title" style="color: black"><center><b>Adiantamento Viagem</b></center></span>
             <div class="card-image">
               <img src="{{asset('img/money.webp')}}" class="custom-image">
               <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.adiantamento')}}"><i class="material-icons">add</i></a>
             </div>
             <div class="card-content">
-              <p>Faça o seu adiantamento de viagem</p>
             </div>
           </div>
     </div>
 
-    
-
-    <div class="card-image">
-      <img src="{{asset('img/regras.jpg')}}" class="custom-image2">
+    <div class="card-image center">
+      <img src="{{asset('img/regras2.jpg')}}" class="custom-image2">
     </div>
 
   </div>

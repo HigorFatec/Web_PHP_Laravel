@@ -80,6 +80,19 @@ class ReservaController extends Controller
 
         return view('admin.canceladas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento'));
     }
+
+    public function finalizadas()
+    {
+        if (auth()->user()->admin == 1){
+            $passagens = Reserva::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
+            $veiculos = Veiculo::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
+            $hospedagem = Hospedagem::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
+            $adiantamento = Adiantamento::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
+        }
+
+        return view('admin.finalizadas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento'));
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -128,7 +141,7 @@ class ReservaController extends Controller
 
             // Envia o email com os dados do formulário
             Mail::send('emails.passagem', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
-                $message->to([$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
+                $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 $message->subject('Nova Reserva de Veículo solicitada');
 
@@ -168,7 +181,7 @@ class ReservaController extends Controller
 
         // Envia o e-mail de cancelamento
         Mail::send('emails.cancelamento_reserva', ['reserva' => $reserva, 'user' => $user], function($message) use ($user, $reserva) {
-            $message->to([$reserva->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
+            $message->to([$reserva->email,$reserva->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
             $message->subject('Reserva de Passagem Cancelada');
         });
     
@@ -195,8 +208,8 @@ class ReservaController extends Controller
             $user = Auth::user();
 
             // Envia o e-mail de finalização
-            Mail::send('emails.cancelamento_reserva', ['reserva' => $reserva, 'user' => $user], function($message) use ($user, $reserva) {
-                $message->to(['reservas@grupocargopolo.com.br', $user->email]);
+            Mail::send('emails.finalizar_reserva', ['reserva' => $reserva, 'user' => $user], function($message) use ($user, $reserva) {
+                $message->to([$reserva->email,$reserva->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
                 $message->subject('Reserva Finalizada');
             });
 

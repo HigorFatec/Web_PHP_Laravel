@@ -2,8 +2,6 @@
 @section('title', 'Reserva - Solicitações')
 @section('conteudo')
 
-<br>
-
 <div class="row">
     <div class="col s12 m6 offset-m3">
 

@@ -2,9 +2,8 @@
 @section('title', 'Hospedagem')
 @section('conteudo')
 
-<br>
 
-<div class="row container">
+<div class="row">
 
 
   @if ($errors->any())
@@ -24,7 +23,7 @@
   </div>
 @endif
 
-
+<div class="container">
 <div class="card">
   <div class="card-content">
       <span class="card-title center"><b>Hospedagem/Hotel</b></span><br>
@@ -72,6 +71,6 @@
 </div>
 
 </div>
-
+</div>
 
 @endsection

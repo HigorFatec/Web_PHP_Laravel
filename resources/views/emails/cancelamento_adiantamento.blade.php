@@ -15,11 +15,13 @@
     <p>Nome Completo: {{ $adiantamento->nome }}</p>
     <p>CPF: {{ $adiantamento->cpf }}</p>
     <p>RG: {{ $adiantamento->rg }}</p>
-    <p>Data de Nascimento: {{ $adiantamento->data_nascimento }}</p>
+    <p>Data de Nascimento: {{ \Carbon\Carbon::parse($adiantamento->data_nascimento)->format('d/m/Y') }}</p>
     <p>Origem: {{ $adiantamento->origem }}</p>
     <p>Destino: {{ $adiantamento->destino }}</p>
-    <p>Data de Ida: {{ $adiantamento->ida }}</p>
-    <p>Data de Volta: {{ $adiantamento->volta }}</p>
+
+    <p>Data de Ida: {{ \Carbon\Carbon::parse($adiantamento->ida)->format('d/m/Y') }}</p>
+    <p>Data de Volta: {{ \Carbon\Carbon::parse($adiantamento->volta )->format('d/m/Y')  }}</p>
+
     <p>Motivo: {{ $adiantamento->motivo }}</p>
     <p>Validacao: {{ $adiantamento->validacao }}</p>
     <p>Email_Gestor: {{ $adiantamento->email_gestor }}</p>

@@ -4,7 +4,6 @@
 @section('title', 'Minhas Reservas')
 @section('conteudo')
 
-<br>
 <div class="row">
 
     @if(auth()->user()->admin == 1)

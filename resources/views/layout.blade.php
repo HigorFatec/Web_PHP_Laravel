@@ -10,26 +10,35 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <style>    
+
+    .row{
+          background-color: #b1b1b1; /* Azul claro */
+          padding: 20px;
+        }
+
+    .red{
+      background-color: #00008b !important;
+    }    
     .admin{
       /* Modificar a cor do texto*/
       color: #ffffff;
       background-color: #ff0000;
     }
     .custom-image {
-        width: 250px;
-        height: 250px;
+        width: 180px;
+        height: 180px;
     }
 
     .custom-image2 {
       width: 100%; /* Ajusta a imagem para ocupar 100% da largura do container */
       height: auto; /* Mantém a proporção da imagem */
       /* Se você quiser um tamanho específico, defina largura e altura diretamente */
-      max-width: 728px; /* Define a largura máxima da imagem */
-      max-height: 365px; /* Define a altura máxima da imagem */
+      max-width: 1650px; /* Define a largura máxima da imagem */
+      max-height: 400px; /* Define a altura máxima da imagem */
     }
 
     .btn-cadastrar {
-    background-color: #ff0000; /* Cor de fundo do botão */
+    background-color: #00008b; /* Cor de fundo do botão */
     color: white; /* Cor do texto */
     padding: 10px 20px; /* Espaçamento interno */
     border: none; /* Remover bordas */
@@ -71,6 +80,7 @@
       @if (auth()->user()->admin == 1)
         <li><a href="{{route('admin.dashboard')}}">Dashboard</a></li>
         <li><a href="{{route('admin.canceladas')}}">Canceladas</a></li>
+        <li><a href="{{route('admin.finalizadas')}}">Finalizadas</a></li>
       @endif 
     @endauth
     <li><a href="{{route('reserva.sobre')}}">Sobre</a></li>
@@ -110,7 +120,7 @@
         <li>
             <div class="user-view">
                 <div class="background red">
-                    <img src="{{asset('img/office.jpg')}}" style="opacity: 0.5"> 
+                    <img src="{{asset('img/office2.jpg')}}" style="opacity: 0.5"> 
                 </div>
                 <a href="#user"><img class="circle" src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Anonymous_emblem.svg"></a>
                 <a href="#name"><span class="white-text name"> {{auth()->user()->name }} </span></a>

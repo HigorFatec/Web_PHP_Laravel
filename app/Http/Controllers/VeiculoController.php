@@ -72,7 +72,7 @@ class VeiculoController extends Controller
 
             // Envia o email com os dados do formulário
             Mail::send('emails.veiculo', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
-                $message->to([$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
+                $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 $message->subject('Nova Reserva de Veículo solicitada');
             //Verificar se existe imagem anexada
@@ -112,7 +112,7 @@ class VeiculoController extends Controller
 
             // Envia o e-mail de cancelamento
             Mail::send('emails.cancelamento_veiculo', ['veiculo' => $veiculo, 'user' => $user], function($message) use ($user, $veiculo) {
-                $message->to([$veiculo->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
+                $message->to([$veiculo->email,$veiculo->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
                 $message->subject('Reserva de Veiculo Cancelada');
             });
     
@@ -139,8 +139,8 @@ class VeiculoController extends Controller
             $user = Auth::user();
 
             // Envia o e-mail de cancelamento
-            Mail::send('emails.cancelamento_veiculo', ['veiculo' => $veiculo, 'user' => $user], function($message) use ($user, $veiculo) {
-                $message->to(['reservas@grupocargopolo.com.br', $user->email]);
+            Mail::send('emails.finalizar_veiculo', ['veiculo' => $veiculo, 'user' => $user], function($message) use ($user, $veiculo) {
+                $message->to([$veiculo->email,$veiculo->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
                 $message->subject('Reserva de Veiculo Finalizada');
             });
 

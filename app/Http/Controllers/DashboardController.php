@@ -114,6 +114,7 @@ class DashboardController extends Controller
         $reservas = $passagensQuery->with('user')->get();
         $prazoveiculo = $veiculosQuery->with('user')->get();
         $prazohospedagem = $hospedagensQuery->with('user')->get();
+        $prazoAdiantamento = $adiantamentosQuery->with('user')->get();
 
 
         $prazo = 0;
@@ -173,6 +174,7 @@ class DashboardController extends Controller
             }
         }
 
+        //adiantamento
         foreach($prazohospedagem as $hosp){
             $dias_antecedencia = Carbon::parse($hosp->ida)->diffInDays($hosp->created_at);
 
@@ -191,6 +193,30 @@ class DashboardController extends Controller
                     'viagem' => '',
                     'nome' => $hosp->nome,
                     'tipo' => 'Hospedagem', // Adiciona o tipo
+                ]; // Adiciona a reserva fora do prazo ao array
+
+            }
+        }
+
+        foreach($prazoAdiantamento as $adiantamento){
+            
+            $volta_x_ida = Carbon::parse($adiantamento->ida)->diffInDays($adiantamento->volta);
+
+            if($volta_x_ida >= 5){
+                $prazo++;
+            } else {
+                $fora_do_prazo++;
+                $foraDoPrazoReservas[] = [
+                    'id' => $adiantamento->id,
+                    'user_name' => $adiantamento->user->name,
+                    'filial' => $adiantamento->user->filial,
+                    'origem' => $adiantamento->origem,
+                    'destino' => $adiantamento->destino,
+                    'ida' => $adiantamento->ida,
+                    'created_at' => $adiantamento->created_at,
+                    'viagem' => '',
+                    'nome' => $adiantamento->nome,
+                    'tipo' => 'Adiantamento', // Adiciona o tipo
                 ]; // Adiciona a reserva fora do prazo ao array
 
             }
@@ -229,6 +255,7 @@ class DashboardController extends Controller
         processarReservas($reservas, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
         processarReservas($prazoveiculo, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
         processarReservas($prazohospedagem, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
+        processarReservas($prazoAdiantamento, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
 
         // Preparar dados para gráficos
         $filiais = array_keys($foraDoPrazoPorFilial);

@@ -72,7 +72,7 @@ class HospedagemController extends Controller
 
             // Envia o email com os dados do formulário
             Mail::send('emails.hospedagem', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
-                $message->to([$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
+                $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 $message->subject('Nova Hospedagem solicitada');
 
@@ -112,7 +112,7 @@ class HospedagemController extends Controller
 
             // Envia o e-mail de cancelamento
             Mail::send('emails.cancelamento_hospedagem', ['hospedagem' => $hospedagem, 'user' => $user], function($message) use ($user, $hospedagem) {
-                $message->to([$hospedagem->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
+                $message->to([$hospedagem->email,$hospedagem->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
                 $message->subject('Hospedagem Cancelada');
             });
     
@@ -139,8 +139,8 @@ class HospedagemController extends Controller
             $user = Auth::user();
 
             // Envia o e-mail de cancelamento
-            Mail::send('emails.cancelamento_hospedagem', ['hospedagem' => $hospedagem, 'user' => $user], function($message) use ($user, $hospedagem) {
-                $message->to(['reservas@grupocargopolo.com.br', $user->email]);
+            Mail::send('emails.finalizar_hospedagem', ['hospedagem' => $hospedagem, 'user' => $user], function($message) use ($user, $hospedagem) {
+                $message->to([$hospedagem->email,$hospedagem->email_gestor,'reservas@grupocargopolo.com.br', $user->email]);
                 $message->subject('Hospedagem Finalizada');
             });
     

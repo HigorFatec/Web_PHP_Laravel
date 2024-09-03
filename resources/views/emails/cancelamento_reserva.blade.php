@@ -15,11 +15,11 @@
     <p>Nome Completo: {{ $reserva->nome }}</p>
     <p>CPF: {{ $reserva->cpf }}</p>
     <p>RG: {{ $reserva->rg }}</p>
-    <p>Data de Nascimento: {{ $reserva->data_nascimento }}</p>
+    <p>Data de Nascimento: {{ \Carbon\Carbon::parse($reserva->data_nascimento)->format('d/m/Y') }}</p>
     <p>Origem: {{ $reserva->origem }}</p>
     <p>Destino: {{ $reserva->destino }}</p>
-    <p>Data de Ida: {{ $reserva->ida }}</p>
-    <p>Data de Volta: {{ $reserva->volta }}</p>
+    <p>Data de Ida: {{ \Carbon\Carbon::parse($reserva->ida)->format('d/m/Y') }}</p>
+    <p>Data de Volta: {{ \Carbon\Carbon::parse($reserva->volta )->format('d/m/Y')  }}</p>
     <p>Motivo: {{ $reserva->motivo }}</p>
     <p>Validacao: {{ $reserva->validacao }}</p>
     <p>Email_Gestor: {{ $reserva->email_gestor }}</p>

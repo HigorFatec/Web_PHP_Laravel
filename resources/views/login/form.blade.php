@@ -2,7 +2,6 @@
 @section('title', 'Reserva - Solicitações')
 @section('conteudo')
 
-<br>
 
 @auth
 <script>window.location = "/reserva";</script>

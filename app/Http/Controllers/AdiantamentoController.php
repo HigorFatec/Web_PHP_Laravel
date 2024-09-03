@@ -49,12 +49,12 @@ class AdiantamentoController extends Controller
     
             ]);
 
-            $ida = Carbon::parse($validatedData['ida']);
-            $volta = Carbon::parse($validatedData['volta']);
+            // $ida = Carbon::parse($validatedData['ida']);
+            // $volta = Carbon::parse($validatedData['volta']);
 
-            if ($volta->diffInDays($ida) < 5){
-                return redirect()->route('reserva.adiantamento')->with('error_dias', 'A data de volta deve ser maior que a data de ida.');
-            }
+            // if ($volta->diffInDays($ida) < 5){
+            //     return redirect()->route('reserva.adiantamento')->with('error_dias', 'A data de volta deve ser maior que a data de ida.');
+            // }
     
             
             // Se precisar salvar em um banco de dados, adicione o código aqui
@@ -75,7 +75,7 @@ class AdiantamentoController extends Controller
 
             // Envia o email com os dados do formulário
             Mail::send('emails.adiantamento', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
-                $message->to([$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
+                $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 $message->subject('Novo Adiantamento solicitado');
             //Verificar se existe imagem anexada
@@ -115,7 +115,7 @@ class AdiantamentoController extends Controller
 
             // Envia o e-mail de cancelamento
             Mail::send('emails.cancelamento_adiantamento', ['adiantamento' => $adiantamento, 'user' => $user], function($message) use ($user, $adiantamento) {
-                $message->to([$adiantamento->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
+                $message->to([$adiantamento->email,$adiantamento->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
                 $message->subject('Adiantamento Cancelado');
             });
     
@@ -142,8 +142,8 @@ class AdiantamentoController extends Controller
             $user = Auth::user();
 
             // Envia o e-mail de cancelamento
-            Mail::send('emails.cancelamento_adiantamento', ['adiantamento' => $adiantamento, 'user' => $user], function($message) use ($user, $adiantamento) {
-                $message->to(['reservas@grupocargopolo.com.br', $user->email]);
+            Mail::send('emails.finalizar_adiantamento', ['adiantamento' => $adiantamento, 'user' => $user], function($message) use ($user, $adiantamento) {
+                $message->to([$adiantamento->email,$adiantamento->email_gestor ,'reservas@grupocargopolo.com.br', $user->email]);
                 $message->subject('Adiantamento Finalizado');
             });
     

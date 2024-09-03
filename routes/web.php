@@ -51,6 +51,7 @@ Route::get('/reserva/reservas', [ReservaController::class, 'minhasPassagens'])->
 Route::post('/cancelar-passagem/{id}', [ReservaController::class, 'cancelarPassagem'])->name('cancelar.passagem');
 Route::post('/finalizar-passagem/{id}', [ReservaController::class, 'finalizarPassagem'])->name('finalizar.passagem');
 Route::get('/reserva/canceladas', [ReservaController::class, 'canceladas'])->name('admin.canceladas');
+Route::get('/reserva/finalizadas', [ReservaController::class, 'finalizadas'])->name('admin.finalizadas');
 
 
 
