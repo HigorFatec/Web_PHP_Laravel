@@ -261,6 +261,11 @@ class DashboardController extends Controller
         $filiais = array_keys($foraDoPrazoPorFilial);
         $colaboradores = array_keys($foraDoPrazoPorColaborador);
 
+        // Truncando os nomes para os primeiros 10 caracteres
+        $colaboradores = array_map(function($colaborador) {
+            return substr($colaborador, 0, 15);
+        }, $colaboradores);
+
         $foraDoPrazoPorFilialData = array_values($foraDoPrazoPorFilial);
         $foraDoPrazoPorColaboradorData = array_values($foraDoPrazoPorColaborador);
 
