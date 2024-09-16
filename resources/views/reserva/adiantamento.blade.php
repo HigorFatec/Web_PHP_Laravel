@@ -39,7 +39,7 @@
   <div class="card-content">
       <span class="card-title center"><b>Adiantamento de Viagem</b></span><br>
 
-<form action="/reserva/adiantamento" method="POST" enctype="multipart/form-data">
+<form action="/reserva/adiantamento" method="POST" enctype="multipart/form-data" onsubmit="return disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
           
 
@@ -66,6 +66,16 @@
     <input type="number" name="rg" placeholder="RG" required><br><br>
     Data de Nascimento:
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required><br><br>
+    
+    Filial:
+    <select name="filial" id="filial">
+
+        <option value=""></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+
+    </select> <br>
 
     <span class="card-title center"><b>Dados Bancários</b></span>
     <input type="text" name="banco" placeholder="Banco" required>

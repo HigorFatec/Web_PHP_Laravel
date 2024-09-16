@@ -15,6 +15,7 @@
     <p>Nome Completo: {{ $veiculo->nome }}</p>
     <p>CPF: {{ $veiculo->cpf }}</p>
     <p>RG: {{ $veiculo->rg }}</p>
+    <p>Filial: {{ $veiculo->filial }}</p>
     <p>Data de Nascimento: {{ \Carbon\Carbon::parse($veiculo->data_nascimento)->format('d/m/Y') }}</p>
     <p>Local de Retirada: {{ $veiculo->origem }}</p>
     <p>Local de Devolução: {{ $veiculo->destino }}</p>

@@ -12,10 +12,11 @@
     <p>Nome Completo: {{ $dados['nome'] }}</p>
     <p>CPF: {{ $dados['cpf'] }}</p>
     <p>RG: {{ $dados['rg'] }}</p>
+    <p>Filial: {{$dados['filial']}}</p>
     <p>Data de Nascimento: {{ \Carbon\Carbon::parse($dados['data_nascimento'])->format('d/m/Y') }}</p>
     <p>Destino: {{ $dados['destino'] }}</p>
-    <p>Data de Ida: {{ \Carbon\Carbon::parse($dados['ida'])->format('d/m/Y') }}</p>
-    <p>Data de Volta: {{ \Carbon\Carbon::parse($dados['volta'])->format('d/m/Y')  }}</p>
+    <p>Data de Check-In: {{ \Carbon\Carbon::parse($dados['ida'])->format('d/m/Y') }}</p>
+    <p>Data de Check-Out: {{ \Carbon\Carbon::parse($dados['volta'])->format('d/m/Y')  }}</p>
     <p>Motivo: {{ $dados['motivo'] }}</p>
     <p>Validacao: {{ $dados['validacao'] }}</p>
     <p>Email_Gestor: {{ $dados['email_gestor'] }}</p>

@@ -29,7 +29,7 @@
       <span class="card-title center"><b>Reserva de Passagem</b></span><br>
       <span class="card-title center"><b>Selecione o tipo de Passagem:</b></span>
 
-<form action="/reserva/passagem-aerea" method="POST" enctype="multipart/form-data">
+<form action="/reserva/passagem-aerea" method="POST" enctype="multipart/form-data" onsubmit="return disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
     <div class="btn-group center" role="group" aria-label="Tipo de Reserva">
         <input type="hidden" name="tipo" id="tipo" required>
@@ -37,7 +37,6 @@
         <button type="button" class="btn" data-value="rodoviaria">Rodoviária</button>
     </div><br>
     
-          
 
     <input type="text" name="origem" placeholder="Origem" required>
     <input type="text" name="destino" placeholder="Destino" required><br><br>
@@ -61,7 +60,17 @@
     Data de Nascimento:
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required>
     <input type="email" name="email" placeholder="E-mail" required><br><br>
+    
+    Filial:
+    <select name="filial" id="filial">
 
+        <option value=""></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+
+
+    </select> <br>
     Anexar Documento(CNH ou RG):<br>
     <input type="file" name="foto" id="foto" accept="image/*"><br><br>
 

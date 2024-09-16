@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Nova Passagem Solicitada</title>
+    <title>Nova Passagem {{$dados['tipo']}} Solicitada</title>
 </head>
 <body>
     <p><b>Nome do Solicitante: {{ $user->name }}</b></p>
@@ -10,6 +10,7 @@
     <p><b>Filial: {{$user->filial}}</b></p><br>
     <p><b>Dados do Viajante</b></p><br>
     <p>Nome Completo: {{ $dados['nome'] }}</p>
+    <p>Filial: {{$dados['filial']}}</p>
     <p>CPF: {{ $dados['cpf'] }}</p>
     <p>RG: {{ $dados['rg'] }}</p>
     <p>CPF: {{ $dados['cpf'] }}</p>

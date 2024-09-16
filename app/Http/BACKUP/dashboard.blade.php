@@ -4,6 +4,12 @@
 
 
 
+
+
+
+
+
+
   <!-- Dropdown Structure -->
   <ul id="dropdown2" class="dropdown-content">
     <li><a href="{{route('reserva.reservas')}}">Minhas reservas</a></li>
@@ -19,7 +25,7 @@
 
 
 
-  <nav class="blue darken-4">
+  <nav class="red">
       <div class="nav-wrapper container ">
         <a href="#" class="brand-logo center">Dashboard</a>
         <a href="#" class="brand-logo" href="index.html">
@@ -43,8 +49,8 @@
 
   <ul id="slide-out" class="sidenav " >
     <li><div class="user-view">
-      <div class="background blue">
-       <img src="{{asset('img/office2.jpg')}}" style="opacity: 0.5"> 
+      <div class="background red ">
+       <img src="{{asset('img/office.jpg')}}" style="opacity: 0.5"> 
       </div>
         {{-- <a href="#user"><img class="circle" src="{{asset('img/user.jpg')}}"></a> --}}
         <a href="#user"><img class="circle" src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Anonymous_emblem.svg"></a>
@@ -157,24 +163,6 @@
             <div class="grafico card z-depth-4">
               <h5 class="center"> Fora do Prazo por Usuário </h5>
               <canvas id="foraDoPrazoPorUsuario" width="400" height="200"></canvas>
-            </div>
-          </div><br><br><br><br>
-         </section>
-
-         <section>
-          <div class="graficos col s12 m6">
-            <div class="grafico card z-depth-4">
-              <h5 class="center"> Dentro do Prazo por Filial </h5>
-              <canvas id="NoPrazoPorFilialData" width="400" height="200"></canvas>
-            </div>
-          </div><br><br><br><br>
-         </section>
-
-         <section>
-          <div class="graficos col s12 m6" >
-            <div class="grafico card z-depth-4">
-              <h5 class="center"> Dentro do Prazo por Usuário </h5>
-              <canvas id="NoPrazoPorColaboradorData" width="400" height="200"></canvas>
             </div>
           </div><br><br><br><br>
          </section>
@@ -305,9 +293,7 @@ var myChart = new Chart(ctx, {
             ]
         }]
     }
-},
-
-);
+});
 
 /* Gráfico 03 */
 var ctx = document.getElementById('myChart5').getContext('2d');
@@ -338,7 +324,7 @@ var ctx1 = document.getElementById('foraDoPrazoPorFilial').getContext('2d');
             datasets: [{
                 label: 'Total Fora do Prazo por Filial',
                 data: {!! json_encode($foraDoPrazoPorFilialData) !!},
-                backgroundColor: 'rgb(255, 37, 0, 0.5)'
+                backgroundColor: 'rgba(255, 99, 132, 0.5)'
             }]
         },
         options: {
@@ -362,7 +348,7 @@ var ctx1 = document.getElementById('foraDoPrazoPorFilial').getContext('2d');
             datasets: [{
                 label: 'Total Fora do Prazo por Usuário',
                 data: {!! json_encode($foraDoPrazoPorColaboradorData) !!},
-                backgroundColor: 'rgb(255, 37, 0, 0.5)'
+                backgroundColor: 'rgba(54, 162, 235, 0.5)'
             }]
         },
         options: {
@@ -377,53 +363,6 @@ var ctx1 = document.getElementById('foraDoPrazoPorFilial').getContext('2d');
     }
 });
 
-// NO DO PRAZO POR FILIAL
-var ctx3 = document.getElementById('NoPrazoPorFilialData').getContext('2d');
-    var noPrazoPorFilialDataChart  = new Chart(ctx3, {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode($filiais) !!},
-            datasets: [{
-                label: 'Total no Prazo por Filial',
-                data: {!! json_encode($NoPrazoPorFilialData) !!},
-                backgroundColor: 'rgb(20, 255, 0, 0.5)'
-            }]
-        },
-        options: {
-        onClick: (e, activeElements) => {
-            if (activeElements.length > 0) {
-                const datasetIndex = activeElements[0].datasetIndex;
-                const index = activeElements[0].index;
-                const filial = noPrazoPorFilialDataChart.data.labels[index];
-                filterTableByFilial(filial);
-            }
-        }
-    }
-});
-
-
-    var ctx4  = document.getElementById('NoPrazoPorColaboradorData').getContext('2d');
-    var NoPrazoPorColaboradorDataChart  = new Chart(ctx4, {
-        type: 'bar',
-        data: {
-            labels: {!! json_encode($noPrazoColaboradores) !!},
-            datasets: [{
-                label: 'Total Dentro do Prazo por Usuário',
-                data: {!! json_encode($NoPrazoPorColaboradorData) !!},
-                backgroundColor: 'rgb(20, 255, 0, 0.5)'
-            }]
-        },
-        options: {
-        onClick: (e, activeElements) => {
-            if (activeElements.length > 0) {
-                const datasetIndex = activeElements[0].datasetIndex;
-                const index = activeElements[0].index;
-                const user = NoPrazoPorColaboradorDataChart.data.labels[index];
-                filterTableByUser(user);
-            }
-        }
-    }
-});
 
     // Adiciona o evento de clique ao gráfico 3
     document.getElementById('ControllerForaDoPrazo').addEventListener('click', function() {

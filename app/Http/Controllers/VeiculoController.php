@@ -6,6 +6,7 @@ use App\Models\Veiculo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\Filial;
 
 use Illuminate\Support\Facades\Mail;
 
@@ -17,7 +18,9 @@ class VeiculoController extends Controller
      */
     public function index()
     {
-        return view('reserva.veiculo');
+        $filiais = Filial::orderBy('filial')->pluck('filial');
+
+        return view('reserva.veiculo', compact('filiais'));
     }
 
     /**
@@ -52,7 +55,7 @@ class VeiculoController extends Controller
                 'rg' => 'required|numeric',
                 'data_nascimento' => 'required|date',
                 'email' => 'required|email',
-    
+                'filial' => 'required|string',
             ]);
     
             

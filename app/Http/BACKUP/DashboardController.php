@@ -225,31 +225,16 @@ class DashboardController extends Controller
 
         $foraDoPrazoPorFilial = [];
         $foraDoPrazoPorColaborador = [];
-        
-        $NoPrazoPorFilial = [];
-        $NoPrazoPorColaborador = [];
 
 
         // Função para processar reservas e outros itens
-        function processarReservas($reservas, &$foraDoPrazoPorFilial, &$foraDoPrazoPorColaborador, &$NoPrazoPorFilial, &$NoPrazoPorColaborador) {
+        function processarReservas($reservas, &$foraDoPrazoPorFilial, &$foraDoPrazoPorColaborador) {
             foreach ($reservas as $reserva) {
                 $dias_antecedencia = Carbon::parse($reserva->ida)->diffInDays($reserva->created_at);
 
                 if (($reserva->tipo == 'aerea' && $dias_antecedencia >= 10) ||
                     ($reserva->tipo == 'rodoviaria' && $dias_antecedencia >= 5)||
                     ($reserva->tipo == null && $dias_antecedencia >= 5)) {
-                    
-                    if(!isset($NoPrazoPorFilial[$reserva->user->filial])) {
-                        $NoPrazoPorFilial[$reserva->user->filial] = 1;
-                    } else {
-                        $NoPrazoPorFilial[$reserva->user->filial]++;
-                    }
-                    if(!isset($NoPrazoPorColaborador[$reserva->user->name])) {
-                        $NoPrazoPorColaborador[$reserva->user->name] = 1;
-                    } else {
-                        $NoPrazoPorColaborador[$reserva->user->name]++;
-                    }
-
                     continue;
                 }
 
@@ -267,35 +252,26 @@ class DashboardController extends Controller
             }
         }
         // Processar reservas
-        processarReservas($reservas, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador, $NoPrazoPorFilial, $NoPrazoPorColaborador);
-        processarReservas($prazoveiculo, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador ,$NoPrazoPorFilial, $NoPrazoPorColaborador);
-        processarReservas($prazohospedagem, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador ,$NoPrazoPorFilial, $NoPrazoPorColaborador);
-        processarReservas($prazoAdiantamento, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador ,$NoPrazoPorFilial, $NoPrazoPorColaborador);
+        processarReservas($reservas, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
+        processarReservas($prazoveiculo, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
+        processarReservas($prazohospedagem, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
+        processarReservas($prazoAdiantamento, $foraDoPrazoPorFilial, $foraDoPrazoPorColaborador);
 
         // Preparar dados para gráficos
         $filiais = array_keys($foraDoPrazoPorFilial);
         $colaboradores = array_keys($foraDoPrazoPorColaborador);
-        $noPrazoFiliais = array_keys($NoPrazoPorFilial);
-        $noPrazoColaboradores = array_keys($NoPrazoPorColaborador);
 
         // Ordernar dados
         arsort($foraDoPrazoPorFilial);
         arsort($foraDoPrazoPorColaborador);
-        arsort($NoPrazoPorFilial);
-        arsort($NoPrazoPorColaborador);
 
         // Truncando os nomes para os primeiros 10 caracteres
         $colaboradores = array_map(function($colaborador) {
             return substr($colaborador, 0, 15);
         }, $colaboradores);
-        $noPrazoColaboradores = array_map(function($noPrazoColaboradores) {
-            return substr($noPrazoColaboradores, 0, 15);
-        }, $noPrazoColaboradores);
 
         $foraDoPrazoPorFilialData = array_values($foraDoPrazoPorFilial);
         $foraDoPrazoPorColaboradorData = array_values($foraDoPrazoPorColaborador);
-        $NoPrazoPorFilialData = array_values($NoPrazoPorFilial);
-        $NoPrazoPorColaboradorData = array_values($NoPrazoPorColaborador);
 
 
         return view('admin.dashboard', compact(
@@ -323,9 +299,6 @@ class DashboardController extends Controller
             'colaboradores',
             'foraDoPrazoPorFilialData',
             'foraDoPrazoPorColaboradorData',
-            'NoPrazoPorFilialData',
-            'NoPrazoPorColaboradorData',
-            'noPrazoColaboradores',
             'startDate',
             'endDate'
 

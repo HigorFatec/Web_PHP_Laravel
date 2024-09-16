@@ -28,7 +28,7 @@
   <div class="card-content">
       <span class="card-title center"><b>Reserva de Veiculo Leve</b></span><br>
 
-<form action="/reserva/veiculo" method="POST" enctype="multipart/form-data">
+<form action="/reserva/veiculo" method="POST" enctype="multipart/form-data" onsubmit="return disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
     <input type="text" name="origem" placeholder="Local de Retirada" required>
     <input type="text" name="destino" placeholder="Local de Devolução" required><br><br>
@@ -55,7 +55,18 @@
     <input type="number" name="cpf" placeholder="CPF" required>
     <input type="number" name="rg" placeholder="RG" required><br><br>
     Data de Nascimento:
-    <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required>
+    <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required><br><br>
+    
+    Filial:
+    <select name="filial" id="filial">
+
+        <option value=""></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+
+
+    </select> <br>
 
     Anexar Documento(CNH ou RG):<br>
     <input type="file" name="imagem" id="imagem" accept="image/*"><br><br>

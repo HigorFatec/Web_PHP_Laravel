@@ -15,6 +15,7 @@
     <p>Nome Completo: {{ $reserva->nome }}</p>
     <p>CPF: {{ $reserva->cpf }}</p>
     <p>RG: {{ $reserva->rg }}</p>
+    <p>Filial: {{ $reserva->filial }}</p>
     <p>Data de Nascimento: {{ \Carbon\Carbon::parse($reserva->data_nascimento)->format('d/m/Y') }}</p>
     <p>Origem: {{ $reserva->origem }}</p>
     <p>Destino: {{ $reserva->destino }}</p>

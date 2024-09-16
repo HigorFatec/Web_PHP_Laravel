@@ -18,8 +18,8 @@
     @if ($message = Session::get('success'))
     <div class="card green darken-1">
     <div class="card-content white-text">
-        <span class="card-title">Logouff</span>
-        <p>Logouff realizado com sucesso!!
+        <span class="card-title">Logout</span>
+        <p>Logout realizado com sucesso!!
     </p>
     </div>
     </div>

@@ -49,7 +49,7 @@
                     @if(auth()->user()->admin == 1)
                     <th class="admin">Status</th>
                     <th class="admin">Solicitante</th>
-                    <th class="admin">Solicitado:</th>
+                    <th class="admin">Solicitado</th>
                     <th class="admin">Filial</th>
                     @endif
                     <th>Passagem</th>
@@ -57,12 +57,15 @@
                     <th>Destino</th>
                     <th>Data de Ida</th>
                     <th>Data de Volta</th>
+
                     <th>Motivo</th>
                     <th>Viajante</th>
                     <th>Cancelar</th>
                     @if(auth()->user()->admin == 1)
-                    <th class="admin">Finalizar</th>
+                        <th class="admin">Finalizar</th>
+                        <th class="admin">Filial Viajante</th>
                     @endif
+
                 </tr>
             </thead>
             <tbody>
@@ -85,6 +88,8 @@
 
                         @endif
                         </td>
+
+
                         <td>{{ $passagem->motivo }}</td>
                         <td>{{ $passagem->nome }}</td>
                        
@@ -102,6 +107,8 @@
                             </form>
 
                         </td>
+
+                                <td>{{ $passagem->filial }}</td>
                         @endif
 
                     </tr>
@@ -147,7 +154,8 @@
             <th>Viajante</th>
             <th>Cancelar</th>
             @if(auth()->user()->admin == 1)
-            <th class="admin">Finalizar</th>
+                <th class="admin">Finalizar</th>
+                <th class="admin">Filial Viajante</th>
             @endif
         </tr>
     </thead>
@@ -186,8 +194,10 @@
                         @csrf
                         <button type="submit" class="btn btn-success green"> <i class="material-icons">done</i></button>
                     </form>
-
                 </td>
+
+                    <td>{{ $veiculo->filial }}</td>
+
                 @endif
             </tr>
 
@@ -233,6 +243,7 @@
                         <th>Cancelar</th>
                         @if(auth()->user()->admin == 1)
                             <th class="admin">Finalizar</th>
+                            <th class="admin">Filial Viajante</th>
                         @endif
                     </tr>
                 </thead>
@@ -268,6 +279,9 @@
                                         <button type="submit" class="btn btn-success green"><i class="material-icons">done</i></button>
                                     </form>
                                 </td>
+                                <td>{{ $hospedagem->filial }}</td>
+
+
                             @endif
                         </tr>
                     @endforeach
@@ -315,6 +329,7 @@
                     <th>Cancelar</th>
                     @if(auth()->user()->admin == 1)
                         <th class="admin">Finalizar</th>
+                        <th class="admin">Filial Viajante</th>
                     @endif
                 </tr>
             </thead>
@@ -351,6 +366,9 @@
                                 <button type="submit" class="btn btn-success green"><i class="material-icons">done</i></button>
                             </form>
                         </td>
+
+                            <td>{{ $adiant->filial }}</td>
+
                         @endif
                     </tr>
                 @endforeach

@@ -15,6 +15,7 @@
     <p>Nome Completo: {{ $adiantamento->nome }}</p>
     <p>CPF: {{ $adiantamento->cpf }}</p>
     <p>RG: {{ $adiantamento->rg }}</p>
+    <p>Filial: {{ $adiantamento->filial }}</p>
     <p>Data de Nascimento: {{ \Carbon\Carbon::parse($adiantamento->data_nascimento)->format('d/m/Y') }}</p>
     <p>Origem: {{ $adiantamento->origem }}</p>
     <p>Destino: {{ $adiantamento->destino }}</p>

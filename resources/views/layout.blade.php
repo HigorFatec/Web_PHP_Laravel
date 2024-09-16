@@ -145,6 +145,19 @@
 
 @yield('conteudo')
     <!-- Compiled and minified JavaScript -->
+
+    <script>
+      function disableButtonOnClick(button) {
+          // Desativa o botão para evitar múltiplos cliques
+          button.disabled = true;
+          // Opcional: Alterar o texto do botão para indicar o envio
+          button.textContent = 'Enviando...';
+          // Retorna true para permitir o envio do formulário
+          return true;
+      }
+  </script>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var elemsDropdown = document.querySelectorAll('.dropdown-trigger');
@@ -157,6 +170,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="{{asset('js/chart.js')}}" ></script>
     <script src="{{asset('js/main.js')}}"></script>
+
+
     @stack('graficos')
 
 </body>

@@ -6,6 +6,7 @@ use App\Models\Reserva;
 use App\Models\Veiculo;
 use App\Models\Hospedagem;
 use App\Models\Adiantamento;
+use App\Models\Filial;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,9 @@ class ReservaController extends Controller
 
     public function passagemAerea()
     {
-        return view('reserva.passagem-aerea');
+        $filiais = Filial::orderBy('filial')->pluck('filial');
+
+        return view('reserva.passagem-aerea', compact('filiais'));
     }
 
     /**
@@ -118,7 +121,7 @@ class ReservaController extends Controller
                 'rg' => 'required|numeric',
                 'data_nascimento' => 'required|date',
                 'email' => 'required|email',
-    
+                'filial' => 'required|string',
             ]);
     
             
@@ -143,7 +146,7 @@ class ReservaController extends Controller
             Mail::send('emails.passagem', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
                 $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-                $message->subject('Nova Reserva de Veículo solicitada');
+                $message->subject('Nova Reserva de Passagem Solicitada');
 
                 //Verificar se existe imagem anexada
                 if ($foto)  {

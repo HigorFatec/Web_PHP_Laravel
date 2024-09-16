@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 use Illuminate\Support\Facades\Mail;
+use App\Models\Filial;
 
 
 class AdiantamentoController extends Controller
@@ -17,7 +18,9 @@ class AdiantamentoController extends Controller
      */
     public function index()
     {
-        return view('reserva.adiantamento');
+        $filiais = Filial::orderBy('filial')->pluck('filial');
+
+        return view('reserva.adiantamento', compact('filiais'));
     }
 
     public function store(Request $request)
@@ -46,7 +49,7 @@ class AdiantamentoController extends Controller
                 'tipo_conta' => 'required|string',
                 'titular' => 'required|string',
                 'pix'=> 'required|string',
-    
+                'filial' => 'required|string',
             ]);
 
             // $ida = Carbon::parse($validatedData['ida']);
