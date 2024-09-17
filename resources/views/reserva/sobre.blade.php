@@ -17,7 +17,7 @@
         </p>
         </div>
         <div class="card-action">
-            <a href="https://w.app/VmdW1D" style="color:white">Contato</a>
+            <a href="https://wa.me/5513978090383?text=Ol%C3%A1%20Higor,%20gostaria%20de%20conversar%20sobre%20seu%20projeto." style="color:white">Contato</a>
           <a href="https://github.com/HigorFatec" style="color:white">PortFolio</a>
         </div>
       </div>
