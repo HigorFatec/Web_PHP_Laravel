@@ -33,7 +33,7 @@ class AdiantamentoController extends Controller
             $validatedData = $request->validate([
                 'destino' => 'required|string',
                 'ida' => 'required|date',
-                'volta' => 'nullable|date|after:ida',
+                'volta' => 'nullable|date|after_or_equal:ida',
                 'motivo' => 'required|string',
                 'validacao' => 'required|string',
                 'email_gestor' => 'required|email',

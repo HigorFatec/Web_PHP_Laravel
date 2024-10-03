@@ -156,7 +156,7 @@
         <input type="text" id="direto_com" name="direto_com" >
         <br>
 
-        <label class="form-label" for="email">Endereço Eletrônico (e-mail):</label>
+        <label class="form-label" for="email">E-mail para cotação:</label>
         <input type="email" id="email" name="email" >
         <br>
 

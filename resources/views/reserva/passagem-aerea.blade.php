@@ -59,18 +59,10 @@
     <input type="number" name="rg" placeholder="RG" required><br><br>
     Data de Nascimento:
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required>
-    <input type="email" name="email" placeholder="E-mail" required><br><br>
+    <input type="email" name="email" placeholder="E-mail" required><br>
     
-    Filial:
-    <select name="filial" id="filial">
+    <input type="text" name="filial" placeholder="Filial" required> <br>
 
-        <option value=""></option>
-        @foreach ($filiais as $filial)
-            <option value="{{$filial}}">{{$filial}}</option>
-        @endforeach
-
-
-    </select> <br>
     Anexar Documento(CNH ou RG):<br>
     <input type="file" name="foto" id="foto" accept="image/*"><br><br>
 

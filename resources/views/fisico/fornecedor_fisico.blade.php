@@ -183,7 +183,7 @@
         <input type="number" id="celular" name="celular" >
         <br>
         
-        <label class="form-label" for="email">E-mail:</label>
+        <label class="form-label" for="email">E-mail para cotação:</label>
         <input type="email" id="email" name="email" >
         <br>
 
