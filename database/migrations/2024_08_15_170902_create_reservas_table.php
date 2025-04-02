@@ -29,6 +29,9 @@ return new class extends Migration
             $table->date('data_nascimento');
             $table->string('email');
 
+            // Novo campo 'filial_viajante'
+            $table->string('filial_viajante');
+
             // Colunas de chave estrangeira
             $table->string('user_name');
             $table->string('user_cpf');

@@ -162,6 +162,37 @@
 
         </p>
 
+        <h4><center>Endereço</center></h4>
+
+        <p class="preenchimento">
+        <label class="form-label" for="rua">Rua:</label>
+        <input type="text" id="rua" name="rua" >
+        <br>
+
+        <label class="form-label" for="numero">Número:</label>
+        <input type="number" id="numero" name="numero" >
+        <br>
+
+        <label class="form-label" for="bairro">Bairro:</label>
+        <input type="text" id="bairro" name="bairro" >
+        <br>
+
+        <label class="form-label" for="cidade">Cidade:</label>
+        <input type="text" id="cidade" name="cidade" >
+        <br>
+
+        <label class="form-label" for="estado">Estado:</label>
+        <input type="text" id="estado" name="estado" >
+        <br>
+
+        <label class="form-label" for="cep">CEP:</label>
+        <input type="number" id="cep" name="cep" >
+        <br>
+
+        <label for="complemento" class="form-label">Complemento:</label>
+        <input type="text" id="complemento" name="complemento" >
+        <br>
+
         <center><button class="btn" type="submit" name="action">Enviar
             <i class="material-icons right">send</i>
           </button></center><br>

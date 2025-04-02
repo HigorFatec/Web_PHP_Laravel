@@ -59,7 +59,7 @@
     Data de Nascimento:
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required><br>
     
-    <input type="text" name="filial" placeholder="Filial" required> <br>
+    <input type="text" name="filial_viajante" placeholder="Filial do Viajante:" required> <br>
 
     
     Anexar Documento(CNH ou RG):<br>

@@ -45,7 +45,7 @@ class VeiculoController extends Controller
                 'origem' => 'required|string',
                 'destino' => 'required|string',
                 'ida' => 'required|date',
-                'volta' => 'nullable|date|after:ida',
+                'volta' => 'nullable|date|after_or_equal:ida',
                 'motivo' => 'required|string',
                 'validacao' => 'required|string',
                 'email_gestor' => 'required|email',
@@ -55,7 +55,7 @@ class VeiculoController extends Controller
                 'rg' => 'required|numeric',
                 'data_nascimento' => 'required|date',
                 'email' => 'required|email',
-                'filial' => 'required|string',
+                'filial_viajante' => 'required|string',
             ]);
     
             

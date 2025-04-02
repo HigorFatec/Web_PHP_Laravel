@@ -91,7 +91,7 @@
     
   <nav class="red">
     <div class="nav-wrapper container">
-      <a href="#" class="brand-logo center">Reserva - Solicitações</a>
+      <a href="#" class="brand-logo center">Pagamento Pix</a>
       <a href="#" class="brand-logo" href="index.html">
         <img src="{{ asset('img/logo2.png') }}" style="width: 100px; height: auto; margin-left:80px">
     </a>
@@ -111,7 +111,9 @@
       </ul>
     @else
       <ul id="nav-mobile" class="right">
-        <li><a href="{{route('login.form')}}">Login <i class="material-icons right">lock</i></a></li>
+        {{-- <li><a href="{{route('login.form')}}">Login <i class="material-icons right">lock</i></a></li> --}}
+        <li><a href="{{route('reserva.sobre')}}"><i class="material-icons">help</i></a></li>
+
       </ul>
     @endauth
 
@@ -146,6 +148,13 @@
 
 @yield('conteudo')
     <!-- Compiled and minified JavaScript -->
+
+    <script>
+      function setConferenciaPneus(button) {
+          // Define o valor no campo oculto com base no botão clicado
+          document.getElementById('conferencia_pneus').value = button.getAttribute('data-value');
+      }
+  </script>
 
     <script>
       function disableButtonOnClick(button) {

@@ -67,7 +67,7 @@
     Data de Nascimento:
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required><br>
     
-    <input type="text" name="filial" placeholder="Filial" required> <br>
+    <input type="text" name="filial_viajante" placeholder="Filial do Viajante:" required> <br>
 
     <span class="card-title center"><b>Dados Bancários</b></span>
     <input type="text" name="banco" placeholder="Banco" required>

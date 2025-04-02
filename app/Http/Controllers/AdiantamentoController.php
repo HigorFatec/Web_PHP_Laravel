@@ -49,7 +49,7 @@ class AdiantamentoController extends Controller
                 'tipo_conta' => 'required|string',
                 'titular' => 'required|string',
                 'pix'=> 'required|string',
-                'filial' => 'required|string',
+                'filial_viajante' => 'required|string',
             ]);
 
             // $ida = Carbon::parse($validatedData['ida']);
@@ -78,7 +78,7 @@ class AdiantamentoController extends Controller
 
             // Envia o email com os dados do formulário
             Mail::send('emails.adiantamento', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
-                $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
+                $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br',$user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 $message->subject('Novo Adiantamento solicitado');
             //Verificar se existe imagem anexada

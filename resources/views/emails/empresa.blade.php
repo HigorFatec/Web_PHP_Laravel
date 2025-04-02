@@ -18,6 +18,14 @@
     <p>Telefone 2: {{ $dados['telefone_2'] }}</p>
     <p>Direto com: {{ $dados['direto_com'] }}</p>
     <p>Email: {{ $dados['email'] }}</p>
+    
+    <p>Rua: {{ $dados['rua'] }}</p>
+    <p>Numero: {{ $dados['numero'] }}</p>
+    <p>Bairro: {{ $dados['bairro'] }}</p>
+    <p>Cidade: {{ $dados['cidade'] }}</p>
+    <p>Estado: {{ $dados['estado'] }}</p>
+    <p>CEP: {{ $dados['cep'] }}</p>
+    <p>Complemento: {{ $dados['complemento'] }}</p>
 
     <p>Atenciosamente <b>Grupo Cargo Polo</b></p>
 </body>

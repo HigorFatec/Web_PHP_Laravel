@@ -101,7 +101,6 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
         {
-
             //Obter usuário autenticado
             $user = Auth::user();
             
@@ -111,7 +110,8 @@ class ReservaController extends Controller
                 'destino' => 'required|string',
                 'tipo' => 'required|string',
                 'ida' => 'required|date',
-                'volta' => 'nullable|date|after:ida',
+                'volta' => 'nullable|date|after_or_equal:ida',
+                'embarque' => 'required|string',
                 'motivo' => 'required|string',
                 'validacao' => 'required|string',
                 'email_gestor' => 'required|email',
@@ -121,8 +121,9 @@ class ReservaController extends Controller
                 'rg' => 'required|numeric',
                 'data_nascimento' => 'required|date',
                 'email' => 'required|email',
-                'filial' => 'required|string',
-            ]);
+                'filial_viajante' => 'required|string',
+            ],['tipo.required' => 'Selecione o TIPO de passagem (AEREA ou RODOVIÁRIA) obs: É obrigatório.',
+        ]);
     
             
             // Se precisar salvar em um banco de dados, adicione o código aqui
@@ -145,8 +146,9 @@ class ReservaController extends Controller
             // Envia o email com os dados do formulário
             Mail::send('emails.passagem', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
                 $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
+                
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-                $message->subject('Nova Reserva de Passagem Solicitada');
+                $message->subject('Nova Reserva de Passagem '. $validatedData['tipo'] .' Solicitada');
 
                 //Verificar se existe imagem anexada
                 if ($foto)  {
@@ -161,6 +163,7 @@ class ReservaController extends Controller
     
             // Redirecionar ou retornar uma resposta de sucesso
             return redirect()->route('reserva.home')->with('success2', 'Reserva de veiculo realizada com sucesso!');
+            
         }
 
 

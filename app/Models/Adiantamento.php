@@ -27,6 +27,7 @@ class Adiantamento extends Model
         'tipo_conta',
         'titular',
         'pix',
+        'filial_viajante',
         'user_name',
         'user_id',
         'user_cpf',

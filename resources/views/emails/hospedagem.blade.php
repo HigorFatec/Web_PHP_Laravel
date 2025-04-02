@@ -12,7 +12,7 @@
     <p>Nome Completo: {{ $dados['nome'] }}</p>
     <p>CPF: {{ $dados['cpf'] }}</p>
     <p>RG: {{ $dados['rg'] }}</p>
-    <p>Filial: {{$dados['filial']}}</p>
+    <p>Filial do Viajante: {{$dados['filial_viajante']}}</p>
     <p>Data de Nascimento: {{ \Carbon\Carbon::parse($dados['data_nascimento'])->format('d/m/Y') }}</p>
     <p>Destino: {{ $dados['destino'] }}</p>
     <p>Data de Check-In: {{ \Carbon\Carbon::parse($dados['ida'])->format('d/m/Y') }}</p>

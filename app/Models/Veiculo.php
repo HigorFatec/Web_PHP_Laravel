@@ -23,6 +23,7 @@ class Veiculo extends Model
         'data_nascimento',
         'email',
         'cpf',
+        'filial_viajante',
         'user_name',
         'user_id',
         'user_cpf',

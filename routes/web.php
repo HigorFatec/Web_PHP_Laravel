@@ -14,7 +14,9 @@ use App\Http\Controllers\VeiculoController;
 use App\Http\Controllers\HospedagemController;
 use App\Http\Controllers\AdiantamentoController;
 use App\Http\Controllers\DashboardController;
-
+use App\Http\Controllers\TransfVeiculoController;
+use App\Http\Controllers\PagamentoPixController;
+use App\Http\Controllers\FlorestalPixController;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::resource('users', UserController::class);
@@ -23,11 +25,21 @@ Route::resource('users', UserController::class);
 Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('empresa.create');
 Route::get('/fornecedor_fisico', [FornecedorFisicoController::class, 'create'])->name('fisico.fornecedor_fisico');
 Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create');
+Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index');
+Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index');
+
+Route::get('/florestal_pix', [FlorestalPixController::class, 'index'])->name('florestal_pix.index');
+
 
 
 Route::post('/empresa/store', [EmpresaController::class, 'store'])->name('empresa.store');
 Route::post('/fornecedor_fisico/store', [FornecedorFisicoController::class, 'store'])->name('fornecedor_fisico.store');
 Route::post('/produtos/store', [ProdutoController::class, 'store'])->name('produtos.store');
+Route::post('/transf_veiculo/store', [TransfVeiculoController::class, 'store'])->name('transf_veiculo.store');
+Route::post('/pagamento_pix', [PagamentoPixController::class, 'store'])->name('pagamento_pix.store');
+
+Route::post('/florestal_pix', [FlorestalPixController::class, 'store'])->name('florestal_pix.store');
+
 
 Route::get('/empresa/success', function () {
     return view('empresa.success');
@@ -86,3 +98,5 @@ Route::view('/login', 'login.form')->name('login.form');
 Route::post('/auth', [LoginController::class, 'auth'])->name('login.auth');
 Route::get('/logout', [LoginController::class, 'logout'])->name('login.logout');
 Route::get('/register', [LoginController::class, 'create'])->name('login.create');
+
+

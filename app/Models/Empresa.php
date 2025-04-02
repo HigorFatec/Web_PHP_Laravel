@@ -20,6 +20,13 @@ class Empresa extends Model
         'telefone_2',
         'direto_com',
         'email',
+        'rua',
+        'numero',
+        'bairro',
+        'cidade',
+        'estado',
+        'cep',
+        'complemento',
     ];
 
 }

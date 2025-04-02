@@ -124,7 +124,7 @@ class DashboardController extends Controller
         $foraDoPrazoReservas = [];
 
         foreach ($reservas as $reserva) {
-            $dias_antecedencia = Carbon::parse($reserva->ida)->diffInDays($reserva->created_at);
+            $dias_antecedencia = Carbon::parse($reserva->ida)->startOfDay()->diffInDays(Carbon::parse($reserva->created_at)->startOfDay());
 
             // Converter datas para instâncias de Carbon
             $dataIda = Carbon::parse($reserva->ida);
@@ -151,7 +151,7 @@ class DashboardController extends Controller
         }
     }
         foreach($prazoveiculo as $veic){
-            $dias_antecedencia = Carbon::parse($veic->ida)->diffInDays($veic->created_at);
+            $dias_antecedencia = Carbon::parse($veic->ida)->startOfDay()->diffInDays(Carbon::parse($veic->created_at)->startOfDay());
 
             if($dias_antecedencia >= 5){
                 $prazo++;
@@ -176,7 +176,7 @@ class DashboardController extends Controller
 
         //adiantamento
         foreach($prazohospedagem as $hosp){
-            $dias_antecedencia = Carbon::parse($hosp->ida)->diffInDays($hosp->created_at);
+            $dias_antecedencia = Carbon::parse($hosp->ida)->startOfDay()->diffInDays(Carbon::parse($hosp->created_at)->startOfDay());
 
             if($dias_antecedencia >= 5){
                 $prazo++;
@@ -200,7 +200,7 @@ class DashboardController extends Controller
 
         foreach($prazoAdiantamento as $adiantamento){
             
-            $volta_x_ida = Carbon::parse($adiantamento->ida)->diffInDays($adiantamento->volta);
+            $volta_x_ida = Carbon::parse($adiantamento->ida)->startOfDay()->diffInDays(Carbon::parse($adiantamento->volta)->startOfDay());
 
             if($volta_x_ida >= 5){
                 $prazo++;

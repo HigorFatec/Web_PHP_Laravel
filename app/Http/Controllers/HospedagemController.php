@@ -44,7 +44,7 @@ class HospedagemController extends Controller
             $validatedData = $request->validate([
                 'destino' => 'required|string',
                 'ida' => 'required|date',
-                'volta' => 'nullable|date|after:ida',
+                'volta' => 'nullable|date|after_or_equal:ida',
                 'motivo' => 'required|string',
                 'referencia' => 'required|string',
                 'validacao' => 'required|string',
@@ -55,7 +55,7 @@ class HospedagemController extends Controller
                 'rg' => 'required|numeric',
                 'data_nascimento' => 'required|date',
                 'email' => 'required|email',
-                'filial' => 'required|string',
+                'filial_viajante' => 'required|string',
             ]);
     
             

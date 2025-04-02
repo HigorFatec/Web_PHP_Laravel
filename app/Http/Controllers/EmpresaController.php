@@ -30,6 +30,13 @@ class EmpresaController extends Controller
             'telefone_2' => 'nullable|string',
             'direto_com' => 'nullable|string',
             'email' => 'nullable|email',
+            'rua' => 'nullable|string',
+            'numero' => 'nullable|string',
+            'bairro' => 'nullable|string',
+            'cidade' => 'nullable|string',
+            'estado' => 'nullable|string',
+            'cep' => 'nullable|string',
+            'complemento' => 'nullable|string',
         ]);
 
         // Adiciona o IP e o endereço da máquina aos dados da empresa

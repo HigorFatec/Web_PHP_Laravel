@@ -33,8 +33,8 @@
     @csrf
     <div class="btn-group center" role="group" aria-label="Tipo de Reserva">
         <input type="hidden" name="tipo" id="tipo" required>
-        <button type="button" class="btn" data-value="aerea">Aérea</button>
-        <button type="button" class="btn" data-value="rodoviaria">Rodoviária</button>
+        <button type="button" class="btn" data-value="Aérea">Aérea</button>
+        <button type="button" class="btn" data-value="Rodoviária">Rodoviária</button>
     </div><br>
     
 
@@ -44,8 +44,11 @@
 
     Data de ida
     <input type="date" name="ida" placeholder="Data" required><br><br>
-    Data de volta(Não necessariamente):
+    Data de volta (Não obrigatório):
     <input type="date" name="volta" placeholder="Data">
+
+    <input type="text" name="embarque" placeholder="Pretenção de Horário para Embarque" required>
+
     <input type="text" name="motivo" placeholder="Motivo da Viagem" required>
     <input type="text" name="validacao" placeholder="Validado pelo Gestor (autorização)" required>
     <input type="email" name="email_gestor" placeholder="Email do Gestor" required>
@@ -61,7 +64,7 @@
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required>
     <input type="email" name="email" placeholder="E-mail" required><br>
     
-    <input type="text" name="filial" placeholder="Filial" required> <br>
+    <input type="text" name="filial_viajante" placeholder="Filial do viajante" required> <br>
 
     Anexar Documento(CNH ou RG):<br>
     <input type="file" name="foto" id="foto" accept="image/*"><br><br>

@@ -20,7 +20,7 @@
   @if ($message = Session::get('success2'))
   <div class="card green darken-1">
     <div class="card-content white-text">
-      <span class="card-title">Passagem Solicitada com Sucesso!</span>
+      <span class="card-title">Reserva solicitada com sucesso!</span>
       <p>Parabéns! A sua reserva foi solicitada com sucesso!<br>
          Acesse a aba "Minhas Reservas" para visualizar a sua solicitação.
      </p>
