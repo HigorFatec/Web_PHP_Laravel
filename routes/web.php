@@ -17,6 +17,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TransfVeiculoController;
 use App\Http\Controllers\PagamentoPixController;
 use App\Http\Controllers\FlorestalPixController;
+use App\Http\Controllers\FinanceiroController;
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::resource('users', UserController::class);
@@ -26,9 +27,20 @@ Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('
 Route::get('/fornecedor_fisico', [FornecedorFisicoController::class, 'create'])->name('fisico.fornecedor_fisico');
 Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create');
 Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index');
+
+
 Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index');
+Route::post('/cancelar-pagamento/{id}', [PagamentoPixController::class, 'cancelarPagamento'])->name('cancelar.pagamento');
+Route::post('/finalizar-pagamento/{id}', [PagamentoPixController::class, 'finalizarPagamento'])->name('finalizar.pagamento');
+Route::get('/pagamento/aprovacoes', [PagamentoPixController::class, 'aprovacao'])->name('pagamento_pix.aprovacao');
+
+
+
 
 Route::get('/florestal_pix', [FlorestalPixController::class, 'index'])->name('florestal_pix.index');
+
+Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index');
+
 
 
 
@@ -36,9 +48,12 @@ Route::post('/empresa/store', [EmpresaController::class, 'store'])->name('empres
 Route::post('/fornecedor_fisico/store', [FornecedorFisicoController::class, 'store'])->name('fornecedor_fisico.store');
 Route::post('/produtos/store', [ProdutoController::class, 'store'])->name('produtos.store');
 Route::post('/transf_veiculo/store', [TransfVeiculoController::class, 'store'])->name('transf_veiculo.store');
+
 Route::post('/pagamento_pix', [PagamentoPixController::class, 'store'])->name('pagamento_pix.store');
 
 Route::post('/florestal_pix', [FlorestalPixController::class, 'store'])->name('florestal_pix.store');
+
+Route::post('/financeiro', [FinanceiroController::class, 'store'])->name('financeiro.store');
 
 
 Route::get('/empresa/success', function () {

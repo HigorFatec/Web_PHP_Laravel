@@ -55,6 +55,9 @@ class FlorestalPixController extends Controller
             'valor_3' => 'required|string',
             'email_gestor' => 'required|email',
             'filial' => ['required', 'string', 'not_regex:/^\s*$/'],
+            'produto_arla' => 'required|string',
+            'litragem_arla' => 'required|string',
+            'valor_arla' => 'required|string',
 
         ]);
 
@@ -64,7 +67,7 @@ class FlorestalPixController extends Controller
 
         // Envia o email com os dados do formulário
         Mail::send('emails.florestal_pix', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $pagamentoPix){
-            $message->to(['felipe.brito@grupocargopolo.com.br','silvio.moura@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br','michel.plevka@grupocargopolo.com.br','ludmylla.gomes@grupocargopolo.com.br','jenival.sampaio@grupocargopolo.com.br']);
+            $message->to(['felipe.brito@grupocargopolo.com.br','silvio.moura@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br','michel.plevka@grupocargopolo.com.br','ludmylla.gomes@grupocargopolo.com.br','jenival.sampaio@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br','combustivel@grupocargopolo.com.br','taisa.pereira@grupocargopolo.com.br','wagner.mosna@grupocargopolo.com.br']);
             //$message->to('higor.05@hotmail.com');
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
             $message->cc([$validatedData['email'],$validatedData['email_gestor']]);
@@ -91,7 +94,7 @@ class FlorestalPixController extends Controller
         
 
         // Redirecionar ou retornar uma resposta de sucesso
-        return redirect()->route('pagamento_pix.index')->with('success', 'Transferencia realizada com sucesso!');
+        return redirect()->route('florestal_pix.index')->with('success', 'Transferencia realizada com sucesso!');
     }
 
     /**

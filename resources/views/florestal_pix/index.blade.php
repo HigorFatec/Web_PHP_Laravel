@@ -1,5 +1,5 @@
-@extends('pagamento_pix.layout')
-@section('title', 'Pagamento Pix')
+@extends('florestal_pix.layout')
+@section('title', 'Florestal Pix')
 @section('conteudo'),
 
 
@@ -36,7 +36,7 @@
 
 
 
-<form action="{{route('pagamento_pix.store')}}"method="POST" enctype="multipart/form-data">
+<form action="{{route('florestal_pix.store')}}"method="POST" enctype="multipart/form-data" onsubmit="return disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
     <br>
     E-mail: <br> <input type="email" name="email" id="email" required><br>
@@ -54,9 +54,8 @@
     <select name="filial" id="filial" required>
 
         <option value=" "></option>
-        @foreach ($filiais as $filial)
-            <option value="{{$filial}}">{{$filial}}</option>
-        @endforeach
+        <option value="Salto">Salto</option>
+        <option value="Lençóis Paulista">Lençóis Paulista</option>
 
 
     </select> <br>
@@ -73,11 +72,16 @@
     </select> <br>
 
 
-    Litragem: <br><input type="number" name="litragem" id="litragem" required><br>
+    Litragem: <br><input type="text" name="litragem" id="litragem" required><br>
     Valor: <br><input type="text" name="valor" id="valor"required> <br>
 
     Chave Pix: <br><input type="text" name="pix" id="pix" required>
     Valor: <br><input type="text" name="valor_3" id="valor_3" required><br><br><br>
+
+    Produto ARLA-32 (caso não haja informar "0"): <br><input type="text" name="produto_arla" id="produto_arla" required>
+    Litragem ARLA-32 (caso não haja informar "0") : <br><input type="text" name="litragem_arla" id="litragem_arla" required>
+    Valor ARLA-32 (caso não haja informar "0"): <br><input type="text" name="valor_arla" id="valor_arla" required>
+
 
     Anexar Nota Fiscal: <br>
     <input type="file" name="foto" id="foto" accept="image/*" ><br><br>
@@ -92,6 +96,21 @@
     <br>
 
 </form>
+
+<script>
+    document.querySelectorAll('.btn-group .btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove a classe active de todos os botões
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Adiciona a classe active ao botão clicado
+            this.classList.add('active');
+            
+            // Atualiza o valor do campo hidden
+            document.getElementById('tipo').value = this.getAttribute('data-value');
+        });
+    });
+    </script>
 
 
 @endsection

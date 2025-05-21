@@ -26,7 +26,12 @@ class LoginController extends Controller
 
         if(Auth::attempt($credenciais, $request->remember)){
             $request->session()->regenerate();
-            return redirect()->intended('/reserva');
+            if(auth()->user()->admin == 2){
+                return redirect()->intended('/pagamento/aprovacoes');
+            }
+            else {
+                return redirect()->intended('/reserva');
+            }
         } else{
             return redirect()->back()->with('erro', 'Usuário ou senha incorretos');
         }

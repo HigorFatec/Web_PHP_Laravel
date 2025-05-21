@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pagamento_Pix;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\Filial;
 use App\Models\Produto_Arla;
 use Illuminate\Support\Facades\Mail;
+
+use Illuminate\Support\Facades\Http;
 
 
 
@@ -31,6 +34,14 @@ class PagamentoPixController extends Controller
     public function create()
     {
         //
+    }
+
+
+    public function aprovacao()
+    {
+        $aprovar = Pagamento_Pix::where('status','pendente')->orderBy('created_at', 'desc')->paginate(3);
+
+        return view('pagamento_pix.aprovacao', compact('aprovar'));
     }
 
     /**
@@ -68,14 +79,14 @@ class PagamentoPixController extends Controller
 
         $pagamentoPix = Pagamento_Pix::create($validatedData);
 
-        $foto = $request->file('foto');
+        // $foto = $request->file('foto');
 
         // Envia o email com os dados do formulário
         Mail::send('emails.pagamento_pix', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $pagamentoPix){
-            $message->to(['combustivel@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br', 'ludmylla.gomes@grupocargopolo.com.br', 'michel.plevka@grupocargopolo.com.br', 'vanderlei.nascimento@grupocargopolo.com.br']);
-            //$message->to('higor.05@hotmail.com');
+            //$message->to(['combustivel@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br', 'ludmylla.gomes@grupocargopolo.com.br', 'michel.plevka@grupocargopolo.com.br', 'vanderlei.nascimento@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br']);
+            $message->to('arthur.abreu@grupocargopolo.com.br');
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-            $message->cc([$validatedData['email'],$validatedData['email_gestor']]);
+            //$message->cc([$validatedData['email'],$validatedData['email_gestor']]);
             $message->subject( ' TRANSFERÊNCIA DE PIX; POSTO: '. $validatedData['cnpj'] . ' PLACA: ' . $validatedData['placa'] );
 
             //Verificar se existe imagem anexada
@@ -96,41 +107,69 @@ class PagamentoPixController extends Controller
             
 
         });
+
         
 
         // Redirecionar ou retornar uma resposta de sucesso
         return redirect()->route('pagamento_pix.index')->with('success', 'Transferencia realizada com sucesso!');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pagamento_Pix $pagamento_Pix)
+
+
+    public function cancelarPagamento($id)
     {
-        //
+        $reserva = Pagamento_Pix::findOrFail($id);
+
+        if (auth()->user()->admin == 0) {
+                return redirect()->route('pagamento_pix.index')->with('error', 'Você não tem permissão para cancelar este veiculo.');
+        }
+
+        //$reserva->delete();
+        // Altera o status da coluna "Ok" para "Cancelada"
+        $reserva->status = 'cancelada';
+        $reserva->save();
+
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+    // Envia o e-mail de cancelamento
+    Mail::send('emails.cancelamento_pagamento_pix', ['dados' => $reserva, 'user' => $user], function($message) use ($user, $reserva) {
+        $message->to([$reserva->email ,'combustivel@grupocargopolo.com.br', $user->email]);
+        $message->subject('Pagamento Recusado!');
+    });
+
+
+    return redirect()->route('pagamento_pix.aprovacao')->with('success', 'Veiculo cancelada com sucesso.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Pagamento_Pix $pagamento_Pix)
+    public function finalizarPagamento($id)
     {
-        //
+        $reserva = Pagamento_Pix::findOrFail($id);
+
+        if (auth()->user()->admin == 0) {
+                return redirect()->route('pagamento_pix.index')->with('error', 'Você não tem permissão para finalizar esta reserva.');
+        }
+
+        //$reserva->delete();
+        // Altera o status da coluna "Ok" para "Cancelada"
+        $reserva->status = 'finalizada';
+        $reserva->save();
+
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+        // Envia o e-mail de finalização
+        Mail::send('emails.pagamento_pix', ['dados' => $reserva], function($message) use ($reserva, $user){
+            $message->to(['combustivel@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br', 'ludmylla.gomes@grupocargopolo.com.br', 'michel.plevka@grupocargopolo.com.br', 'vanderlei.nascimento@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br']);
+            //$message->to('higor.05@hotmail.com');
+            //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
+            $message->cc([$reserva->email,$user->email]);
+            $message->subject( ' TRANSFERÊNCIA DE PIX; POSTO: '. $reserva->cnpj . ' PLACA: ' . $reserva->placa );
+        });
+
+        return redirect()->route('pagamento_pix.aprovacao')->with('success2', 'Veiculo finalizado com sucesso.');
+
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Pagamento_Pix $pagamento_Pix)
-    {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pagamento_Pix $pagamento_Pix)
-    {
-        //
-    }
 }
