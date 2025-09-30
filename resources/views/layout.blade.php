@@ -11,13 +11,17 @@
 
     <style>    
 
+    body{
+      font-family: 'Montserrat', sans-serif !important;
+    }
+
     .row{
-          background-color: #b1b1b1; /* Azul claro */
+          background-color: #777777; /* Azul claro */
           padding: 20px;
         }
 
     .red{
-      background-color: #00008b !important;
+      background-color: #184693 !important;
     }    
     .admin{
       /* Modificar a cor do texto*/
@@ -25,20 +29,25 @@
       background-color: #ff0000;
     }
     .custom-image {
-        width: 180px;
-        height: 180px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+              /* Se você quiser um tamanho específico, defina largura e altura diretamente */
+      max-width: 75px; /* Define a largura máxima da imagem */
+      max-height: 75px; /* Define a altura máxima da imagem */
     }
 
+
     .custom-image2 {
-      width: 100%; /* Ajusta a imagem para ocupar 100% da largura do container */
+      width: auto; /* Ajusta a imagem para ocupar 100% da largura do container */
       height: auto; /* Mantém a proporção da imagem */
       /* Se você quiser um tamanho específico, defina largura e altura diretamente */
-      max-width: 1650px; /* Define a largura máxima da imagem */
+      max-width: 2050px; /* Define a largura máxima da imagem */
       max-height: 400px; /* Define a altura máxima da imagem */
     }
 
     .btn-cadastrar {
-    background-color: #00008b; /* Cor de fundo do botão */
+    background-color: #184693; /* Cor de fundo do botão */
     color: white; /* Cor do texto */
     padding: 10px 20px; /* Espaçamento interno */
     border: none; /* Remover bordas */
@@ -58,6 +67,27 @@
     background-color: #ff0000; /* Cor de destaque para o botão ativo */
     color: white;
 }
+
+
+.cards-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 20px; /* espaço entre os cards */
+}
+.cards-container .card {
+  width: 200px; /* ou ajuste conforme seu layout */
+}
+
+.extra-margin-bottom {
+  margin-bottom: 40px; /* ajuste a altura desejada */
+}
+
+.rounded-card {
+  border-radius: 12px;
+  overflow: hidden; /* Importante para que imagens dentro também fiquem arredondadas */
+}
+
 
 
     
@@ -88,12 +118,13 @@
     <li><a href="{{route('login.logout')}}">Sair</a></li>
 </ul>
 
-    
+
+
   <nav class="red">
     <div class="nav-wrapper container">
-      <a href="#" class="brand-logo center">Reserva - Solicitações</a>
+      <a href="#" class="brand-logo center">@yield('title')</a>
       <a href="#" class="brand-logo" href="index.html">
-        <img src="{{ asset('img/logo2.png') }}" style="width: 100px; height: auto; margin-left:80px">
+        <img src="{{ asset('img/LogoSite.png') }}" style="width: 100px; height: auto; margin:10px;margin-left:80px">
     </a>
       <ul id="nav-mobile" class="left">
         <a href="#" data-target="slide-out" class="sidenav-trigger left  show-on-large"><i class="material-icons">menu</i></a>
@@ -129,14 +160,34 @@
                 <a href="#filial"><span class="white-text filial"> {{auth()->user()->filial}} </span></a>
             </div>
         </li> 
-        <li><a href="{{route('reserva.home')}}"><i class="material-icons">home</i>Home</a></li>
-        <li><a href="{{route('reserva.reservas')}}"><i class="material-icons">description</i>Minhas Reservas</a></li>
-        <li><a href="{{route('reserva.passagem-aerea')}}"><i class="material-icons">flight</i>Reservar Passagem</a></li>
-        <li><a href="{{route('reserva.veiculo')}}"><i class="material-icons">directions_car</i>Reservar Veiculo</a></li>
-        <li><a href="{{route('reserva.hospedagem')}}"><i class="material-icons">hotel</i>Reservar Hospedagem</a></li>
-        <li><a href="{{route('reserva.adiantamento')}}"><i class="material-icons">attach_money</i>Solicitar Adiantamento</a></li>
-        <li><a href="{{route('reserva.sobre')}}"><i class="material-icons">help</i>Sobre</a></li>
-    </ul>
+        <li><a href="{{route('index')}}"><i class="material-icons">home</i>Home</a></li>
+          <!-- Portal Reservas -->
+
+          <li>
+    <ul class="collapsible collapsible-accordion">
+      <li>
+        <a class="collapsible-header">
+          <i class="material-icons">business_center</i>Portal Reservas
+          <i class="material-icons right">arrow_drop_down</i>
+            </a>
+            <div class="collapsible-body">
+              <ul>
+
+              <li><a href="{{route('reserva.home')}}"><i class="material-icons">home</i>Home</a></li>
+              <li><a href="{{route('reserva.reservas')}}"><i class="material-icons">description</i>Minhas Reservas</a></li>
+              <li><a href="{{route('reserva.passagem-aerea')}}"><i class="material-icons">flight</i>Reservar Passagem</a></li>
+              <li><a href="{{route('reserva.veiculo')}}"><i class="material-icons">directions_car</i>Reservar Veiculo</a></li>
+              <li><a href="{{route('reserva.hospedagem')}}"><i class="material-icons">hotel</i>Reservar Hospedagem</a></li>
+              <li><a href="{{route('reserva.adiantamento')}}"><i class="material-icons">attach_money</i>Solicitar Adiantamento</a></li>
+              <li><a href="{{route('reserva.sobre')}}"><i class="material-icons">help</i>Sobre</a></li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </li>
+        <li><a href="{{route('login.logout')}}"><i class="material-icons">exit_to_app</i>Sair</a></li>
+
+  </ul>
     @endif
 
 
@@ -166,6 +217,10 @@
 
             var elemsSidenav = document.querySelectorAll('#slide-out');
             var instancesSidenav = M.Sidenav.init(elemsSidenav, { edge: 'left' });
+          
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems);
+
         });
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>

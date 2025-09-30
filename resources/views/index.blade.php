@@ -1,79 +1,195 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Formulario - CargoPolo</title>
-        <!-- Compiled and minified CSS -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-        
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+@extends('layout')
+@section('title', 'Central de Formulários')
+@section('conteudo')
 
-        <style>   
-            .nav-wrapper {
-                background-color: #0015ff !important;
-            }
-            .nav-content {
-            background-color: #0051ff !important;
-            }
+<div class="col s12 m6 offset-m3">
 
+    @if ($message = Session::get('success'))
+    <div class="card green darken-1">
+        <div class="card-content white-text">
+        <span class="card-title">Sucesso!</span>
+        <p>Parabéns! A solicitação foi realizada com sucesso!<br>
+        </p>
+        </div>
+    </div>
+    @endif
 
-            .mensagem_bemvindo {
-                margin-top: 100px;
-                text-align: center; 
-                font-family:Arial, Helvetica, sans-serif;
-            }
-
-
-        </style>
-</head>
-<body>
-        <!-- Compiled and minified JavaScript -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
- 
-
-   
-        <nav class="nav-extended">
-            <div class="nav-wrapper">
-            <a href="#" class="brand-logo center"><b>Formulário - Grupo Cargo Polo</b></a>
-            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-
-
-                <li><a href="/sobre"><i class="fas fa-info-circle"></i></a></li>
-            
-            </ul>
+  @if ($errors->any())
+  <div class="alert alert-danger">
+      <ul>
+          @foreach ($errors->all() as $error)
+          <div class="card red darken-1">
+            <div class="card-content white-text">
+              <span class="card-title">Erro</span>
+              <p>Corrija os seguintes erros para prosseguir:<br>
+                {{$error}}
+             </p>
             </div>
-            <div class="nav-content">
-            <ul class="tabs tabs-transparent">
-                <li class="tab"><a class="active" href="/">Home</a></li>
-                <li class="tab"><a class="fornecedor" href="fornecedor_juridico">Fornecedor P.J.</a></li>
-                <li class="tab"><a class="fornecedor_fisico" href="fornecedor_fisico">Fornecedor Pessoa Física</a></li>
+          </div>
+        @endforeach
+      </ul>
+  </div>
+@endif
 
-            </ul>
-            </div>
-        </nav>
+</div>
 
-        <script>
-            window.onload = function() {
-                alert('Seja bem vindo! Escolha uma das opções de preenchimento de formulário!');
-                // Você também pode redirecionar para outra página após o pop-up se desejar
-            //window.location.href = '/fornecedor_fisico';
+<div class="container my-5" style="padding-top: 80px;">
 
-            };
-        </script>
+  <div class="dashboard-grid">
 
-        <section class="elementor-section elementor-top-section elementor-element elementor-element-1194f43 elementor-section-height-full elementor-section-boxed elementor-section-height-default elementor-section-items-middle elementskit-parallax-multi-container" data-id="1194f43" data-element_type="section" data-settings="{&quot;background_background&quot;:&quot;video&quot;,&quot;background_video_link&quot;:&quot;https:\/\/benasantana.com\/wp-content\/uploads\/2024\/03\/cargopolo-site.mp4&quot;,&quot;background_play_on_mobile&quot;:&quot;yes&quot;,&quot;ekit_has_onepagescroll_dot&quot;:&quot;yes&quot;}">
-            <div class="elementor-background-video-container">
-                                <video class="elementor-background-video-hosted elementor-html5-video" autoplay="" muted="" playsinline="" loop="" src="https://benasantana.com/wp-content/uploads/2024/03/cargopolo-site.mp4" style="width: 100%; height: 100%;"></video>
-                        </div>
-            <div class="elementor-container elementor-column-gap-default">
-        <div class="elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-d1215db" data-id="d1215db" data-element_type="column">
-        <div class="elementor-widget-wrap">
-        </div>
-        </div>
-        </div>
-        </section>
-</body>
-</html>
+    <a href="{{ route('goto.route', ['route' => 'financeiro.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/financeiro.png') }}" alt="Financeiro">
+      </div>
+      <div class="card-title">Financeiro</div>
+      <div class="card-description">Pagamentos à Vista</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'empresa.create']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/fornecedor.png') }}" alt="Cadastro de Fornecedor">
+      </div>
+      <div class="card-title">Cadastro de Fornecedor</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'fiscal.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/fiscal.png') }}" alt="Fiscal">
+      </div>
+      <div class="card-title">Fiscal - Emissão NF</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'pagamento_pix.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/pagamento_pix.png') }}" alt="Pagamento Pix">
+      </div>
+      <div class="card-title">Combustivel - Pagamento Pix</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'florestal_pix.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/florestal_pix.png') }}" alt="Florestal Pix">
+      </div>
+      <div class="card-title">Combustivel - Florestal Pix</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'saldo.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/saldo.png') }}" alt="Saldo">
+      </div>
+      <div class="card-title">Combustível - Saldo</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'produtos.create']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/produtos.png') }}" alt="Cadastro de Produtos">
+      </div>
+      <div class="card-title">Cadastro de Produtos</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'transf_veiculo.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/placa.png') }}" alt="Transferência de Veículo">
+      </div>
+      <div class="card-title">Transferência de Veículo</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'descarte.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/descarte_pneus.png') }}" alt="Descarte de Pneus">
+      </div>
+      <div class="card-title">Descarte de Pneus</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'sinistro.index']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/sinistro.png') }}" alt="Sinistro">
+      </div>
+      <div class="card-title">Sinistro</div>
+    </a>
+
+    <a href="{{route('dashboard')}}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{asset('img/mechanic.png')}}" alt="Tempo de Manutenção de Serviço">
+      </div>
+      <div class="card-title">Portal Tempo de O.S.</div>
+    </a>
+
+    <a href="{{route('reserva.home')}}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{asset('img/travel-agent.png')}}" alt="Portal de Viagens">
+      </div>
+      <div class="card-title">Portal Reservas</div>
+    </a>
+
+  </div>
+</div>
+
+<style>
+  body {
+    background: #f4f6f9 !important;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif !important;
+  }
+
+  .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
+    gap: 30px !important;
+  }
+
+  .dashboard-card {
+    background: linear-gradient(135deg, #0055aa, #003366) !important;
+    border-radius: 18px !important;
+    padding: 30px 20px !important;
+    text-align: center !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12) !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 180px !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .dashboard-card::before {
+    content: "" !important;
+    position: absolute !important;
+    top: -50% !important;
+    left: -50% !important;
+    width: 200% !important;
+    height: 200% !important;
+    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 60%) !important;
+    transform: rotate(25deg) !important;
+    opacity: 0 !important;
+    transition: opacity 0.4s !important;
+  }
+
+  .dashboard-card:hover::before {
+    opacity: 1 !important;
+  }
+
+  .dashboard-card:hover {
+    transform: translateY(-8px) scale(1.03) !important;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.2) !important;
+  }
+
+    .dashboard-card .icon img {
+        max-width: 70px !important;
+        margin-bottom: 15px !important;
+        /* ❌ remova essa linha abaixo */
+        /* filter: brightness(0) invert(1) !important; */
+    }
+
+    
+
+  .dashboard-card .card-title {
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+  }
+</style>
+@endsection

@@ -14,8 +14,8 @@
     <p>Placa da Carreta (3): {{$dados['placa_carreta_3']}}</p>
     <p>Unidade de Negócio Origem: {{$dados['filial_origem']}}</p>
     <p>Unidade de Negócio Destino: {{$dados['filial_destino']}}</p>
-    <p>Centro de Custo: {{$dados['centro_custo']}}</p>
-    <p>Centro de Gasto: {{$dados['centro_gasto']}}</p>
+    <p>Centro de Gasto: {{$dados['centro_custo']}}</p>
+    <p>Centro de Custo: {{$dados['centro_gasto']}}</p>
     <p>Previsão de Chegada no Destino: {{\Carbon\Carbon::parse($dados['previsao_chegada'])->format('d/m/Y')}}</p>
     <p>Numeração dos Pneus: {{$dados['conferencia_pneus']}}</p>
 

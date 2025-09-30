@@ -1,88 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cadastro fornecedor</title>
-        <!-- Compiled and minified CSS -->
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
-        
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+@extends('layout')
+@section('title', 'Fornecedor Pessoa Física')
+@section('conteudo')
 
 
-        <style>
-        form{
-            font-family:Arial, Helvetica, sans-serif;
-        }
-        .nav-wrapper {
-        background-color: #0015ff !important;
-        }
-        .nav-content {
-            background-color: #0051ff !important;
-        }
-        .preenchimento {
-            
-            margin-left: 150px;
-            margin-right: 150px;
-            border:2px solid black;
+<div class="row">
+    <div class="col s12 m6 offset-m3">
 
-        }
-        .form-label{
-            font-size: 20px;
-            color:black;
-        }
-        .btn{
-            width: 220px;
-            height: 50px;
-            background-color: #0015ff;
-            font-size: 32px;
-        }
-
-
-        </style>
-</head>
-<body>
-    @if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-    @endif
-
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+        @if ($message = Session::get('success'))
+        <div class="card green darken-1">
+          <div class="card-content white-text">
+            <span class="card-title">Sucesso!</span>
+            <p>Parabéns! O Cadastro foi solicitado com sucesso!<br>
+           </p>
+          </div>
         </div>
-    @endif
+        @endif
+
+        @if($errors->any())
+            @foreach($errors->all() as $error)
+                <div class="card red darken-1">
+                    <div class="card-content white-text">
+                        <span class="card-title">Erro</span>
+                        <p>{{$error}} <br>
+                    </p>
+                    </div>
+                    </div>
+
+            @endforeach
+        @endif
+
+        <div class="card">
+            <div class="card-content">
+                <span class="card-title center"><b>Cadastro de Fornecedor Físico</b></span>
 
     <form action="{{ route('fornecedor_fisico.store') }}" method="POST">
-
-                <!-- Compiled and minified JavaScript -->
-                <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
- 
-
-   
-                <nav class="nav-extended">
-                    <div class="nav-wrapper">
-                    <a href="#" class="brand-logo center"><b>Formulário - Grupo Cargo Polo</b></a>
-                    <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-                    <ul id="nav-mobile" class="right hide-on-med-and-down">
         
-                        <li><a href="/sobre"><i class="fas fa-info-circle"></i></a></li>
-
-                    </ul>
-                    </div>
-                    <div class="nav-content">
-                    <ul class="tabs tabs-transparent">
-                        <li class="tab"><a class="active" href="/">Home</a></li>
-                        <li class="tab"><a class="fornecedor" href="fornecedor_juridico">Fornecedor P.J.</a></li>
-                        <li class="tab"><a class="fornecedor_fisico" href="fornecedor_fisico">Fornecedor Pessoa Física</a></li>
-                            </ul>
-                    </div>
-                </nav>
 
                 <h3><center><b>Cadastro do Fornecedor Físico</b></center></h3>
 
@@ -114,6 +66,11 @@
         <label class="form-label" for="rg">RG:</label>
         <input type="number" id="rg" name="rg" >
         <br>
+
+        <label class="form-label" for="data_nascimento">Data de Nascimento:</label>
+        <input type="date" id="data_nascimento" name="data_nascimento" >
+        <br>
+
         </p>
 
         <h4><center>Endereço</center></h4>
@@ -197,3 +154,5 @@
     </form>
 </body>
 </html>
+
+@endsection

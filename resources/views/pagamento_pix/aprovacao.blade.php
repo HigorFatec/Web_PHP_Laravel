@@ -48,14 +48,16 @@
                 <tr>
                     @if(auth()->user()->admin == 2)
                     <th class="admin">Status</th>
+                    <th class="admin">Placa</th>
                     <th class="admin">Favorecido</th>
                     <th class="admin">Solicitado</th>
-                    <th class="admin">Filial</th>
+                    <th class="admin">Solicitante</th>
                     @endif
                     <th>Posto</th>
                     <th>Produto</th>
                     <th>Litragem</th>
                     <th>Valor</th>
+                    <th>Filial</th>
 
                     @if(auth()->user()->admin == 2)
                         <th>Recusar</th>
@@ -69,25 +71,28 @@
                     <tr>
                         @if(auth()->user()->admin == 2)
                         <td>{{ $passagem->status }}</td>
+                        <td>{{ $passagem->placa }} </td>
                         <td>{{ $passagem->favorecido}}</td>
                         <td>{{ \Carbon\Carbon::parse($passagem->created_at)->format('d/m/Y H:m:s') }}</td>
-                        <td>{{ $passagem->filial}}</td>
                         @endif
+                        <td>{{ substr($passagem->email, 0, 10) }}</td>
                         <td>{{ $passagem->posto }}</td>
                         <td>{{ $passagem->produto }}</td>
                         <td>{{ $passagem->litragem }}</td>
                         <td>{{ $passagem->valor_3 }}</td>
+                        <td>{{ $passagem->filial }}</td>
 
 
                         </td>
-                       
+
+                        @if(auth()->user()->admin == 2)
+
                         <td>
                             <form action="{{ route('cancelar.pagamento', $passagem->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 <button type="submit" class="btn btn-danger red"> <i class="material-icons">delete</i></button>
                             </form>
                         </td>
-                        @if(auth()->user()->admin == 2)
                         <td>
                             <form action="{{route('finalizar.pagamento', $passagem->id)}}" method="POST" style="display:inline;">
                                 @csrf
@@ -96,7 +101,6 @@
 
                         </td>
 
-                                <td>{{ $passagem->filial }}</td>
                         @endif
 
                     </tr>

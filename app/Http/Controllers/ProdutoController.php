@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+
 
 class ProdutoController extends Controller
 {
@@ -34,6 +36,7 @@ class ProdutoController extends Controller
         $request->validate([
             'nome_remetente' => 'required|string',
             'email_remetente' => 'required|email',
+            'email_aprovador' => 'required|email',
             'nome' => 'nullable|string',
             'ncm' => 'nullable|string',
             'ca' => 'nullable|string',
@@ -43,17 +46,41 @@ class ProdutoController extends Controller
         // Adiciona o IP e o endereço da máquina aos dados da empresa
         $data = $request->all();
 
+        // Se CA informado, verificar se já existe na tabela estpro
+        if (!empty($data['ca'])) {
+            $caInformado = strtoupper(trim($data['ca']));
+            $caNormalizado = preg_replace('/[^0-9]/', '', $caInformado); // Só números
+
+            // Puxa todos os valores da coluna 'aplica'
+            $casDoBanco = DB::connection('sqlsrv')
+                ->table('estpro')
+                ->whereNotNull('aplica')
+                ->pluck('aplica');
+
+            foreach ($casDoBanco as $caBanco) {
+                $caBancoNormalizado = preg_replace('/[^0-9]/', '', strtoupper(trim($caBanco)));
+
+                if ($caBancoNormalizado === $caNormalizado) {
+                    return back()->withErrors(['msg' => 'Este CA já existe no sistema.'])->withInput();
+                }
+            }
+        }
+
+
+
+
         Log::info('Dados recebidos para envio de email:', $data);
 
         try {
             // Enviar o e-mail
-            Mail::send('emails.produtos', ['dados' => $data], function($message) {
-                $message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br']);
+            Mail::send('emails.produtos', ['dados' => $data], function($message) use($data) {
+                //$message->to('higor.05@hotmail.com');
+                $message->to([$data['email_aprovador'],'cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br']);
                 $message->subject('Novo Produto Registrado');
             });
 
             Log::info('E-mail enviado com sucesso.');
-            return redirect()->route('produtos.success')->with('success', 'E-mail enviado com sucesso.');
+            return back()->with('success', 'E-mail enviado com sucesso.');
         } catch (\Swift_TransportException $e) {
             // Erro específico relacionado ao transporte de e-mail
             Log::error('Erro de transporte ao enviar email: ' . $e->getMessage());

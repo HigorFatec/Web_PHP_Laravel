@@ -60,6 +60,11 @@
             <span>Lembrar-me</span>
         </label> <br>
 
+        <div class="center" style="margin-top: 10px;">
+    <a href="{{ route('password.request') }}">Esqueceu sua senha?</a>
+</div>
+
+
 <button type="submit" class="btn-cadastrar right">Entrar</button>
 
 <a href="{{route('login.create')}}">

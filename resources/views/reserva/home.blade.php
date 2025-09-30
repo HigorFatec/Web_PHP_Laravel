@@ -5,6 +5,8 @@
 <div class="row">
       
   @if ($message = Session::get('success'))
+  <div class="col s12 m6 offset-m3">
+
   <div class="card green darken-1">
     <div class="card-content white-text">
       <span class="card-title">Usuário Autenticado</span>
@@ -18,7 +20,7 @@
   </div>
   @endif
   @if ($message = Session::get('success2'))
-  <div class="card green darken-1">
+  <div class="card green darken-1 center">
     <div class="card-content white-text">
       <span class="card-title">Reserva solicitada com sucesso!</span>
       <p>Parabéns! A sua reserva foi solicitada com sucesso!<br>
@@ -26,64 +28,71 @@
      </p>
     </div>
   </div>
+
+  </div>
   @endif
 
   @if (@auth()->user()->id != null)
 
 
-
-    <div class="col s12 m3">
-        <div class="card">
-          <span class="card-title" style="color: black"><center><b>Reserva de Passagem</b></center></span>
-            <div class="card-image">
-              <img src="{{asset('img/aviao.png')}}" class="custom-image">
-              <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route("reserva.passagem-aerea")}}"><i class="material-icons">add</i></a>
-            </div>
-            <div class="card-content">
-            </div>
-          </div>
+   <div class="cards-container">
+ <div class="card rounded-card" style="padding-bottom: 30px;">
+    <span class="card-title" style="color: black">
+      <center><b><h6>Reserva de Passagem</h6></b></center>
+    </span>
+    <div class="card-image">
+      <img src="{{asset('img/destino.png')}}" class="custom-image">
+      <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route("reserva.passagem-aerea")}}">
+        <i class="material-icons">add</i>
+      </a>
     </div>
+  </div>
 
-
-    <div class="col s12 m3">
-        <div class="card">
-          <span class="card-title" style="color: black"><center><b>Reserva de Veiculo Leve</b></center></span>
-            <div class="card-image">
-              <img src="{{asset('img/veiculo.png')}}" class="custom-image">
-              <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.veiculo')}}"><i class="material-icons">add</i></a>
-            </div>
-            <div class="card-content">
-            </div>
-          </div>
+  <div class="card rounded-card" style="padding-bottom: 30px;">
+    <span class="card-title" style="color: black">
+      <center><b><h6>Reserva de Veículo Leve</h6></b></center>
+    </span>
+    <div class="card-image">
+      <img src="{{asset('img/veiculo_reserva.png')}}" class="custom-image">
+      <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.veiculo')}}">
+        <i class="material-icons">add</i>
+      </a>
     </div>
+  </div>
 
-    <div class="col s12 m3">
-        <div class="card">
-          <span class="card-title" style="color: black"><center><b>Hotel/Hospedagem</b></center></span>
-            <div class="card-image">
-              <img src="{{asset('img/hotel.png')}}" class="custom-image">
-              <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.hospedagem')}}"><i class="material-icons">add</i></a>
-            </div>
-            <div class="card-content">
-            </div>
-          </div>
+  <div class="card rounded-card" style="padding-bottom: 30px;">
+    <span class="card-title" style="color: black">
+      <center><b><h6>Hotel/Hospedagem</h6></b></center>
+    </span>
+    <div class="card-image">
+      <img src="{{asset('img/hotel_reserva.png')}}" class="custom-image">
+      <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.hospedagem')}}">
+        <i class="material-icons">add</i>
+      </a>
     </div>
+  </div>
 
-    <div class="col s12 m3">
-        <div class="card">
-          <span class="card-title" style="color: black"><center><b>Adiantamento Viagem</b></center></span>
-            <div class="card-image">
-              <img src="{{asset('img/money.webp')}}" class="custom-image">
-              <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.adiantamento')}}"><i class="material-icons">add</i></a>
-            </div>
-            <div class="card-content">
-            </div>
-          </div>
+  <div class="card rounded-card" style="padding-bottom: 30px;">
+    <span class="card-title" style="color: black">
+      <center><b><h6>Adiantamento Viagem</h6></b></center>
+    </span>
+    <div class="card-image">
+      <img src="{{asset('img/adiantamento_reserva.png')}}" class="custom-image">
+      <a class="btn-floating halfway-fab waves-effect waves-light red" href="{{route('reserva.adiantamento')}}">
+        <i class="material-icons">add</i>
+      </a>
     </div>
+  </div>
+</div>
 
-    <div class="card-image center">
-      <img src="{{asset('img/regras2.jpg')}}" class="custom-image2">
+
+  <div class="row center">
+      <div class="card-image">
+      <img src="{{asset('img/regras3.jpg')}}" class="custom-image2 rounded-card">
     </div>
+  </div>
+
+
 
   </div>
 

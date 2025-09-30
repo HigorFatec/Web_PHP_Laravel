@@ -62,9 +62,11 @@ class TransfVeiculoController extends Controller
 
         $foto_3 = $request->file('foto_3');
 
+        $foto_4 = $request->file('foto_4');
+
         // Envia o email com os dados do formulário
-        Mail::send('emails.transf_veiculo', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $foto_2, $foto_3, $transfVeiculo){
-            $message->to([$validatedData['email'],'transferenciaveiculo@grupocargopolo.com.br','vinicius.nardini@grupocargopolo.com.br']);
+        Mail::send('emails.transf_veiculo', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $foto_2, $foto_3, $foto_4, $transfVeiculo){
+            $message->to([$validatedData['email'],'transferenciaveiculo@grupocargopolo.com.br','vinicius.nardini@grupocargopolo.com.br','liderdeturno@grupocargopolo.com.br','celularisco@grupocargopolo.com.br','celulalogistica@grupocargopolo.com.br', 'marcos.simonassi@grupocargopolo.com.br']);
             //$message->to('higor.05@hotmail.com');
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
             $message->cc([$validatedData['email_responsavel']]);
@@ -96,6 +98,15 @@ class TransfVeiculoController extends Controller
                 ]);
             }
 
+            if ($foto_4){
+                $pathToFile = $foto_4->getPathname();
+                $filename = $foto_4->getClientOriginalName();
+                $message->attach($pathToFile, [
+                    'as' => $filename, // Nome do arquivo que será mostrado no email
+                    'mime' => $foto_4->getClientMimeType(), // Tipo MIME do arquivo
+                ]);
+            }
+
             if ($foto) {
                 \Log::info('Foto anexada: ' . $foto->getClientOriginalName());
             } else {
@@ -112,6 +123,12 @@ class TransfVeiculoController extends Controller
                 \Log::info('Foto 3 anexada: ' . $foto_3->getClientOriginalName());
             } else {
                 \Log::info('Foto 3 não anexada.');
+            }
+
+            if ($foto_4) {
+                \Log::info('Foto 4 anexada: ' . $foto_4->getClientOriginalName());
+            } else {
+                \Log::info('Foto 4 não anexada.');
             }
 
         });

@@ -9,6 +9,7 @@
     <p>Nome Completo: {{ $dados['nome'] }}</p>
     <p>CPF: {{ $dados['cpf'] }}</p>
     <p>RG: {{ $dados['rg'] }}</p>
+    <p>Data de Nascimento: {{ $dados['data_nascimento'] }}</p>
     <p>Rua: {{ $dados['rua'] }}</p>
     <p>Numero: {{ $dados['numero'] }}</p>
     <p>Bairro: {{ $dados['bairro'] }}</p>

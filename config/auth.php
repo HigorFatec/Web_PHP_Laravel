@@ -40,7 +40,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'os' => [
+            'driver' => 'session',
+            'provider' => 'funcionarios',
+        ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------
@@ -65,11 +71,12 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'funcionarios' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Funcionario::class,
+        ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------

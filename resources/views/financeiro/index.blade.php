@@ -141,14 +141,14 @@
     </div>
 
     <div id="campos-reembolso" class="tipo-campos" style="display:none;">
-        <input type="text" name="motivo" placeholder="Descrição de Solicitação">
+        <input type="text" name="motivo" id="descr_compra" placeholder="Finalidade da Compra/Descr. Item">
 
         <input type="text" name="placa" id="placa" placeholder="Placa">
 
         <span class="card-title center"><b>Dados do Recebedor</b></span>
 
 
-        <input type="text" name="cnpj" placeholder="CNPJ/CPF">
+        <input type="text" name="cnpj" id="cpfCnpj" placeholder="CNPJ/CPF">
         <input type="text" name="name" placeholder="Nome do Recebedor">
         <input type="text" name="pamcard" placeholder="Pamcard"><br><br>
 
@@ -175,8 +175,27 @@
         </select>
 
         <br><br>
+
+        Tipo de Reembolso: <br>
+        <select name="tipo_reembolso[]" id="tipo_reembolso" multiple size="8" required>
+    
+            <option value=" "></option>
+            <option value="Mecanica">Mecânica</option>
+            <option value="Borracharia">Borracharia</option>
+            <option value="Refeicao">Refeição/Alimentação</option>
+            <option value="Manutencao">Manutenção</option>
+            <option value="Hospedagem">Hospedagem</option>
+            <option value="Estacionamento">Estacionamento</option>
+            <option value="Escritorio">Escritório</option>
+            <option value="Outros">Outros</option>
+        </select>
+        <br><br>
+
         Comprovante:<br>
-        <input type="file" name="foto" id="foto-reembolso" accept="image/*"><br><br>
+        <input type="file" name="foto" id="foto-reembolso" accept=".pdf,image/*"><br><br>
+
+        Nota Fiscal/Recibo:<br>
+        <input type="file" name="nota_fiscal" id="nota_fiscal" accept=".pdf,image/*"><br><br>
 
         <input type="text" name="prazo" placeholder="Observações">
 
@@ -202,7 +221,7 @@
 
     <br><br>
 
-    <a href="{{route('financeiro.index')}}">
+    <a href="{{route('index')}}">
       <button type="button" class="btn-cadastrar left">Voltar</button></a>
     <!-- Outros campos aqui -->
     <button type="submit" class="btn-cadastrar right">Enviar</button><br><br>
@@ -233,11 +252,26 @@
       const tipo = document.getElementById('tipo').value;
       const foto = document.getElementById('foto-reembolso');
       const pedido2 = document.getElementById('pedido_2');
+      const descr_compra = document.getElementById('descr_compra');
+      const cpfCnpj = document.getElementById('cpfCnpj');
+      const nota_fiscal = document.getElementById('nota_fiscal');
     
       // Se for "avista" ou "reembolso", o campo foto deve estar preenchido
-      if ((tipo === 'reembolso') && (!foto || foto.files.length === 0)) {
-        alert('O campo "Comprovante" é obrigatório para o tipo "' + tipo + '".');
+      if ((tipo === 'reembolso') && (!foto || foto.files.length === 0) && (!nota_fiscal || nota_fiscal.files.length === 0)) {
+        alert('Os anexos "Comprovante" e "Nota Fiscal" é obrigatório para o tipo "' + tipo + '".');
         foto.focus();
+        return false; // impede o envio
+      }
+
+      if ((tipo === 'reembolso') && (descr_compra.value === '')){
+        alert('O campo "Finalidade da Compra/Descr. Item" é obrigatório para o tipo "' + tipo + '".');
+        descr_compra.focus();
+        return false; // impede o envio
+      }
+
+      if((tipo === 'reembolso') && (cpfCnpj.value === '')){
+        alert('O campo "CNPJ/CPF" é obrigatório para o tipo "' + tipo + '".');
+        cpfCnpj.focus();
         return false; // impede o envio
       }
 

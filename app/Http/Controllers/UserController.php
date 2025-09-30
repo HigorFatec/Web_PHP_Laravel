@@ -38,6 +38,7 @@ class UserController extends Controller
             'cpf' => 'required|digits:11|unique:users', // Validação do CPF com 11 dígitos
             'filial' => 'required|string',
             'password' => 'required|string|min:8|confirmed', // Verifica se 'password_confirmation' corresponde
+            'email_gestor' => 'required|email',
         ]);
 
         $user = $request->all();

@@ -41,10 +41,13 @@
 
 
     </select> <br>
+
+    E-mail do Gestor: <br> <input type="email" name="email_gestor"> <br>
     
 
     Senha: <br> <input type="password" name="password"> <br>
     Confirme a senha: <br> <input type="password" name="password_confirmation"> <br>
+    
 
 <button type="submit" class="btn-cadastrar right">Cadastrar</button>
 

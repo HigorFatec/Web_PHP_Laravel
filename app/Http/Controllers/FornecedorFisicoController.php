@@ -21,6 +21,7 @@ class FornecedorFisicoController extends Controller
             'nome' => 'nullable|string',
             'cpf' => 'nullable|string',
             'rg' => 'nullable|string',
+            'data_nascimento' => 'nullable|string',
             'rua' => 'nullable|string',
             'numero' => 'nullable|string',
             'bairro' => 'nullable|string',

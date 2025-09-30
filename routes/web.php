@@ -18,30 +18,76 @@ use App\Http\Controllers\TransfVeiculoController;
 use App\Http\Controllers\PagamentoPixController;
 use App\Http\Controllers\FlorestalPixController;
 use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\FiscalController;
+
+use App\Http\Controllers\SaldoController;
+use App\Http\Controllers\SinistroController;
+use App\Http\Controllers\DescartePneusController;
+
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ResetPasswordController;
+
+
+
+//ORDEM DE SERVIÇO
+use App\Http\Controllers\OSController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
+
+
+use Illuminate\Support\Facades\DB;
+Route::get('/teste-sqlserver', function () {
+    try {
+        // Select simples para pegar a data/hora atual do SQL Server
+        $dados = DB::connection('sqlsrv')->select('SELECT GETDATE() AS data_atual');
+
+        return response()->json($dados);
+    } catch (\Exception $e) {
+        return response()->json([
+            'erro' => $e->getMessage()
+        ], 500);
+    }
+});
+
+Route::get('/goto/{route}', [HomeController::class, 'goToRoute'])
+    ->where('route', 'financeiro.index|empresa.create|fiscal.index|pagamento_pix.index|florestal_pix.index|saldo.index|produtos.create|transf_veiculo.index|descarte.index|sinistro.index')
+    ->name('goto.route');
+
 
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::resource('users', UserController::class);
 
 
-Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('empresa.create');
+Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('empresa.create')->middleware('only.from.home');
 Route::get('/fornecedor_fisico', [FornecedorFisicoController::class, 'create'])->name('fisico.fornecedor_fisico');
-Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create');
-Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index');
+Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create')->middleware('only.from.home');
+Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index')->middleware('only.from.home');
 
 
-Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index');
+Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index')->middleware('only.from.home');
 Route::post('/cancelar-pagamento/{id}', [PagamentoPixController::class, 'cancelarPagamento'])->name('cancelar.pagamento');
 Route::post('/finalizar-pagamento/{id}', [PagamentoPixController::class, 'finalizarPagamento'])->name('finalizar.pagamento');
 Route::get('/pagamento/aprovacoes', [PagamentoPixController::class, 'aprovacao'])->name('pagamento_pix.aprovacao');
 
+Route::get('/saldo', [SaldoController::class, 'index'])->name('saldo.index');
+Route::get('/valecard', [SaldoController::class, 'valecard'])->name('saldo.valecard');
+
+Route::get('/sinistro', [SinistroController::class, 'index'])->name('sinistro.index')->middleware('only.from.home');
+Route::post('/sinistro/store', [SinistroController::class, 'store'])->name('sinistro.store');
+Route::get('/sinistro_2', [SinistroController::class, 'sem_terceiro'])->name('sinistro.sem_terceiro');
 
 
 
-Route::get('/florestal_pix', [FlorestalPixController::class, 'index'])->name('florestal_pix.index');
+Route::get('/florestal_pix', [FlorestalPixController::class, 'index'])->name('florestal_pix.index')->middleware('only.from.home');
 
 Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index');
 
+Route::get('/fiscal', [FiscalController::class, 'index'])->name('fiscal.index');
 
+
+//Descarte de Pneus
+Route::get('/descarte', [DescartePneusController::class, 'index'])->name('descarte.index')->middleware('only.from.home');
+Route::post('/descarte/store', [DescartePneusController::class, 'store'])->name('descarte.store');
 
 
 Route::post('/empresa/store', [EmpresaController::class, 'store'])->name('empresa.store');
@@ -54,6 +100,8 @@ Route::post('/pagamento_pix', [PagamentoPixController::class, 'store'])->name('p
 Route::post('/florestal_pix', [FlorestalPixController::class, 'store'])->name('florestal_pix.store');
 
 Route::post('/financeiro', [FinanceiroController::class, 'store'])->name('financeiro.store');
+
+Route::post('/fiscal', [FiscalController::class, 'store'])->name('fiscal.store');
 
 
 Route::get('/empresa/success', function () {
@@ -114,4 +162,63 @@ Route::post('/auth', [LoginController::class, 'auth'])->name('login.auth');
 Route::get('/logout', [LoginController::class, 'logout'])->name('login.logout');
 Route::get('/register', [LoginController::class, 'create'])->name('login.create');
 
+Route::get('password/forgot', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
+Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+
+
+
+
+// Em routes/web.php — remova depois de usar!
+Route::get('/limpar-cache', function () {
+    Artisan::call('cache:clear');
+    Artisan::call('view:clear');
+    return 'Cache e views limpos!';
+});
+
+
+
+
+
+//ROTAS DA ORDEM DE SERVIÇO
+// LOGIN
+Route::get('/os/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/os/login', [AuthController::class, 'login'])->name('login.post');
+Route::post('/os/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::post('/os/atribuir-servicos', [OSController::class, 'assignSelectedServices'])->name('site.assignSelectedServices');
+
+// Redireciona / para login ou dashboard
+Route::get('/os', function() {
+    return redirect()->route('login');
+});
+
+// ROTAS PROTEGIDAS COM 'auth:os'
+Route::middleware('auth:os')->group(function () {
+
+    // DASHBOARD
+    Route::get('/os/dashboard', [OSController::class, 'index'])->name('dashboard');
+    Route::get('/os/dashboard/{codord}/{codire}', [OSController::class, 'details'])->name('site.details');
+
+
+
+    // AÇÕES DE OS
+    Route::post('/os/assign/{codord}/{codire}', [OSController::class, 'assign'])->name('os.assign');
+    Route::post('/os/action/{codord}/{codire}', [OSController::class, 'updateStatus'])->name('os.action');
+
+    // BOTÕES DE CONTROLE
+    Route::post('/os/{codord}/{codire}/start', [OSController::class, 'start'])->name('os.start');
+    Route::post('/os/{codord}/{codire}/pause', [OSController::class, 'pause'])->name('os.pause');
+    Route::post('/os/{codord}/{codire}/resume', [OSController::class, 'resume'])->name('os.resume');
+    Route::post('/os/{codord}/{codire}/finish', [OSController::class, 'finish'])->name('os.finish');
+
+    // ROTAS DE ADMIN – sem proteção adicional
+    Route::get('/os/admin/create', [AdminController::class, 'showCreateAdminForm'])->name('admin.create.form');
+    Route::post('/os/admin/create', [AdminController::class, 'createAdmin'])->name('admin.create');
+
+    // ROTAS DE OS – atribuição
+    Route::get('/os/atribuir/{codord}', [OsController::class, 'showAssignOsForm'])->name('site.assignOs');
+    Route::post('/os/atribuir/{codord}', [OsController::class, 'assignOsToMechanic'])->name('site.assignOs.submit');
+});

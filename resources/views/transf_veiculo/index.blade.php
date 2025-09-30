@@ -73,7 +73,7 @@
 
     </select> <br>
 
-    Centro De Custo: <br>
+    Centro De Gasto: <br>
     <select name="centro_custo" id="centro_custo" required>
 
         <option value=" "></option>
@@ -83,7 +83,7 @@
 
     </select> <br>
 
-    Centro De Gasto: <br>
+    Centro De Custo: <br>
     <select name="centro_gasto" id="centro_gasto" required>
 
         <option value=" "></option>
@@ -107,6 +107,8 @@
     </select>
     <span class="card-title center"><b>Anexos</b></span>
 
+    <b><center> Obs: Cada arquivo deve ter no máximo 2MB e ser do tipo imagem. </center></b><br><br>
+
 
     Anexar CheckList da Manutenção:<br>
     <input type="file" name="foto" id="foto" accept="image/*" required><br><br>
@@ -116,6 +118,9 @@
 
     Anexar Certificado do Tacógrafo<br>
     <input type="file" name="foto_3" id="foto_3" accept="image/*" required><br><br>
+
+    Anexar Plano Revisional (relatorio 459 do rodopar) <br>
+    <input type="file" name="foto_4" id="foto_4" accept="image/*" required><br><br>
 
     <p>As numerações dos pneus que constam no Prolog foram conferidas com as do veículo?</p>
     <div class="btn-group" role="group" aria-label="Conferencia Pneus">

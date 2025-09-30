@@ -55,8 +55,8 @@ class FinanceiroController extends Controller
             'tipo_pix' => 'nullable|string',
             'placa' => 'nullable|string',
             'prazo' => 'nullable|string',
-
         ]);
+
 
         // dd($validatedData);
 
@@ -100,10 +100,18 @@ class FinanceiroController extends Controller
         //dd($validatedData['tipo']);
 
         $foto = $request->file('foto');
+        $nota_fiscal = $request->file('nota_fiscal');
+
+
+        $tipos = $request->input('tipo_reembolso', []);
+
+        // dd($tipos);
+
+
 
         if ($validatedData['tipo'] == 'avista' || $validatedData['tipo'] == 'adiantamento'){
             // Envia o email com os dados do formulário
-            Mail::send('emails.financeiro', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $financeiro, $emails){
+            Mail::send('emails.financeiro', ['dados' => $validatedData, 'financeiro' => $financeiro,], function($message) use ($validatedData, $foto, $financeiro, $emails){
                 $message->to(['contasapagar@grupocargopolo.com.br']);
                 //$message->to('higor.05@hotmail.com');
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
@@ -112,13 +120,15 @@ class FinanceiroController extends Controller
                 } else {
                     $message->cc($emails);
                 }
-                if($validatedData['tipo'] == 'avista') { 
+                if($validatedData['tipo'] == 'avista' && $validatedData['pedido'] != null){ 
                     $message->subject( 'PAGAMENTO A VISTA; PEDIDO: '. $validatedData['pedido'] . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] . ' PLACA: ' . $validatedData['placa'] );
-                } elseif ($validatedData['tipo'] == 'adiantamento'){
+                } elseif ($validatedData['tipo'] == 'avista' && $validatedData['pedido'] == null){
+                    $message->subject( 'PAGAMENTO A VISTA; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] . ' PLACA: ' . $validatedData['placa'] );
+                } elseif ($validatedData['tipo'] == 'adiantamento' && $validatedData['pedido'] != null){
                     $message->subject( 'ADIANTAMENTO À FORNECEDOR; PEDIDO: '. $validatedData['pedido'] . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] );
-
+                } elseif ($validatedData['tipo'] == 'adiantamento' && $validatedData['pedido'] == null){
+                    $message->subject( 'ADIANTAMENTO À FORNECEDOR; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] );
                 }
-                
 
                 //Verificar se existe imagem anexada
                 if ($foto)  {
@@ -140,15 +150,22 @@ class FinanceiroController extends Controller
             });
         } else {
                         // Envia o email com os dados do formulário
-                        Mail::send('emails.financeiro_reembolso', ['dados' => $validatedData, 'financeiro' => $financeiro,], function($message) use ($validatedData, $foto, $financeiro,$emails){
+                        Mail::send('emails.financeiro_reembolso', ['dados' => $validatedData, 'financeiro' => $financeiro, 'tipos' => $tipos,], function($message) use ($validatedData, $foto, $nota_fiscal,$financeiro,$emails){
                             $message->to(['contasapagar@grupocargopolo.com.br']);
-                            //$message->to('higor.05@hotmail.com');
+                            // $message->to('higor.05@hotmail.com');
                             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                             $message->cc($emails);
                             $message->subject( 'DESPESAS/REEMBOLSO; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] . ' PLACA: ' . $validatedData['placa'] );
 
-                            
-            
+                            if ($nota_fiscal) {
+                                $pathToFile = $nota_fiscal->getPathname();
+                                $filename = $nota_fiscal->getClientOriginalName();
+                                $message->attach($pathToFile, [
+                                    'as' => $filename,
+                                    'mime' => $nota_fiscal->getClientMimeType(),
+                                ]);
+                            }
+
                             //Verificar se existe imagem anexada
                             if ($foto)  {
                                 $pathToFile = $foto->getPathname();

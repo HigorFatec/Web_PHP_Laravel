@@ -79,15 +79,15 @@ class PagamentoPixController extends Controller
 
         $pagamentoPix = Pagamento_Pix::create($validatedData);
 
-        // $foto = $request->file('foto');
+        $foto = $request->file('foto');
 
         // Envia o email com os dados do formulário
         Mail::send('emails.pagamento_pix', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $pagamentoPix){
             //$message->to(['combustivel@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br', 'ludmylla.gomes@grupocargopolo.com.br', 'michel.plevka@grupocargopolo.com.br', 'vanderlei.nascimento@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br']);
-            $message->to('arthur.abreu@grupocargopolo.com.br');
+            $message->to(['arthur.abreu@grupocargopolo.com.br','combustivel@grupocargopolo.com.br']);
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
             //$message->cc([$validatedData['email'],$validatedData['email_gestor']]);
-            $message->subject( ' TRANSFERÊNCIA DE PIX; POSTO: '. $validatedData['cnpj'] . ' PLACA: ' . $validatedData['placa'] );
+            $message->subject( 'SOLICITAÇÃO DE TRANSFERÊNCIA DE PIX ; POSTO: '. $validatedData['cnpj'] );
 
             //Verificar se existe imagem anexada
             if ($foto)  {
@@ -160,7 +160,7 @@ class PagamentoPixController extends Controller
 
         // Envia o e-mail de finalização
         Mail::send('emails.pagamento_pix', ['dados' => $reserva], function($message) use ($reserva, $user){
-            $message->to(['combustivel@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br', 'ludmylla.gomes@grupocargopolo.com.br', 'michel.plevka@grupocargopolo.com.br', 'vanderlei.nascimento@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br']);
+            $message->to(['combustivel@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br', 'michel.plevka@grupocargopolo.com.br', 'vanderlei.nascimento@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br']);
             //$message->to('higor.05@hotmail.com');
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
             $message->cc([$reserva->email,$user->email]);

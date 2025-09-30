@@ -16,6 +16,12 @@ class HomeController extends Controller
         return view('index');
     }
 
+        public function goToRoute(Request $request, $routeName)
+    {
+        $request->session()->put('from_home', true);
+        return redirect()->route($routeName);
+    }
+
     /**
      * Show the form for creating a new resource.
      */

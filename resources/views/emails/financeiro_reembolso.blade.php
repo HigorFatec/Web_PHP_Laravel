@@ -23,6 +23,20 @@
     <p>Valor: R${{ $dados['valor'] }}</p>
     <p>Filial: {{ $dados['filial'] }}</p><br>
 
+    <p><strong>Tipo de Reembolso:</strong></p>
+
+    @if(!empty($tipos))
+        <ul>
+            @foreach($tipos as $tipo)
+                <li>{{ $tipo }}</li>
+            @endforeach
+        </ul>
+    @else
+        <p>Nenhum tipo informado.</p>
+    @endif
+
+
+
 
     <p>Atenciosamente <b>Grupo Cargo Polo</b></p>
 </body>
