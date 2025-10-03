@@ -3,6 +3,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\FiscalAprovador;
+
 
 class Fiscal extends Model
 {
@@ -29,15 +31,29 @@ class Fiscal extends Model
         'filial',
         'email',
         'email_gestor',
+        'nome_gestor',
         'tipo_pix',
         'placa',
         'prazo',
         'tipo_de_venda',
         'finalidade_da_compra',
+        'approval_token',
+        'status',
+        'emails',
+        'anexo_path',
+
     ];
 
     public function produtos()
     {
         return $this->hasMany(ProdutoFiscal::class);
+    }
+
+    // Relacionamento com o gestor
+    public function gestor()
+    {
+        return $this->belongsTo(FiscalAprovador::class, 'email_gestor', 'email'); 
+        // 'email_gestor' é a coluna em fiscais
+        // 'email' é a coluna correspondente em fiscais_aprovadores
     }
 }

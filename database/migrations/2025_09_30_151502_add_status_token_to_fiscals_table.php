@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dashboards', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('fiscais', function (Blueprint $table) {
+            $table->string('status')->default('pendente'); // pendente | aprovado | reprovado
+            $table->string('approval_token')->nullable()->unique();
         });
     }
 
@@ -22,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dashboards');
+        Schema::table('fiscais', function (Blueprint $table) {
+            //
+        });
     }
 };

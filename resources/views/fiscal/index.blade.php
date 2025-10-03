@@ -81,7 +81,7 @@
         <input type="text" name="motivo_operacao" placeholder="Motivo da Devolução" required><br>
 
         Finalidade da compra: <br>
-        <select name="finalidade_da_compra" id="finalidade_da_compra" required>
+        <select name="finalidade_da_compra" required>
             <option value=" "></option>
             <option value="uso_consumo">Uso e Consumo</option>
             <option value="ativo_imobilizado">Ativo imobilizado</option>
@@ -174,12 +174,12 @@
 
         <span class="card-title center"><b>Dados da Solicitação</b></span>
 
-        <input type="text" name="empresa_solicitante" placeholder="Empresa solicitante" required>
+        <input type="text" name="empresa_solicitante" placeholder="Filial solicitante" required>
         <input type="text" name="cnpj" placeholder="CNPJ" required>
 
-        <input type="text" name="fornecedor" placeholder="Fornecedor" required>
-        <input type="text" name="codigo_fornecedor_rodopar" placeholder="Codigo Fornecedor do Rodopar"> {{-- Não obrigatorio  --}}
-        <input type="text" name="cnpj_fornecedor" placeholder="CNPJ do Fornecedor" required>
+        <input type="text" name="fornecedor" placeholder="Filial de Recebimento" required>
+        <input type="text" name="codigo_fornecedor_rodopar" placeholder="Codigo Filial de Recebimento do Rodopar"> {{-- Não obrigatorio  --}}
+        <input type="text" name="cnpj_fornecedor" placeholder="CNPJ do Filial de Recebimento" required>
         
         <span class="card-title center"><b>Itens</b></span>
 
@@ -249,7 +249,18 @@
     <input type="email" name="email_fiscal" placeholder="fiscal@grupocargopolo.com.br" disabled>
 
     <input type="email" name="email" placeholder="Email Solicitante (obrigatório)" required>
-    <input type="email" name="email_gestor" placeholder="Email do Gestor (obrigatório)" required>
+
+    {{-- <input type="email" name="email_gestor" placeholder="Email Gestor (obrigatório)" required> --}}
+
+    Gestor Aprovador: <br>
+    <select name="email_gestor" id="email_gestor" required>
+
+        <option value=" "></option>
+        @foreach ($aprovadores as $aprovador)
+            <option value="{{$aprovador->email}}">{{$aprovador->filial}} - {{$aprovador->nome}}</option>
+        @endforeach
+
+    </select> <br>
 
     <input type="text" name="emails" placeholder="E-mails Adicionais (E-mails separados por ;)" >
 

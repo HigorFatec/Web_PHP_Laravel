@@ -6,7 +6,9 @@ use App\Models\Fiscal;
 use Illuminate\Http\Request;
 use App\Models\Filial;
 use Illuminate\Support\Facades\Mail;
-
+use Illuminate\Support\Str;
+use App\Models\FiscalAprovador;
+use Illuminate\Support\Facades\Storage; 
 
 
 class FiscalController extends Controller
@@ -17,16 +19,9 @@ class FiscalController extends Controller
     public function index()
     {
         $filiais = Filial::orderBy('filial')->pluck('filial');
-        
-        return view('fiscal.index', compact('filiais'));
-        //
-    }
+        $aprovadores = FiscalAprovador::orderBy('filial')->get(['id','nome','email','filial']);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
+        return view('fiscal.index', compact('filiais', 'aprovadores'));
         //
     }
 
@@ -61,18 +56,53 @@ class FiscalController extends Controller
             'filial' => ['required', 'string', 'not_regex:/^\s*$/'],
             'email' => 'required|email',
             'email_gestor' => 'required|email',
+            'nome_gestor' => 'nullable|string',
             'tipo_pix' => 'nullable|string',
             'placa' => 'nullable|string',
             'prazo' => 'nullable|string',
+            'emails' => 'nullable|string',
 
-            'finalidade_da_compra' => ['required', 'string', 'not_regex:/^\s*$/'],
-
+            'finalidade_da_compra' => 'nullable|string',
+            'tipo_de_venda' => 'nullable|string',
 
         ]);
 
+
+
+
+        $fiscal = Fiscal::create(array_merge(
+            $validatedData,
+            [
+                'approval_token' => Str::uuid(),
+                'status' => 'pendente'
+            ]
+        ));
+
+        // dd($fiscal->approval_token);
+
+
         // dd($validatedData);
 
-        $fiscal = Fiscal::create($validatedData);
+        // TRATAMENTO DO UPLOAD DO ANEXO
+        // STORE
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $file = $request->file('foto');
+            $extension = $file->guessExtension() ?? 'bin';
+            $filename = time() . '_' . Str::uuid() . '.' . $extension;
+
+            $file->move(storage_path('app/public/fiscais'), $filename);
+
+            $path = 'fiscais/' . $filename;
+            $fiscal->update(['anexo_path' => $path]);
+
+
+            $fiscal->update(['anexo_path' => $path]);
+        }
+        // FIM ANEXO
+
+        // $fiscal = Fiscal::create($validatedData);
+
+
 
         $produtos = $validatedData['produtos'] ?? [];
 
@@ -80,10 +110,48 @@ class FiscalController extends Controller
             $fiscal->produtos()->create($produto);
         }
 
+        // --- Buscar o gestor pelo relacionamento ---
+        $fiscal->load('gestor');
+
+
+        //dd($validatedData['tipo']);
+
+
+        // Email só para o gestor aprovar/reprovar
+        Mail::send('emails.fiscal_pendente', ['fiscal' => $fiscal], function ($message) use ($validatedData, $fiscal) {
+            $message->to($validatedData['email_gestor']);
+            $message->subject('Solicitação Fiscal Pendente - ' . $validatedData['tipo'] . ' - Protocolo: ' . $fiscal->id);
+
+            // anexa se o arquivo foi salvo (disk = public)
+            if (!empty($fiscal->anexo_path) && Storage::disk('public')->exists($fiscal->anexo_path)) {
+                // full path: storage/app/public/{anexo_path}
+                $message->attach(storage_path('app/public/' . $fiscal->anexo_path));
+            }
+
+        });
+
+                    
+        // Redirecionar ou retornar uma resposta de sucesso
+        return redirect()->route('fiscal.index')->with('success', 'Solicitação realizada com sucesso!');
+    }
+
+
+
+    // APROVAR - gestor clicou no link -> dispara para os setores
+    public function aprovar($token)
+    {
+        $fiscal = Fiscal::where('approval_token', $token)->firstOrFail();
+
+        if ($fiscal->status !== 'pendente') {
+            return 'Solicitação já foi processada.';
+        }
+
+        $fiscal->update(['status' => 'aprovado']);
+
 
         // ENVIAR VÁRIOS E-MAILS
 
-        $emailsString = $request->input('emails');
+        $emailsString = $fiscal->emails;
 
         $emailsValidos = []; // inicializa como array vazio
 
@@ -102,135 +170,99 @@ class FiscalController extends Controller
                 return back()->withErrors(['emails' => 'Um ou mais e-mails são inválidos.']);
             }
         }
-        //FIM
-
-       
 
         $emails = array_filter([
             ...$emailsValidos,
-            $validatedData['email'],
-            $validatedData['email_gestor'],
+            $fiscal->email,
+            $fiscal->email_gestor,
         ], function ($email) {
             return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
         });
 
-        //dd($validatedData['tipo']);
+        //FIM
 
-        $foto = $request->file('foto');
 
-        if ($validatedData['tipo'] == 'devolucao' ){
-            // Envia o email com os dados do formulário
-            Mail::send('emails.fiscal_devolucao', ['dados' => $validatedData, 'fiscal' => $fiscal,'produtos' => $produtos], function($message) use ($validatedData, $foto, $fiscal, $emails){
-                $message->to(['fiscal@grupocargopolo.com.br']);
+
+        // Decide qual e-mail disparar pelo tipo
+        if ($fiscal->tipo == 'devolucao') {
+            Mail::send('emails.fiscal_devolucao', [
+                'fiscal' => $fiscal,
+                'produtos' => $fiscal->produtos
+            ], function($message) use ($fiscal,$emails){
+                $message->to('fiscal@grupocargopolo.com.br');
                 //$message->to('higor.05@hotmail.com');
-                //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 $message->cc($emails);
+                $message->subject('EMISSÃO DE NF - DEVOLUÇÃO; PROTOCOLO: '. $fiscal->id);
+            
+            if (!empty($fiscal->anexo_path) && Storage::disk('public')->exists($fiscal->anexo_path)) {
+                $message->attach(storage_path('app/public/' . $fiscal->anexo_path));
+            }
+    }
+        );
+        } elseif ($fiscal->tipo == 'remessa') {
+            Mail::send('emails.fiscal_remessa', [
+                'fiscal' => $fiscal,
+                'produtos' => $fiscal->produtos
+            ], function($message) use ($fiscal,$emails){
+                $message->to('fiscal@grupocargopolo.com.br');
+                $message->cc($emails);
+                $message->subject('EMISSÃO DE NF - REMESSA; PROTOCOLO: '. $fiscal->id);
 
-                    $message->subject( 'EMISSÃO DE NF - DEVOLUÇÃO; PROTOCOLO:'. $fiscal->id  . ' FORNECEDOR: ' . $validatedData['fornecedor'] . ' FILIAL: ' . $validatedData['filial'] . ' EMPRESA: ' . $validatedData['empresa_solicitante'] );
-
-
-                //Verificar se existe imagem anexada
-                if ($foto)  {
-                    $pathToFile = $foto->getPathname();
-                    $filename = $foto->getClientOriginalName();
-                    $message->attach($pathToFile, [
-                        'as' => $filename, // Nome do arquivo que será mostrado no email
-                        'mime' => $foto->getClientMimeType(), // Tipo MIME do arquivo
-                    ]);
+                if (!empty($fiscal->anexo_path) && Storage::disk('public')->exists($fiscal->anexo_path)) {
+                    $message->attach(storage_path('app/public/' . $fiscal->anexo_path));
                 }
-
-                if ($foto) {
-                    \Log::info('Foto anexada: ' . $foto->getClientOriginalName());
-                } else {
-                    \Log::info('Foto não anexada.');
-                }
-                
-
+            
             });
-        } elseif ($validatedData['tipo'] == 'remessa' ){
-                        // Envia o email com os dados do formulário
-                        Mail::send('emails.fiscal_remessa', ['dados' => $validatedData, 'fiscal' => $fiscal,'produtos' => $produtos], function($message) use ($validatedData, $fiscal,$emails){
-                            $message->to(['fiscal@grupocargopolo.com.br']);
-                            // $message->to('higor.05@hotmail.com');
-                            //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-                            $message->cc($emails);
-                            $message->subject( 'EMISSÃO DE NF - REMESSA; PROTOCOLO: '. $fiscal->id . ' FORNECEDOR: ' . $validatedData['fornecedor'] . ' FILIAL: ' . $validatedData['filial'] . ' EMPRESA: ' . $validatedData['empresa_solicitante'] );
-            
-                        });
-        } elseif ($validatedData['tipo'] == 'venda' ){
-                        // Envia o email com os dados do formulário
-                        Mail::send('emails.fiscal_venda', ['dados' => $validatedData, 'fiscal' => $fiscal,'produtos' => $produtos], function($message) use ($validatedData, $fiscal,$emails){
-                            $message->to(['fiscal@grupocargopolo.com.br']);
-                            // $message->to('higor.05@hotmail.com');
-                            //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-                            $message->cc($emails);
-                            $message->subject( 'EMISSÃO DE NF - VENDA; PROTOCOLO: '. $fiscal->id . ' CLIENTE: ' . $validatedData['cliente'] . ' FILIAL: ' . $validatedData['filial'] . ' EMPRESA: ' . $validatedData['empresa_solicitante'] );
-            
-                        });
+        } elseif($fiscal->tipo == 'venda') {
+            Mail::send('emails.fiscal_venda', [
+                'fiscal' => $fiscal,
+                'produtos' => $fiscal->produtos
+            ], function($message) use ($fiscal,$emails){
+                $message->to('fiscal@grupocargopolo.com.br');
+                $message->cc($emails);
+                $message->subject('EMISSÃO DE NF - VENDA; PROTOCOLO: '. $fiscal->id);
 
-                                
-                        //Verificar se existe imagem anexada
-                        if ($foto)  {
-                            $pathToFile = $foto->getPathname();
-                            $filename = $foto->getClientOriginalName();
-                            $message->attach($pathToFile, [
-                                'as' => $filename, // Nome do arquivo que será mostrado no email
-                                'mime' => $foto->getClientMimeType(), // Tipo MIME do arquivo
-                            ]);
-                        }
+                if (!empty($fiscal->anexo_path) && Storage::disk('public')->exists($fiscal->anexo_path)) {
+                    $message->attach(storage_path('app/public/' . $fiscal->anexo_path));
+                }
+            });
+        } elseif($fiscal->tipo == 'descarte') {
+            Mail::send('emails.fiscal_descarte', [
+                'fiscal' => $fiscal,
+                'produtos' => $fiscal->produtos
+            ], function($message) use ($fiscal,$emails){
+                $message->to('fiscal@grupocargopolo.com.br');
+                $message->cc($emails);
+                $message->subject('EMISSÃO DE NF - DESCARTE; PROTOCOLO: '. $fiscal->id);
+                            if (!empty($fiscal->anexo_path) && Storage::disk('public')->exists($fiscal->anexo_path)) {
+                $message->attach(storage_path('app/public/' . $fiscal->anexo_path));
+            }
+            });
+        }
+        // idem para venda e descarte
 
-                        if ($foto) {
-                            \Log::info('Foto anexada: ' . $foto->getClientOriginalName());
-                        } else {
-                            \Log::info('Foto não anexada.');
-                        }
-        
-        
-        } else {
-                        // Envia o email com os dados do formulário
-                        Mail::send('emails.fiscal_descarte', ['dados' => $validatedData, 'fiscal' => $fiscal,'produtos' => $produtos], function($message) use ($validatedData, $fiscal,$emails){
-                            $message->to(['fiscal@grupocargopolo.com.br','alef.bondezan@grupocargopolo.com.br']);
-                            // $message->to('higor.05@hotmail.com');
-                            //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-                            $message->cc($emails);
-                            $message->subject( 'EMISSÃO DE NF - DESCARTE; PROTOCOLO: '. $fiscal->id . ' FORNECEDOR: ' . $validatedData['fornecedor'] . ' FILIAL: ' . $validatedData['filial'] . ' EMPRESA: ' . $validatedData['empresa_solicitante'] );
-            
-                        });
-                    }
-        // Redirecionar ou retornar uma resposta de sucesso
-        return redirect()->route('fiscal.index')->with('success', 'Solicitação realizada com sucesso!');
+        return 'Solicitação aprovada com sucesso!';
     }
 
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(fiscal $fiscal)
+
+    public function reprovar($token)
     {
-        //
+        $fiscal = Fiscal::where('approval_token', $token)->firstOrFail();
+
+        if ($fiscal->status !== 'pendente') {
+            return 'Solicitação já foi processada.';
+        }
+
+        $fiscal->update(['status' => 'reprovado']);
+
+        Mail::send('emails.fiscal_reprovado', ['fiscal' => $fiscal], function($message) use ($fiscal){
+            $message->to($fiscal->email);
+            $message->subject('Solicitação Reprovada - Protocolo: ' . $fiscal->id);
+        });
+
+        return 'Solicitação reprovada com sucesso!';
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(fiscal $fiscal)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, fiscal $fiscal)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(fiscal $fiscal)
-    {
-        //
-    }
 }

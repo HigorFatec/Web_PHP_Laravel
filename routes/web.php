@@ -180,6 +180,11 @@ Route::get('/limpar-cache', function () {
 
 
 
+Route::get('/fiscal/aprovar/{token}', [FiscalController::class, 'aprovar'])->name('fiscal.aprovar');
+Route::get('/fiscal/reprovar/{token}', [FiscalController::class, 'reprovar'])->name('fiscal.reprovar');
+
+
+
 
 
 //ROTAS DA ORDEM DE SERVIÇO
