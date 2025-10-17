@@ -113,6 +113,9 @@
         <li><a href="{{route('admin.canceladas')}}">Canceladas</a></li>
         <li><a href="{{route('admin.finalizadas')}}">Finalizadas</a></li>
       @endif 
+      @if (auth()->user()->admin == 3)
+        <li><a href="{{route('fiscal.aprovacao')}}">Pedidos Fiscais</a></li>
+      @endif
     @endauth
     <li><a href="{{route('reserva.sobre')}}">Sobre</a></li>
     <li><a href="{{route('login.logout')}}">Sair</a></li>

@@ -93,8 +93,9 @@
 
         <div class="produtos">
             <div class="produto">
+                Produto 0:<br>
                 <input type="text" name="produtos[0][quantidade]" placeholder="Quantidade de Itens" required>
-                <input type="text" name="produtos[0][codigo_rodopar]" placeholder="Código do produto Rodopar"> {{-- Não obrigatório --}}
+                <input type="text" name="produtos[0][codigo_rodopar]" placeholder="Código do produto Rodopar" required> {{-- Não obrigatório --}}
                 <input type="text" name="produtos[0][valor_unitario]" placeholder="Valor Unitário" required>
             </div>
         </div>
@@ -135,8 +136,9 @@
 
           <div class="produtos">
               <div class="produto">
+                  Produto 0:<br>
                   <input type="text" name="produtos[0][quantidade]" placeholder="Quantidade de Itens" required>
-                  <input type="text" name="produtos[0][codigo_rodopar]" placeholder="Código do produto Rodopar"> {{-- Não obrigatório   --}} <br>
+                  <input type="text" name="produtos[0][codigo_rodopar]" placeholder="Código do produto Rodopar" required> {{-- Não obrigatório   --}} <br>
                   <input type="text" name="produtos[0][valor_unitario]" placeholder="Valor Unitário" required>
               </div>
           </div>
@@ -174,17 +176,18 @@
 
         <span class="card-title center"><b>Dados da Solicitação</b></span>
 
-        <input type="text" name="empresa_solicitante" placeholder="Filial solicitante" required>
+        <input type="text" name="empresa_solicitante" placeholder="Remetente(Emissor, Filial solicitante)" required>
         <input type="text" name="cnpj" placeholder="CNPJ" required>
 
-        <input type="text" name="fornecedor" placeholder="Filial de Recebimento" required>
-        <input type="text" name="codigo_fornecedor_rodopar" placeholder="Codigo Filial de Recebimento do Rodopar"> {{-- Não obrigatorio  --}}
+        <input type="text" name="fornecedor" placeholder="Destinatário (Recebedor, Filial de envio da mercadoria)" required>
+        <input type="text" name="codigo_fornecedor_rodopar" placeholder="Codigo Filial de Recebimento do Rodopar" required> {{-- Não obrigatorio  --}}
         <input type="text" name="cnpj_fornecedor" placeholder="CNPJ do Filial de Recebimento" required>
         
         <span class="card-title center"><b>Itens</b></span>
 
         <div class="produtos">
             <div class="produto">
+                Produto 0:<br>
                 <input type="text" name="produtos[0][quantidade]" placeholder="Quantidade de Itens" required>
                 <input type="text" name="produtos[0][codigo_rodopar]" placeholder="Código do produto Rodopar"> {{-- Não obrigatorio  --}}
                 <input type="text" name="produtos[0][valor_unitario]" placeholder="Valor Unitário" required>
@@ -195,7 +198,7 @@
         
         <br>
         Nota Fiscal da operação de compra (remessa de garantia):<br>
-        <input type="file" name="foto" id="foto" accept="image/*" required><br><br>
+        <input type="file" name="foto" id="foto" accept="image/*"><br><br>
 
         <input type="text" name="valor_nf" placeholder="Valor Total da Nota Fiscal" required>
         <input type="text" name="motivo_operacao" placeholder="Motivo da Operação" required>
@@ -210,10 +213,10 @@
 
         <span class="card-title center"><b>Dados da Solicitação</b></span>
 
-        <input type="text" name="empresa_solicitante" placeholder="Empresa solicitante" required>
+        <input type="text" name="empresa_solicitante" placeholder="Remetente (Fornecedor, filial de envio)" required>
         <input type="text" name="cnpj" placeholder="CNPJ" required>
 
-        <input type="text" name="fornecedor" placeholder="Fornecedor" required>
+        <input type="text" name="fornecedor" placeholder="Destinatário (Cliente)" required>
         <input type="text" name="codigo_fornecedor_rodopar" placeholder="Codigo Fornecedor do Rodopar"> {{-- Não obrigatorio  --}}
         <input type="text" name="cnpj_fornecedor" placeholder="CNPJ do Fornecedor" required>
         
@@ -221,8 +224,9 @@
 
         <div class="produtos">
             <div class="produto">
+                Produto 0:<br>
                 <input type="text" name="produtos[0][quantidade]" placeholder="Quantidade de Itens" required>
-                <input type="text" name="produtos[0][codigo_rodopar]" placeholder="Código do produto Rodopar"> {{-- Não obrigatorio  --}}
+                <input type="text" name="produtos[0][codigo_rodopar]" placeholder="Código do produto Rodopar" required> {{-- Não obrigatorio  --}}
                 <input type="text" name="produtos[0][valor_unitario]" placeholder="Valor Unitário" required>
             </div>
         </div>
@@ -290,6 +294,7 @@
       const novo = document.createElement('div');
       novo.classList.add('produto');
       novo.innerHTML = `
+          Produto ${index}:<br>
           <input type="text" name="produtos[${index}][quantidade]" placeholder="Quantidade de Itens">
           <input type="text" name="produtos[${index}][codigo_rodopar]" placeholder="Código do produto Rodopar">
           <input type="text" name="produtos[${index}][valor_unitario]" placeholder="Valor Unitário">

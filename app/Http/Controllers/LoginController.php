@@ -28,7 +28,9 @@ class LoginController extends Controller
             $request->session()->regenerate();
             if(auth()->user()->admin == 2){
                 return redirect()->intended('/pagamento/aprovacoes');
-            }
+            } elseif (auth()->user()->admin == 3){
+                return redirect()->intended('/fiscal/aprovacoes');
+            }  
             else {
                 return redirect()->intended('/reserva');
             }

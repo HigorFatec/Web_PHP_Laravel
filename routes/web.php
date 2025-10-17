@@ -61,10 +61,10 @@ Route::resource('users', UserController::class);
 Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('empresa.create')->middleware('only.from.home');
 Route::get('/fornecedor_fisico', [FornecedorFisicoController::class, 'create'])->name('fisico.fornecedor_fisico');
 Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create')->middleware('only.from.home');
-Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index')->middleware('only.from.home');
+Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index');
 
 
-Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index')->middleware('only.from.home');
+Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index');
 Route::post('/cancelar-pagamento/{id}', [PagamentoPixController::class, 'cancelarPagamento'])->name('cancelar.pagamento');
 Route::post('/finalizar-pagamento/{id}', [PagamentoPixController::class, 'finalizarPagamento'])->name('finalizar.pagamento');
 Route::get('/pagamento/aprovacoes', [PagamentoPixController::class, 'aprovacao'])->name('pagamento_pix.aprovacao');
@@ -130,6 +130,7 @@ Route::get('/reserva/finalizadas', [ReservaController::class, 'finalizadas'])->n
 
 
 
+
 Route::get('/reserva/veiculo-leve', [VeiculoController::class, 'index'])->name('reserva.veiculo');
 Route::post('/reserva/veiculo', [VeiculoController::class, 'store']);
 Route::post('/cancelar-veiculo/{id}', [VeiculoController::class, 'cancelarVeiculo'])->name('cancelar.veiculo');
@@ -183,6 +184,11 @@ Route::get('/limpar-cache', function () {
 Route::get('/fiscal/aprovar/{token}', [FiscalController::class, 'aprovar'])->name('fiscal.aprovar');
 Route::get('/fiscal/reprovar/{token}', [FiscalController::class, 'reprovar'])->name('fiscal.reprovar');
 
+Route::get('/fiscal/aprovacoes', [FiscalController::class, 'aprovacao'])->name('fiscal.aprovacao');
+Route::post('/fiscal/emitir-nf/{id}', [FiscalController::class, 'emitirNf'])->name('emitir.nf');
+Route::post('/fiscal/credito-pendente/{id}', [FiscalController::class, 'creditoPendente'])->name('credito.pendente');
+Route::post('/fiscal/filial-pendente/{id}', [FiscalController::class, 'filialPendente'])->name('filial.pendente');
+Route::post('/fiscal/concluido/{id}', [FiscalController::class, 'concluido'])->name('fiscal.concluido');
 
 
 

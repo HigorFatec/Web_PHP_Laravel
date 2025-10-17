@@ -14,11 +14,11 @@ class OnlyFromHome
             // 'financeiro.index',
             'empresa.create',
             // 'fiscal.index',
-            'pagamento_pix.index',
+            // 'pagamento_pix.index',
             'florestal_pix.index',
             'saldo.index',
             'produtos.create',
-            'transf_veiculo.index',
+            // 'transf_veiculo.index',
             'descarte.index',
             'sinistro.index',
 
