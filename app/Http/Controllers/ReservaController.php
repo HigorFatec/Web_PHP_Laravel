@@ -7,10 +7,14 @@ use App\Models\Veiculo;
 use App\Models\Hospedagem;
 use App\Models\Adiantamento;
 use App\Models\Filial;
+use App\Models\UsersGestores;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage; 
 
 use Illuminate\Support\Facades\Mail;
 
@@ -28,8 +32,9 @@ class ReservaController extends Controller
     public function passagemAerea()
     {
         $filiais = Filial::orderBy('filial')->pluck('filial');
+        $aprovadores = UsersGestores::orderBy('nome')->get(['id','nome','email','operacao']);
 
-        return view('reserva.passagem-aerea', compact('filiais'));
+        return view('reserva.passagem-aerea', compact('filiais', 'aprovadores'));
     }
 
     /**
@@ -128,9 +133,10 @@ class ReservaController extends Controller
             
             // Se precisar salvar em um banco de dados, adicione o código aqui
             // Exemplo:
-             Reserva::create(array_merge(
+             $reserva = Reserva::create(array_merge(
                 $request->all(),
                 [
+                    'approval_token' => Str::uuid(),
                     'user_name' => $user->name,
                     'user_id' => $user->id,
                     'user_cpf' => $user->cpf,
@@ -138,28 +144,68 @@ class ReservaController extends Controller
                 ]
              ));
 
-            $foto = $request->file('foto');
+            // TRATAMENTO DO UPLOAD DO ANEXO
+            // STORE
+            if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+                $file = $request->file('foto');
+                $extension = $file->guessExtension() ?? 'bin';
+                $filename = time() . '_' . Str::uuid() . '.' . $extension;
 
+                $file->move(storage_path('app/public/reservas'), $filename);
+
+                $path = 'reservas/' . $filename;
+                $reserva->update(['anexo_path' => $path]);
+
+
+                $reserva->update(['anexo_path' => $path]);
+            }
+            // FIM ANEXO
             // Verifique se o arquivo foi capturado
             //dd($foto);
+            $reserva->load('gestor');
+
+            // Email só para o gestor aprovar/reprovar
+            Mail::send('emails.reserva_pendente', ['reserva' => $reserva, 'user' => $user], function ($message) use ($validatedData, $reserva, $user) {
+                $message->to($validatedData['email_gestor']);
+                $message->subject('Solicitação Pendente de Reserva ' . $validatedData['tipo'] . ' - Protocolo: ' . $reserva->id);
+
+                // anexa se o arquivo foi salvo (disk = public)
+                if (!empty($reserva->anexo_path) && Storage::disk('public')->exists($reserva->anexo_path)) {
+                    // full path: storage/app/public/{anexo_path}
+                    $message->attach(storage_path('app/public/' . $reserva->anexo_path));
+                }
+
+            });
+
+            Mail::send('emails.reserva_solicitacao', ['reserva' => $reserva, 'user' => $user], function ($message) use ($validatedData, $reserva, $user) {
+                $message->to($validatedData['email']);
+                $message->subject('Confirmação de Solicitação de Reserva - ' . $validatedData['tipo'] . ' - Protocolo: ' . $reserva->id);
+
+            // anexa se o arquivo foi salvo (disk = public)
+            if (!empty($reserva->anexo_path) && Storage::disk('public')->exists($reserva->anexo_path)) {
+                // full path: storage/app/public/{anexo_path}
+                $message->attach(storage_path('app/public/' . $reserva->anexo_path));
+            }
+
+        });
 
             // Envia o email com os dados do formulário
-            Mail::send('emails.passagem', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
-                $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
+            // Mail::send('emails.passagem', ['dados' => $reserva, 'user' => $user], function($message) use ($user, $reserva, $foto){
+            //     $message->to([$reserva['email'],$reserva['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 
-                //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-                $message->subject('Nova Reserva de Passagem '. $validatedData['tipo'] .' Solicitada');
+            //     //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
+            //     $message->subject('Nova Reserva de Passagem '. $reserva['tipo'] .' Solicitada');
 
-                //Verificar se existe imagem anexada
-                if ($foto)  {
-                    $pathToFile = $foto->getPathname();
-                    $filename = $foto->getClientOriginalName();
-                    $message->attach($pathToFile, [
-                        'as' => $filename, // Nome do arquivo que será mostrado no email
-                        'mime' => $foto->getClientMimeType(), // Tipo MIME do arquivo
-                    ]);
-                }
-            });
+            //     //Verificar se existe imagem anexada
+            //     if ($foto)  {
+            //         $pathToFile = $foto->getPathname();
+            //         $filename = $foto->getClientOriginalName();
+            //         $message->attach($pathToFile, [
+            //             'as' => $filename, // Nome do arquivo que será mostrado no email
+            //             'mime' => $foto->getClientMimeType(), // Tipo MIME do arquivo
+            //         ]);
+            //     }
+            // });
     
             // Redirecionar ou retornar uma resposta de sucesso
             return redirect()->route('reserva.home')->with('success2', 'Reserva de veiculo realizada com sucesso!');
@@ -222,5 +268,66 @@ class ReservaController extends Controller
             return redirect()->route('reserva.reservas')->with('success2', 'Veiculo finalizado com sucesso.');
 
         }
+
+
+
+
+    // APROVAR - gestor clicou no link -> dispara para os setores
+    public function aprovar($token)
+    {
+        $reserva = Reserva::where('approval_token', $token)->firstOrFail();
+
+        if ($reserva->status !== 'pendente') {
+            return 'Solicitação já foi processada.';
+        }
+
+        $reserva->update(['status' => 'ok']);
+
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+        // Decide qual e-mail disparar pelo tipo
+
+        Mail::send('emails.passagem', [
+                'reserva' => $reserva, 'user' => $user
+            ], function($message) use ($reserva,$user){
+                //$message->to('reservas@grupocargopolo.com.br');
+                $message->to('higor.05@hotmail.com');
+                $message->subject('Nova Reserva de Passagem '. $reserva['tipo'] .' Solicitada');
+
+            if (!empty($reserva->anexo_path) && Storage::disk('public')->exists($reserva->anexo_path)) {
+                $message->attach(storage_path('app/public/' . $reserva->anexo_path));
+            }
+    }
+        );
+        
+        // idem para venda e descarte
+
+        return 'Solicitação aprovada com sucesso!';
+    }
+
+
+
+    public function reprovar($token)
+    {
+        $reserva = Reserva::where('approval_token', $token)->firstOrFail();
+
+        if ($reserva->status !== 'pendente') {
+            return 'Solicitação já foi processada.';
+        }
+
+        $reserva->update(['status' => 'reprovado']);
+
+                    // Obtém o usuário autenticado
+            $user = Auth::user();
+
+        Mail::send('emails.reserva_reprovado', ['reserva' => $reserva, 'user' => $user], function($message) use ($reserva, $user){
+            $message->to($reserva->email);
+            $message->cc($reserva->email_gestor);
+            $message->subject('Solicitação Reprovada - Protocolo: ' . $reserva->id);
+        });
+
+        return 'Solicitação reprovada com sucesso!';
+    }
 
     }

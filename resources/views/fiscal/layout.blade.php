@@ -84,7 +84,17 @@
         <li><a href="{{route('admin.finalizadas')}}">Finalizadas</a></li>
       @endif 
       @if (auth()->user()->admin == 3)
-        <li><a href="{{route('pagamento.aprovacoes')}}">Aprovações</a></li>
+        <li><a href="{{route('fiscal.aprovacao')}}">Aprovações</a></li>
+
+
+
+      <li>
+        <form action="{{ route('exportar.fiscais') }}" method="GET" style="margin: 0; padding: 0;">
+          <button type="submit" class="btn green" style="width: 100%; text-align: left;">Exportar Dados</button>
+        </form>
+      </li>
+
+
       @endif
     @endauth
     <li><a href="{{route('reserva.sobre')}}">Sobre</a></li>

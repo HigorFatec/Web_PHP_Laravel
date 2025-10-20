@@ -14,6 +14,16 @@
     </div>
     @endif
 
+        @if ($message = Session::get('success2'))
+    <div class="card green darken-1">
+        <div class="card-content white-text">
+        <span class="card-title">Sucesso!</span>
+        <p>Parabéns! A solicitação foi realizada com sucesso!<br>
+        </p>
+        </div>
+    </div>
+    @endif
+
   @if ($errors->any())
   <div class="alert alert-danger">
       <ul>
@@ -77,7 +87,16 @@
       <div class="icon">
         <img src="{{ asset('img/saldo.png') }}" alt="Saldo">
       </div>
-      <div class="card-title">Combustível - Saldo</div>
+      <div class="card-title">Combustível - Saldo </div>
+      <div class="card-description">Rede Frotas</div>
+    </a>
+
+    <a href="{{ route('goto.route', ['route' => 'saldo.valecard']) }}" class="dashboard-card">
+      <div class="icon">
+        <img src="{{ asset('img/money.png') }}" alt="Saldo">
+      </div>
+      <div class="card-title">Combustível - Saldo </div>
+      <div class="card-description">ValeCard</div>
     </a>
 
     <a href="{{ route('goto.route', ['route' => 'produtos.create']) }}" class="dashboard-card">
@@ -92,13 +111,6 @@
         <img src="{{ asset('img/placa.png') }}" alt="Transferência de Veículo">
       </div>
       <div class="card-title">Transferência de Veículo</div>
-    </a>
-
-    <a href="{{ route('goto.route', ['route' => 'descarte.index']) }}" class="dashboard-card">
-      <div class="icon">
-        <img src="{{ asset('img/descarte_pneus.png') }}" alt="Descarte de Pneus">
-      </div>
-      <div class="card-title">Descarte de Pneus</div>
     </a>
 
     <a href="{{ route('goto.route', ['route' => 'sinistro.index']) }}" class="dashboard-card">

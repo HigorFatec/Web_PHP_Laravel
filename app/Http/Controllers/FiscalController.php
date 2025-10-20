@@ -284,7 +284,7 @@ class FiscalController extends Controller
         $aprovado_devolucao = Fiscal::whereIn('status',['aprovado','emitido','credito_pendente'])->where('tipo', 'devolucao')->orderBy('created_at', 'desc')->paginate(3);
 
         //Remessas
-        $aprovado_remessa = Fiscal::whereIn('status',['aprovado','aguardando confirmacao de entrega','emitido','entrada_estoque_pendente'])->where('tipo', 'remessa')->orderBy('created_at', 'desc')->paginate(3);
+        $aprovado_remessa = Fiscal::whereIn('status',['aprovado','aguardando confirmacao de entrega','emitido','pendente_entrada_estoque_filial','retorno_pendente'])->where('tipo', 'remessa')->orderBy('created_at', 'desc')->paginate(3);
  
         //Vendas
         $aprovado_venda = Fiscal::whereIn('status',['aprovado','emitido'])->where('tipo', 'venda')->orderBy('created_at', 'desc')->paginate(3);
@@ -296,6 +296,35 @@ class FiscalController extends Controller
         $pendente = Fiscal::where('status','pendente')->orderBy('created_at', 'desc')->paginate(3);
 
         return view('fiscal.aprovacao', compact('aprovado_devolucao','aprovado_remessa','aprovado_venda','aprovado_descarte','pendente'));
+    }
+
+    public function exportar()
+    {
+        $fiscais = Fiscal::all();
+
+        if ($fiscais->isEmpty()) {
+            return response('Nenhum dado encontrado', 404);
+        }
+
+        // Pega os nomes das colunas (chaves do primeiro registro)
+        $colunas = array_keys($fiscais->first()->getAttributes());
+
+        // Cabeçalho do CSV
+        $csv = implode(',', $colunas) . "\n";
+
+        // Linhas do CSV
+        foreach ($fiscais as $fiscal) {
+            $valores = array_map(function ($valor) {
+                // Escapa vírgulas e aspas
+                return '"' . str_replace('"', '""', $valor) . '"';
+            }, $fiscal->getAttributes());
+
+            $csv .= implode(',', $valores) . "\n";
+        }
+
+        return response($csv)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', 'attachment; filename="fiscais.csv"');
     }
 
 
@@ -343,7 +372,7 @@ class FiscalController extends Controller
     
             //$reserva->delete();
             // Altera o status da coluna "Ok" para "Cancelada"
-            $fiscal->status = 'entrada_estoque_pendente';
+            $fiscal->status = 'pendente_entrada_estoque_filial';
             $fiscal->save();
 
             // Obtém o usuário autenticado
@@ -358,6 +387,34 @@ class FiscalController extends Controller
             return redirect()->route('fiscal.aprovacao')->with('success2', 'Veiculo finalizado com sucesso.');
 
         }
+
+    public function filialRetorno($id)
+    {
+        $fiscal = Fiscal::findOrFail($id);
+
+        if (auth()->user()->admin == 0) {
+            if ($fiscal->user_id !== auth()->id()) {
+                return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
+            }
+        }
+
+        //$reserva->delete();
+        // Altera o status da coluna "Ok" para "Cancelada"
+        $fiscal->status = 'retorno_pendente';
+        $fiscal->save();
+
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+    // Envia o e-mail de emitida
+    // Mail::send('emails.fiscal_filial_pendente', ['fiscal' => $fiscal], function($message) use ($fiscal,$user){
+    //     $message->to([$fiscal->email,$user->email,'emissaonf@grupocargopolo.com.br']);
+    //     $message->subject('Nota Fiscal - Entrada de Estoque Filial Pendente - Protocolo: ' . $fiscal->id);
+    // });
+
+        return redirect()->route('fiscal.aprovacao')->with('success2', 'Veiculo finalizado com sucesso.');
+
+    }
 
     public function creditoPendente($id)
         {
@@ -413,6 +470,42 @@ class FiscalController extends Controller
             // });
 
             return redirect()->route('fiscal.aprovacao')->with('success4', 'Veiculo finalizado com sucesso.');
+
+        }
+
+        public function reenviar_pendencia($id)
+        {
+            $fiscal = Fiscal::findOrFail($id);
+    
+            if (auth()->user()->admin == 0) {
+                if ($fiscal->user_id !== auth()->id()) {
+                    return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
+                }
+            }
+    
+            //$reserva->delete();
+            // Altera o status da coluna "Ok" para "Cancelada"
+            $fiscal->status = 'pendente';
+            $fiscal->save();
+
+            // Obtém o usuário autenticado
+            $user = Auth::user();
+
+
+            // Email só para o gestor aprovar/reprovar
+            Mail::send('emails.fiscal_pendente', ['fiscal' => $fiscal, 'produtos' => $fiscal->produtos], function ($message) use ($fiscal) {
+                $message->to($fiscal->email_gestor);
+                $message->subject('Solicitação Fiscal Pendente - ' . $fiscal->tipo . ' - Protocolo: ' . $fiscal->id);
+
+                // anexa se o arquivo foi salvo (disk = public)
+                if (!empty($fiscal->anexo_path) && Storage::disk('public')->exists($fiscal->anexo_path)) {
+                    // full path: storage/app/public/{anexo_path}
+                    $message->attach(storage_path('app/public/' . $fiscal->anexo_path));
+                }
+
+            });
+
+            return redirect()->route('fiscal.aprovacao')->with('success5', 'E-mail reenviado com sucesso.')->with('email_gestor', $fiscal->email_gestor);;
 
         }
 

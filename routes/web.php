@@ -50,7 +50,7 @@ Route::get('/teste-sqlserver', function () {
 });
 
 Route::get('/goto/{route}', [HomeController::class, 'goToRoute'])
-    ->where('route', 'financeiro.index|empresa.create|fiscal.index|pagamento_pix.index|florestal_pix.index|saldo.index|produtos.create|transf_veiculo.index|descarte.index|sinistro.index')
+    ->where('route', 'financeiro.index|empresa.create|fiscal.index|pagamento_pix.index|florestal_pix.index|saldo.index|saldo.valecard|produtos.create|transf_veiculo.index|descarte.index|sinistro.index')
     ->name('goto.route');
 
 
@@ -180,6 +180,7 @@ Route::get('/limpar-cache', function () {
 });
 
 
+Route::get('/exportar-fiscais', [FiscalController::class, 'exportar'])->name('exportar.fiscais');
 
 Route::get('/fiscal/aprovar/{token}', [FiscalController::class, 'aprovar'])->name('fiscal.aprovar');
 Route::get('/fiscal/reprovar/{token}', [FiscalController::class, 'reprovar'])->name('fiscal.reprovar');
@@ -188,9 +189,13 @@ Route::get('/fiscal/aprovacoes', [FiscalController::class, 'aprovacao'])->name('
 Route::post('/fiscal/emitir-nf/{id}', [FiscalController::class, 'emitirNf'])->name('emitir.nf');
 Route::post('/fiscal/credito-pendente/{id}', [FiscalController::class, 'creditoPendente'])->name('credito.pendente');
 Route::post('/fiscal/filial-pendente/{id}', [FiscalController::class, 'filialPendente'])->name('filial.pendente');
+Route::post('/fiscal/filial-retorno/{id}', [FiscalController::class, 'filialRetorno'])->name('filial.retorno');
 Route::post('/fiscal/concluido/{id}', [FiscalController::class, 'concluido'])->name('fiscal.concluido');
+Route::post('/fiscal/reenviar/{id}', [FiscalController::class, 'reenviar_pendencia'])->name('fiscal.reenviar');
 
 
+Route::get('/reserva/aprovar/{token}', [ReservaController::class, 'aprovar'])->name('reserva.aprovar');
+Route::get('/reserva/reprovar/{token}', [ReservaController::class, 'reprovar'])->name('reserva.reprovar');
 
 
 //ROTAS DA ORDEM DE SERVIÇO

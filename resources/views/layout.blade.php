@@ -89,7 +89,16 @@
 }
 
 
+  input[readonly] {
+    background-color: #f0f0f0; /* fundo cinza claro */
+    color: #555;               /* texto levemente escuro */
+    border: 1px solid #ccc;    /* borda suave */
+    cursor: not-allowed;       /* cursor de bloqueio */
+  }
 
+  input[readonly]:focus {
+    outline: none;             /* remove brilho ao focar */
+  }
     
     </style>
 
@@ -115,6 +124,14 @@
       @endif 
       @if (auth()->user()->admin == 3)
         <li><a href="{{route('fiscal.aprovacao')}}">Pedidos Fiscais</a></li>
+        
+        <li>
+          <form action="{{ route('exportar.fiscais') }}" method="GET" style="margin: 0; padding: 0;">
+            <button type="submit" class="btn green" style="width: 100%; text-align: left;">Exportar Dados</button>
+          </form>
+        </li>
+
+
       @endif
     @endauth
     <li><a href="{{route('reserva.sobre')}}">Sobre</a></li>

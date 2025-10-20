@@ -41,7 +41,7 @@
         </div>
         @endif
 
-        @if ($message = Session::get('success'))
+        @if ($message = Session::get('success4'))
         <div class="card green darken-1">
           <div class="card-content white-text">
             <span class="card-title">Nota Fiscal emitida!</span>
@@ -50,6 +50,33 @@
           </div>
         </div>
         @endif
+        @if ($message = Session::get('success5'))
+        <div class="card green darken-1">
+          <div class="card-content white-text">
+            <span class="card-title">E-mail reenviado!</span>
+            <p>O e-mail de solicitação fiscal foi reenviado ao <b>{{ Session::get('email_gestor') }}</b> com sucesso!
+           </p>
+          </div>
+        </div>
+        @endif
+
+        @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                <div class="card red darken-1">
+                    <div class="card-content white-text">
+                    <span class="card-title">Erro</span>
+                    <p>Corrija os seguintes erros para prosseguir:<br>
+                        {{$error}}
+                    </p>
+                    </div>
+                </div>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
 
 {{-- Devoluções --}}
     @if($aprovado_devolucao->isEmpty())
@@ -165,16 +192,17 @@
                     <th>Id</th>
                     <th>Tipo de Remessa</th>
                     <th>Cod.Fornecedor Rodopar</th>
-                    <th>Fornecedor</th>
+                    <th>Remetente</th>
                     <th>Valor NF</th>
                     <th>Data Criação</th>
-                    <th>Filial</th>
+                    <th>Destinatário</th>
                     <th>Aprovador</th>
                     @endif
 
                     @if(auth()->user()->admin == 3)
                         <th class="admin">Emitir NF</th>
-                        <th class="admin">Entrada Estoque Filial Pendente</th>
+                        <th class="admin">Pendente Entrada Estoque Filial</th>
+                        <th class="admin">Retorno Pendente</th>
                         <th class="admin">Concluido</th>
                     @endif
 
@@ -211,6 +239,14 @@
                             <form action="{{route('filial.pendente', $aprovado->id)}}" method="POST" style="display:inline;">
                                 @csrf
                                 <center><button type="submit" class="btn btn-success orange"> <i class="material-icons">remove</i></button></center>
+                            </form>
+
+                        </td>
+
+                                                <td>
+                            <form action="{{route('filial.retorno', $aprovado->id)}}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-success pink"> <i class="material-icons">remove</i></button></center>
                             </form>
 
                         </td>
@@ -344,10 +380,10 @@
                     @if(auth()->user()->admin == 3)
                     <th class="admin">Status</th>
                     <th>Id</th>
-                    <th>Fornecedor</th>
+                    <th>Remetente</th>
                     <th>Motivo Descarte</th>
                     <th>Data Criação</th>
-                    <th>Filial</th>
+                    <th>Destinatário</th>
                     <th>Aprovador</th>
                     @endif
 
@@ -432,6 +468,7 @@
                     <th>Data Criação</th>
                     <th>Filial</th>
                     <th>Aprovador</th>
+                    <th class="admin">Reenviar E-mail</th>
                     @endif
 
                 </tr>
@@ -452,7 +489,15 @@
                         <td>{{ substr($aprovado->gestor->nome, 0, 10) }}</td>
 
 
+                        
+                        @if(auth()->user()->admin == 3)
+                        <td>
+                            <form action="{{ route('fiscal.reenviar', $aprovado->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-danger green"> <i class="material-icons">done</i></button></center>
+                            </form>
                         </td>
+                        @endif
 
 
                     </tr>
