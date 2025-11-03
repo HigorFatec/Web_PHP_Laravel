@@ -286,13 +286,19 @@ class ReservaController extends Controller
         // Obtém o usuário autenticado
         $user = Auth::user();
 
+        if($user === null){
+            //rota login
+            return redirect()->route('login.form')->with('error', 'Você precisa estar logado para aprovar uma solicitação.');
+        }
+
         // Decide qual e-mail disparar pelo tipo
 
         Mail::send('emails.passagem', [
                 'reserva' => $reserva, 'user' => $user
             ], function($message) use ($reserva,$user){
-                //$message->to('reservas@grupocargopolo.com.br');
-                $message->to('higor.05@hotmail.com');
+                $message->to('reservas@grupocargopolo.com.br');
+                $message->cc([$user->email,$reserva->email,$reserva->email_gestor]);
+                //$message->to('higor.05@hotmail.com');
                 $message->subject('Nova Reserva de Passagem '. $reserva['tipo'] .' Solicitada');
 
             if (!empty($reserva->anexo_path) && Storage::disk('public')->exists($reserva->anexo_path)) {
@@ -318,8 +324,13 @@ class ReservaController extends Controller
 
         $reserva->update(['status' => 'reprovado']);
 
-                    // Obtém o usuário autenticado
-            $user = Auth::user();
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+        if($user === null){
+            //rota login
+            return redirect()->route('login.form')->with('error', 'Você precisa estar logado para reprovar uma solicitação.');
+        }
 
         Mail::send('emails.reserva_reprovado', ['reserva' => $reserva, 'user' => $user], function($message) use ($reserva, $user){
             $message->to($reserva->email);

@@ -92,8 +92,8 @@
     <select name="tipo" id="tipo" required>
 
         <option value=" "></option>
-        <option value="Aérea">Aérea</option>
-        <option value="Rodoviária">Rodoviária</option>
+        <option value="aerea">Aérea</option>
+        <option value="rodoviaria">Rodoviária</option>
 
     </select> <br>
     

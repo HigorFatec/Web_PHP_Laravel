@@ -42,7 +42,7 @@
 
     </select> <br>
 
-    E-mail do Gestor: <br> <input type="email" name="email_gestor"> <br>
+    E-mail do Gestor Regional ou Aprovador Corporativo: <br> <input type="email" name="email_gestor"> <br>
     
 
     Senha: <br> <input type="password" name="password"> <br>

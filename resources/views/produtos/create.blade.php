@@ -70,6 +70,14 @@
         <input type="text" id="ca" name="ca" >
         <br>
 
+        Selecione o tipo de Produto: <br>
+        <select name="tipo" id="tipo" required>
+
+        <option value=" "></option>
+        <option value="epi">EPI</option>
+        <option value="outro">Outro</option>
+
+        </select> <br>
 
         </p>
 

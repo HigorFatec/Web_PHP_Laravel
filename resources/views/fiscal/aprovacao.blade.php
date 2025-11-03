@@ -59,6 +59,15 @@
           </div>
         </div>
         @endif
+        @if ($message = Session::get('success6'))
+        <div class="card red darken-1">
+          <div class="card-content white-text">
+            <span class="card-title">Solicitação Reprovada</span>
+            <p>A solicitação fiscal foi <b>reprovada</b> com sucesso!
+           </p>
+          </div>
+        </div>
+        @endif
 
         @if ($errors->any())
         <div class="alert alert-danger">
@@ -107,6 +116,7 @@
                     @endif
 
                     @if(auth()->user()->admin == 3)
+                        <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Credito Pendente</th>
                         <th class="admin">Concluido</th>
@@ -137,9 +147,16 @@
                         @if(auth()->user()->admin == 3)
 
                         <td>
+                            <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-danger red darken-1"> <i class="material-icons">close</i></button></center>
+                            </form>
+                        </td>
+
+                        <td>
                             <form action="{{ route('emitir.nf', $aprovado->id) }}" method="POST" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button>
+                                <center><button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button></center>
                             </form>
                         </td>
                         <td>
@@ -200,6 +217,7 @@
                     @endif
 
                     @if(auth()->user()->admin == 3)
+                        <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Pendente Entrada Estoque Filial</th>
                         <th class="admin">Retorno Pendente</th>
@@ -230,9 +248,16 @@
                         @if(auth()->user()->admin == 3)
 
                         <td>
+                            <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-danger red darken-1"> <i class="material-icons">close</i></button></center>
+                            </form>
+                        </td>
+
+                        <td>
                             <form action="{{ route('emitir.nf', $aprovado->id) }}" method="POST" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button>
+                                <center><button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button></center>
                             </form>
                         </td>
                         <td>
@@ -303,6 +328,7 @@
                     @endif
 
                     @if(auth()->user()->admin == 3)
+                        <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Concluido</th>
                     @endif
@@ -330,9 +356,16 @@
                         @if(auth()->user()->admin == 3)
 
                         <td>
+                            <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-danger red darken-1"> <i class="material-icons">close</i></button></center>
+                            </form>
+                        </td>
+
+                        <td>
                             <form action="{{ route('emitir.nf', $aprovado->id) }}" method="POST" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button>
+                                <center><button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button></center>
                             </form>
                         </td>
 
@@ -388,6 +421,7 @@
                     @endif
 
                     @if(auth()->user()->admin == 3)
+                        <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Concluido</th>
                     @endif
@@ -414,9 +448,16 @@
                         @if(auth()->user()->admin == 3)
 
                         <td>
+                            <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-danger red darken-1"> <i class="material-icons">close</i></button></center>
+                            </form>
+                        </td>
+
+                        <td>
                             <form action="{{ route('emitir.nf', $aprovado->id) }}" method="POST" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button>
+                                <center><button type="submit" class="btn btn-danger red"> <i class="material-icons">done</i></button></center>
                             </form>
                         </td>
 
@@ -468,6 +509,7 @@
                     <th>Data Criação</th>
                     <th>Filial</th>
                     <th>Aprovador</th>
+                    <th class="admin">Reprovar</th>
                     <th class="admin">Reenviar E-mail</th>
                     @endif
 
@@ -491,6 +533,13 @@
 
                         
                         @if(auth()->user()->admin == 3)
+                        <td>
+                            <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-danger red darken-1"> <i class="material-icons">close</i></button></center>
+                            </form>
+                        </td>
+
                         <td>
                             <form action="{{ route('fiscal.reenviar', $aprovado->id) }}" method="POST" style="display:inline;">
                                 @csrf

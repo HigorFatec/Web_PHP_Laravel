@@ -60,7 +60,7 @@ Route::resource('users', UserController::class);
 
 Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('empresa.create')->middleware('only.from.home');
 Route::get('/fornecedor_fisico', [FornecedorFisicoController::class, 'create'])->name('fisico.fornecedor_fisico');
-Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create')->middleware('only.from.home');
+Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create');
 Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index');
 
 
@@ -192,10 +192,14 @@ Route::post('/fiscal/filial-pendente/{id}', [FiscalController::class, 'filialPen
 Route::post('/fiscal/filial-retorno/{id}', [FiscalController::class, 'filialRetorno'])->name('filial.retorno');
 Route::post('/fiscal/concluido/{id}', [FiscalController::class, 'concluido'])->name('fiscal.concluido');
 Route::post('/fiscal/reenviar/{id}', [FiscalController::class, 'reenviar_pendencia'])->name('fiscal.reenviar');
+Route::post('/fiscal/reprovado/{id}', [FiscalController::class, 'fiscal_reprovar'])->name('fiscal.reprovado');
 
 
 Route::get('/reserva/aprovar/{token}', [ReservaController::class, 'aprovar'])->name('reserva.aprovar');
 Route::get('/reserva/reprovar/{token}', [ReservaController::class, 'reprovar'])->name('reserva.reprovar');
+
+Route::get('/produto/aprovar/{token}', [ProdutoController::class, 'aprovar'])->name('produto.aprovar');
+Route::get('/produto/reprovar/{token}', [ProdutoController::class, 'reprovar'])->name('produto.reprovar');
 
 
 //ROTAS DA ORDEM DE SERVIÇO
@@ -204,7 +208,6 @@ Route::get('/os/login', [AuthController::class, 'showLoginForm'])->name('login')
 Route::post('/os/login', [AuthController::class, 'login'])->name('login.post');
 Route::post('/os/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::post('/os/atribuir-servicos', [OSController::class, 'assignSelectedServices'])->name('site.assignSelectedServices');
 
 // Redireciona / para login ou dashboard
 Route::get('/os', function() {
@@ -237,4 +240,8 @@ Route::middleware('auth:os')->group(function () {
     // ROTAS DE OS – atribuição
     Route::get('/os/atribuir/{codord}', [OsController::class, 'showAssignOsForm'])->name('site.assignOs');
     Route::post('/os/atribuir/{codord}', [OsController::class, 'assignOsToMechanic'])->name('site.assignOs.submit');
+
+    // ROTA ATRIBUIR OS SELECIONADAS
+    Route::post('/os/atribuir-servicos', [OSController::class, 'assignSelectedServices'])->name('site.assignSelectedServices');
+
 });

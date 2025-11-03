@@ -1,4 +1,18 @@
-<p>Olá Gestor <b>{{ $reserva->gestor->nome }}</b>,</p>
+<p>Olá Gestor ,<b>{{$reserva->email_gestor}}</b></p><br>
+
+<p>Deseja aprovar ou reprovar?</p>
+
+<p>
+    <a href="{{ route('reserva.aprovar', ['token' => $reserva->approval_token]) }}"
+       style="background:green;color:white;padding:10px 15px;text-decoration:none;border-radius:5px;">
+       ✅ Aprovar
+    </a>
+
+    <a href="{{ route('reserva.reprovar', ['token' => $reserva->approval_token]) }}"
+       style="background:red;color:white;padding:10px 15px;text-decoration:none;border-radius:5px;">
+       ❌ Reprovar
+    </a>
+</p><br>
 
 <p>Você tem uma nova solicitação para análise:</p>
 
@@ -26,20 +40,5 @@
 
 
 
-
-
-<p>Deseja aprovar ou reprovar?</p>
-
-<p>
-    <a href="{{ route('reserva.aprovar', ['token' => $reserva->approval_token]) }}"
-       style="background:green;color:white;padding:10px 15px;text-decoration:none;border-radius:5px;">
-       ✅ Aprovar
-    </a>
-
-    <a href="{{ route('reserva.reprovar', ['token' => $reserva->approval_token]) }}"
-       style="background:red;color:white;padding:10px 15px;text-decoration:none;border-radius:5px;">
-       ❌ Reprovar
-    </a>
-</p>
 
     <p>Atenciosamente <b>Grupo Cargo Polo</b></p>

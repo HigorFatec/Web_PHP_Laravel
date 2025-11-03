@@ -97,7 +97,7 @@
 
     <div id="campos-adiantamento" class="tipo-campos" style="display:none;">
 
-        <input type="number" name="pedido" id="pedido_2" placeholder="Número Pedido de Compra">
+        <input type="number" name="pedido" id="pedido_2" placeholder="Número Pedido de Compra" required>
 
         <input type="text" name="placa" id="placa" placeholder="Placa">
 
@@ -141,14 +141,14 @@
     </div>
 
     <div id="campos-reembolso" class="tipo-campos" style="display:none;">
-        <input type="text" name="motivo" id="descr_compra" placeholder="Finalidade da Compra/Descr. Item">
+        <input type="text" name="motivo" id="descr_compra" placeholder="Finalidade da Compra/Descr. Item" required>
 
         <input type="text" name="placa" id="placa" placeholder="Placa">
 
         <span class="card-title center"><b>Dados do Recebedor</b></span>
 
 
-        <input type="text" name="cnpj" id="cpfCnpj" placeholder="CNPJ/CPF">
+        <input type="text" name="cnpj" id="cpfCnpj" placeholder="CNPJ/CPF" required>
         <input type="text" name="name" placeholder="Nome do Recebedor">
         <input type="text" name="pamcard" placeholder="Pamcard"><br><br>
 
@@ -192,10 +192,10 @@
         <br><br>
 
         Comprovante:<br>
-        <input type="file" name="foto" id="foto-reembolso" accept=".pdf,image/*"><br><br>
+        <input type="file" name="foto" id="foto-reembolso" accept=".pdf,image/*" required><br><br>
 
         Nota Fiscal/Recibo:<br>
-        <input type="file" name="nota_fiscal" id="nota_fiscal" accept=".pdf,image/*"><br><br>
+        <input type="file" name="nota_fiscal" id="nota_fiscal" accept=".pdf,image/*" required><br><br>
 
         <input type="text" name="prazo" placeholder="Observações">
 
@@ -246,46 +246,37 @@
       });
   });
   </script>
-  
+
+
 <script>
-    function validarFormulario() {
-      const tipo = document.getElementById('tipo').value;
-      const foto = document.getElementById('foto-reembolso');
-      const pedido2 = document.getElementById('pedido_2');
-      const descr_compra = document.getElementById('descr_compra');
-      const cpfCnpj = document.getElementById('cpfCnpj');
-      const nota_fiscal = document.getElementById('nota_fiscal');
-    
-      // Se for "avista" ou "reembolso", o campo foto deve estar preenchido
-      if ((tipo === 'reembolso') && (!foto || foto.files.length === 0) && (!nota_fiscal || nota_fiscal.files.length === 0)) {
-        alert('Os anexos "Comprovante" e "Nota Fiscal" é obrigatório para o tipo "' + tipo + '".');
-        foto.focus();
-        return false; // impede o envio
-      }
+function validarFormulario() {
+  const tipo = document.getElementById('tipo').value;
 
-      if ((tipo === 'reembolso') && (descr_compra.value === '')){
-        alert('O campo "Finalidade da Compra/Descr. Item" é obrigatório para o tipo "' + tipo + '".');
-        descr_compra.focus();
-        return false; // impede o envio
-      }
-
-      if((tipo === 'reembolso') && (cpfCnpj.value === '')){
-        alert('O campo "CNPJ/CPF" é obrigatório para o tipo "' + tipo + '".');
-        cpfCnpj.focus();
-        return false; // impede o envio
-      }
-
-
-      if ((tipo === 'adiantamento') && (pedido2.value === '')){
-        alert('O campo "Pedido" é obrigatório para o tipo "' + tipo + '".');
-        pedido.focus();
-        return false; // impede o envio
-      }
-
-    
-      return true; // permite o envio
+  // 1️⃣  Primeiro, desativa o required de todos os blocos escondidos
+  document.querySelectorAll('.tipo-campos').forEach(div => {
+    if (div.style.display === 'none') {
+      div.querySelectorAll('[required]').forEach(el => {
+        el.dataset.tmpRequired = "1";     // guarda info p/ restaurar se precisar
+        el.removeAttribute('required');
+      });
     }
+  });
+
+  // 2️⃣  Validação extra que você já tem (exemplo do campo foto)
+  const foto = document.getElementById('foto');
+  if (tipo === 'devolucao' && (!foto || foto.files.length === 0)) {
+    alert('O campo "Nota Fiscal da operação de compra" é obrigatório para o tipo "' + tipo + '".');
+    foto.focus();
+    return false;
+  }
+
+  // 3️⃣  Se chegou aqui, deixa o navegador validar normalmente os visíveis
+  return true;
+}
 </script>
+
+
+
     
   
 <script>

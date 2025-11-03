@@ -278,6 +278,7 @@ class FiscalController extends Controller
         return 'Solicitação reprovada com sucesso!';
     }
 
+
     public function aprovacao()
     {
         // Devoluções
@@ -470,6 +471,35 @@ class FiscalController extends Controller
             // });
 
             return redirect()->route('fiscal.aprovacao')->with('success4', 'Veiculo finalizado com sucesso.');
+
+        }
+
+        public function fiscal_reprovar($id)
+        {
+            $fiscal = Fiscal::findOrFail($id);
+    
+            if (auth()->user()->admin == 0) {
+                if ($fiscal->user_id !== auth()->id()) {
+                    return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
+                }
+            }
+    
+            //$reserva->delete();
+            // Altera o status da coluna "Ok" para "Cancelada"
+            $fiscal->status = 'reprovado';
+            $fiscal->save();
+
+            // Obtém o usuário autenticado
+            $user = Auth::user();
+
+
+            Mail::send('emails.fiscal_reprovado_2', ['fiscal' => $fiscal], function($message) use ($fiscal,$user){
+                $message->to($fiscal->email);
+                $message->cc($fiscal->email_gestor);
+                $message->subject('Solicitação Reprovada - Protocolo: ' . $fiscal->id);
+            });
+
+            return redirect()->route('fiscal.aprovacao')->with('success6', 'Veiculo finalizado com sucesso.');
 
         }
 

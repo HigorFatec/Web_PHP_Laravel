@@ -1,5 +1,6 @@
 <p>Olá Gestor <b>{{ $fiscal->gestor->nome }}</b>,</p>
 
+
 <p>Você tem uma nova solicitação para análise:</p>
 
 @if ($fiscal->tipo == 'descarte')
@@ -115,7 +116,6 @@
 @endif
 
 @endif
-
 
 <p>Deseja aprovar ou reprovar?</p>
 
