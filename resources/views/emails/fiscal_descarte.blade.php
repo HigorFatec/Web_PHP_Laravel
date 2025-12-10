@@ -1,7 +1,7 @@
 {{-- filepath: resources/views/emails/fiscal_descarte.blade.php --}}
 <h2>Solicitação de Emissão de Nota Fiscal - DESCARTE</h2>
 
-<p><b>NOTA FISCAL APROVADA PELO GESTOR RESPONSÁVEL: ({{$fiscal->email_gestor}})</b></p>
+<p><b>SOLICITAÇÃO DE EMISSÃO DE NOTA FISCAL APROVADA PELO GESTOR RESPONSÁVEL: ({{$fiscal->email_gestor}})</b></p>
 
 
 <p><b>Protocolo:</b> {{ $fiscal->id }}</p>

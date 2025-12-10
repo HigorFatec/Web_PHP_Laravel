@@ -48,7 +48,7 @@ class FornecedorFisicoController extends Controller
         // Envia o email com os dados do fornecedor físico
         Mail::send('emails.fornecedor_fisico', ['dados' => $data], function($message) {
             //$message->to('higor.05@hotmail.com');
-            $message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
+            $message->to(['cadastro.suprimentos@grupocargopolo.com.br' , 'elizabete.vargas@grupocargopolo.com.br' ,'camila.andrade@grupocargopolo.com.br','laura.machado@grupocargopolo.com.br' ]);
             $message->subject('Novo Fornecedor Físico Registrado');
         });
 

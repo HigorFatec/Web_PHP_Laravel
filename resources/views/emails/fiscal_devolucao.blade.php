@@ -1,5 +1,5 @@
 {{-- filepath: resources/views/emails/fiscal_devolucao.blade.php --}}
-<p><b>NOTA FISCAL APROVADA PELO GESTOR RESPONSÁVEL: ({{$fiscal->email_gestor}})</b></p>
+<p><b>SOLICITAÇÃO DE EMISSÃO DE NOTA FISCAL APROVADA PELO GESTOR RESPONSÁVEL: ({{$fiscal->email_gestor}})</b></p>
 
 <p><b>Finalidade da Compra:</b> {{ $fiscal->finalidade_da_compra }}</p>
 <p><b>Protocolo:</b> {{ $fiscal->id }}</p>

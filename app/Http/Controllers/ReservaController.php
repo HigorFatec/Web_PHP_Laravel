@@ -42,44 +42,57 @@ class ReservaController extends Controller
      */
     public function minhasPassagens()
     {
-        if (auth()->user()->admin == 0) {
-        $passagens = Reserva::where('user_id', auth()->id())
-                            ->where('status', 'ok')
-                            ->where('ida', '>=', Carbon::now())
-                            ->orderBy('created_at', 'desc')
-                            ->paginate(3);
 
-        $veiculos = Veiculo::where('user_id', auth()->id())
-                            ->where('status', 'ok')
-                            ->where('ida', '>=', Carbon::now())
-                            ->orderBy('created_at', 'desc')
-                            ->paginate(3);
+        if (auth()->user()->admin == 1){
+            $passagens = Reserva::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $veiculos = Veiculo::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $hospedagem = Hospedagem::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $adiantamento = Adiantamento::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $pendentes = Reserva::where('status','=','pendente')->orderBy('created_at')->paginate(3);
+        } elseif (auth()->user()->admin == 100) {
 
-        $hospedagem = Hospedagem::where('user_id', auth()->id())
-                            ->where('status', 'ok')
-                            ->where('ida', '>=', Carbon::now())
-                            ->orderBy('created_at', 'desc')
-                            ->paginate(3);
-        $adiantamento = Adiantamento::where('user_id', auth()->id())
-                            ->where('status', 'ok')
-                            ->where('ida', '>=', Carbon::now())
-                            ->orderBy('created_at', 'desc')
-                            ->paginate(3);
+            $passagens = Reserva::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $veiculos = Veiculo::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $hospedagem = Hospedagem::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $adiantamento = Adiantamento::where('status','=','ok')->orderBy('created_at')->paginate(3);
+            $pendentes = Reserva::where('status','=','pendente')->orderBy('created_at')->paginate(3);
+
+        } else {
+            $passagens = Reserva::where('user_id', auth()->id())
+                                ->where('status', 'ok')
+                                ->where('ida', '>=', Carbon::now())
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
+            $veiculos = Veiculo::where('user_id', auth()->id())
+                                ->where('status', 'ok')
+                                ->where('ida', '>=', Carbon::now())
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
+            $hospedagem = Hospedagem::where('user_id', auth()->id())
+                                ->where('status', 'ok')
+                                ->where('ida', '>=', Carbon::now())
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+            $adiantamento = Adiantamento::where('user_id', auth()->id())
+                                ->where('status', 'ok')
+                                ->where('ida', '>=', Carbon::now())
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+            $pendentes = Reserva::where('user_id', auth()->id())
+                                ->where('status', 'pendente')
+                                ->where('ida', '>=', Carbon::now())
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
         }
 
-        elseif (auth()->user()->admin == 1){
-        $passagens = Reserva::where('status','=','ok')->orderBy('created_at')->paginate(3);
-        $veiculos = Veiculo::where('status','=','ok')->orderBy('created_at')->paginate(3);
-        $hospedagem = Hospedagem::where('status','=','ok')->orderBy('created_at')->paginate(3);
-        $adiantamento = Adiantamento::where('status','=','ok')->orderBy('created_at')->paginate(3);
-        
-        }
-
-        return view('reserva.reservas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento'));
+        return view('reserva.reservas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento','pendentes'));
     }
     public function canceladas()
     {
-        if (auth()->user()->admin == 1){
+        if (auth()->user()->admin == 1 || auth()->user()->admin == 100){
             $passagens = Reserva::where('status','=','cancelada')->orderBy('created_at')->paginate(3);
             $veiculos = Veiculo::where('status','=','cancelada')->orderBy('created_at')->paginate(3);
             $hospedagem = Hospedagem::where('status','=','cancelada')->orderBy('created_at')->paginate(3);
@@ -91,7 +104,7 @@ class ReservaController extends Controller
 
     public function finalizadas()
     {
-        if (auth()->user()->admin == 1){
+        if (auth()->user()->admin == 1 || auth()->user()->admin == 100){
             $passagens = Reserva::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
             $veiculos = Veiculo::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
             $hospedagem = Hospedagem::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
@@ -281,8 +294,6 @@ class ReservaController extends Controller
             return 'Solicitação já foi processada.';
         }
 
-        $reserva->update(['status' => 'ok']);
-
         // Obtém o usuário autenticado
         $user = Auth::user();
 
@@ -290,6 +301,7 @@ class ReservaController extends Controller
             //rota login
             return redirect()->route('login.form')->with('error', 'Você precisa estar logado para aprovar uma solicitação.');
         }
+
 
         // Decide qual e-mail disparar pelo tipo
 
@@ -307,6 +319,8 @@ class ReservaController extends Controller
     }
         );
         
+        $reserva->update(['status' => 'ok']);
+
         // idem para venda e descarte
 
         return 'Solicitação aprovada com sucesso!';
@@ -322,8 +336,7 @@ class ReservaController extends Controller
             return 'Solicitação já foi processada.';
         }
 
-        $reserva->update(['status' => 'reprovado']);
-
+        
         // Obtém o usuário autenticado
         $user = Auth::user();
 
@@ -332,13 +345,65 @@ class ReservaController extends Controller
             return redirect()->route('login.form')->with('error', 'Você precisa estar logado para reprovar uma solicitação.');
         }
 
+
         Mail::send('emails.reserva_reprovado', ['reserva' => $reserva, 'user' => $user], function($message) use ($reserva, $user){
             $message->to($reserva->email);
             $message->cc($reserva->email_gestor);
             $message->subject('Solicitação Reprovada - Protocolo: ' . $reserva->id);
         });
 
+        $reserva->update(['status' => 'reprovado']);
+
+
         return 'Solicitação reprovada com sucesso!';
     }
+
+
+
+public function reenviar_pendencia($id)
+        {
+            //encontrar em reserva, hospedagem , veiculo ou adiantamento
+            $reserva = Reserva::findOrFail($id);
+
+    
+            if (auth()->user()->admin !== 1) {
+                    return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');
+                if ($reserva->user_id !== auth()->id()) {
+                    return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');
+                }
+            }
+
+
+            // Obtém o usuário autenticado
+            $user = Auth::user();
+
+            if($user === null){
+                //rota login
+                return redirect()->route('login.form')->with('error', 'Você precisa estar logado para aprovar uma solicitação.');
+            }
+    
+            //$reserva->delete();
+            // Altera o status da coluna "Ok" para "Cancelada"
+            $reserva->status = 'pendente';
+            $reserva->save();
+
+
+            // Email só para o gestor aprovar/reprovar
+            Mail::send('emails.reserva_pendente', ['reserva' => $reserva, 'user' => $user], function ($message) use ($reserva,$user) {
+                $message->to($reserva->email_gestor);
+                $message->subject('Solicitação Pendente - Protocolo: ' . $reserva->id);
+
+                // anexa se o arquivo foi salvo (disk = public)
+                if (!empty($reserva->anexo_path) && Storage::disk('public')->exists($reserva->anexo_path)) {
+                    // full path: storage/app/public/{anexo_path}
+                    $message->attach(storage_path('app/public/' . $reserva->anexo_path));
+                }
+
+            });
+
+            return redirect()->route('reserva.reservas')->with('success5', 'E-mail reenviado com sucesso.')->with('email_gestor', $reserva->email_gestor);
+
+        }
+
 
     }

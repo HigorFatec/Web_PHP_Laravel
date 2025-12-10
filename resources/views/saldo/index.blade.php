@@ -1,4 +1,4 @@
-@extends('saldo.layout')
+@extends('layout')
 @section('title','Saldo de Combustível Rede Frota')
 @section('conteudo')
 
@@ -11,9 +11,11 @@
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f6f8;
             margin: 0;
-            padding: 0;
+            padding: 0 !important;
             color: #333;
         }
+
+
         /* .container {
             max-width: 600px;
             margin: 50px auto;
@@ -44,10 +46,12 @@
             color: #e74c3c;
             font-weight: bold;
         }
+
     </style>
 </head>
 <body>
-    
+  
+<center>
   <div class="row center">
     <div class="col s12 m6 offset-m3">
       <div class="card white darken-1">
@@ -61,6 +65,7 @@
       </div>
     </div>
   </div>
+</center>
 
 </body>
 </html>

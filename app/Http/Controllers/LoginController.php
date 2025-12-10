@@ -30,9 +30,11 @@ class LoginController extends Controller
                 return redirect()->intended('/pagamento/aprovacoes');
             } elseif (auth()->user()->admin == 3){
                 return redirect()->intended('/fiscal/aprovacoes');
-            }  
+            } elseif (auth()->user()->admin == 4){
+                return redirect()->intended('/fiscal/aprovacoes');
+            }
             else {
-                return redirect()->intended('/reserva');
+                return redirect()->intended('/');
             }
         } else{
             return redirect()->back()->with('erro', 'Usuário ou senha incorretos');

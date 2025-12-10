@@ -1,7 +1,7 @@
 {{-- filepath: resources/views/emails/fiscal_remessa.blade.php --}}
 <h2>Solicitação de Emissão de Nota Fiscal - REMESSA</h2>
 
-<p><b>NOTA FISCAL APROVADA PELO GESTOR RESPONSÁVEL: ({{$fiscal->email_gestor}})</b></p>
+<p><b>SOLICITAÇÃO DE EMISSÃO DE NOTA FISCAL APROVADA PELO GESTOR RESPONSÁVEL: ({{$fiscal->email_gestor}})</b></p>
 
 <p><b>Tipo de Venda:</b> {{ $fiscal->tipo_de_venda }}</p>
 

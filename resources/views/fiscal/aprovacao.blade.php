@@ -6,7 +6,7 @@
 
 <div class="row">
 
-    @if(auth()->user()->admin == 3)
+    @if(auth()->user()->admin >= 3)
     <div class="col s12 m8 offset-m2">
         @else
         <div class="col s12 m6 offset-m3">
@@ -102,7 +102,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                     <th class="admin">Status</th>
                     <th>Id</th>
                     <th>Finalidade da Compra</th>
@@ -115,7 +115,7 @@
                     <th>Aprovador</th>
                     @endif
 
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                         <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Credito Pendente</th>
@@ -127,7 +127,7 @@
             <tbody>
                 @foreach($aprovado_devolucao as $aprovado)
                     <tr>
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                         <td>{{ $aprovado->status }}</td>
                         <td>{{ $aprovado->id }} </td>
                         <td>{{ $aprovado->finalidade_da_compra }}</td>
@@ -144,7 +144,7 @@
 
                         </td>
 
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
 
                         <td>
                             <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
@@ -204,7 +204,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin >= 3 || auth()->user()->admin == 100)
                     <th class="admin">Status</th>
                     <th>Id</th>
                     <th>Tipo de Remessa</th>
@@ -216,12 +216,15 @@
                     <th>Aprovador</th>
                     @endif
 
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                         <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Pendente Entrada Estoque Filial</th>
                         <th class="admin">Retorno Pendente</th>
                         <th class="admin">Concluido</th>
+                    @elseif (auth()->user()->admin == 4 || auth()->user()->admin == 100)
+                        <th class="admin">Pendente Entrada Estoque Filial</th>
+                        <th class="admin">Retorno Pendente</th>
                     @endif
 
                 </tr>
@@ -229,7 +232,7 @@
             <tbody>
                 @foreach($aprovado_remessa as $aprovado)
                     <tr>
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin >= 3)
                         <td>{{ $aprovado->status }}</td>
                         <td>{{ $aprovado->id }} </td>
                         <td>{{ $aprovado->tipo_de_venda }}</td>
@@ -245,7 +248,7 @@
 
                         </td>
 
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
 
                         <td>
                             <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
@@ -284,7 +287,25 @@
 
                         </td>
 
+                        @elseif (auth()->user()->admin == 4 || auth()->user()->admin == 100)
+                        <td>
+                            <form action="{{route('filial.pendente', $aprovado->id)}}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-success orange"> <i class="material-icons">remove</i></button></center>
+                            </form>
+
+                        </td>
+
+                                                <td>
+                            <form action="{{route('filial.retorno', $aprovado->id)}}" method="POST" style="display:inline;">
+                                @csrf
+                                <center><button type="submit" class="btn btn-success pink"> <i class="material-icons">remove</i></button></center>
+                            </form>
+
+                        </td>
                         @endif
+
+                        
 
                     </tr>
                 @endforeach
@@ -316,7 +337,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                     <th class="admin">Status</th>
                     <th>Id</th>
                     <th>Tipo de Venda</th>
@@ -327,7 +348,7 @@
                     <th>Aprovador</th>
                     @endif
 
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                         <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Concluido</th>
@@ -338,7 +359,7 @@
             <tbody>
                 @foreach($aprovado_venda as $aprovado)
                     <tr>
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                         <td>{{ $aprovado->status }}</td>
                         <td>{{ $aprovado->id }} </td>
                         <td>{{ $aprovado->tipo_de_venda }}</td>
@@ -353,7 +374,7 @@
 
                         </td>
 
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
 
                         <td>
                             <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
@@ -410,7 +431,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                     <th class="admin">Status</th>
                     <th>Id</th>
                     <th>Remetente</th>
@@ -420,7 +441,7 @@
                     <th>Aprovador</th>
                     @endif
 
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                         <th class="admin">Reprovar</th>
                         <th class="admin">Emitir NF</th>
                         <th class="admin">Concluido</th>
@@ -431,7 +452,7 @@
             <tbody>
                 @foreach($aprovado_descarte as $aprovado)
                     <tr>
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
                         <td>{{ $aprovado->status }}</td>
                         <td>{{ $aprovado->id }} </td>
                         <td>{{ substr($aprovado->fornecedor, 0, 10) }}</td>
@@ -445,7 +466,7 @@
 
                         </td>
 
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
 
                         <td>
                             <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
@@ -500,7 +521,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 3)
+                    @if(auth()->user()->admin >= 3 || auth()->user()->admin == 100)
                     <th class="admin">Status</th>
                     <th>Id</th>
                     <th>Tipo de Nota Fiscal</th>
@@ -509,7 +530,9 @@
                     <th>Data Criação</th>
                     <th>Filial</th>
                     <th>Aprovador</th>
-                    <th class="admin">Reprovar</th>
+                    @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
+                        <th class="admin">Reprovar</th>
+                    @endif
                     <th class="admin">Reenviar E-mail</th>
                     @endif
 
@@ -518,7 +541,7 @@
             <tbody>
                 @foreach($pendente as $aprovado)
                     <tr>
-                        @if(auth()->user()->admin == 3)
+                        @if(auth()->user()->admin >= 3 || auth()->user()->admin == 100)
                         <td>{{ $aprovado->status }}</td>
                         <td>{{ $aprovado->id }} </td>
                         <td>{{ $aprovado->tipo }}</td>
@@ -526,19 +549,20 @@
                         <td>{{ $aprovado->valor_nf }}</td>
 
                         <td>{{ \Carbon\Carbon::parse($aprovado->created_at)->format('d/m/Y H:m:s') }}</td>
-                        @endif
                         <td>{{ $aprovado->filial }}</td>
-                        <td>{{ substr($aprovado->gestor->nome, 0, 10) }}</td>
+                        <td>{{ substr($aprovado->email_gestor, 0, 10) }}</td>
 
 
                         
-                        @if(auth()->user()->admin == 3)
-                        <td>
-                            <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                <center><button type="submit" class="btn btn-danger red darken-1"> <i class="material-icons">close</i></button></center>
-                            </form>
-                        </td>
+                        @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
+                            <td>
+                                <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST" style="display:inline;">
+                                    @csrf
+                                    <center><button type="submit" class="btn btn-danger red darken-1"> <i class="material-icons">close</i></button></center>
+                                </form>
+                            </td>
+                        @endif
+
 
                         <td>
                             <form action="{{ route('fiscal.reenviar', $aprovado->id) }}" method="POST" style="display:inline;">

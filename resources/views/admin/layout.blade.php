@@ -86,6 +86,12 @@
         #foraDoPrazoTable td[colspan="8"] {
             text-align: center;
         }
+
+        .bg-gradient-red {
+            /* Gradiente linear do vermelho vivo para um vermelho mais escuro/profundo */
+            background: linear-gradient(45deg, #FF5733, #C70039); 
+            color: #FFFFFF; /* Garante que o texto seja branco (legível) */
+        }
     </style>
     
 </head>

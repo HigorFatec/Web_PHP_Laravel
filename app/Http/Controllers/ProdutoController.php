@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 
 class ProdutoController extends Controller
@@ -92,7 +93,7 @@ class ProdutoController extends Controller
                 // Enviar o e-mail
                 Mail::send('emails.aprovador_produto', ['produto' => $produto], function($message) use($produto) {
                     //$message->to('higor.05@hotmail.com');
-                    $message->to('patricia.ronca@grupocargopolo.com.br');
+                    $message->to('patricia.silva@grupocargopolo.com.br');
                     $message->subject('Novo Produto Registrado');
                 });
             } else {
@@ -126,15 +127,19 @@ class ProdutoController extends Controller
             return 'Esta solicitação já foi processada.';
         }
 
-        $produto->status = 'aprovado';
-        $produto->save();
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
 
         // Enviar o e-mail
         Mail::send('emails.produtos', ['produto' => $produto], function($message) use($produto) {
             //$message->to('higor.05@hotmail.com');
-            $message->to([$produto->$email_aprovador,'cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br']);
-            $message->subject('Novo Produto Registrado');
+            $message->to(['patricia.silva@grupocargopolo.com.br','cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br']);
+            $message->subject('Novo Produto Registrado Aprovado'. $produto->id);
         });
+
+        $produto->status = 'aprovado';
+        $produto->save();
 
         return 'Solicitação aprovada com sucesso!';
     }

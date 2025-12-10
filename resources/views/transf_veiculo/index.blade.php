@@ -1,4 +1,4 @@
-@extends('transf_veiculo.layout')
+@extends('layout')
 @section('title', 'Transferência de Veículo')
 @section('conteudo')
 

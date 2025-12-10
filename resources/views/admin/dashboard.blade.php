@@ -75,7 +75,7 @@
   
 
   @auth
-  @if (auth()->user()->admin == 1)
+  @if (auth()->user()->admin == 1 || auth()->user()->admin == 100)
 
   <div class="row container">
 
@@ -126,7 +126,7 @@
           </div>            
          </section>     
          
-         {{-- <section>
+         <section>
           <div class="graficos col s12 m6">
             <div class="grafico card z-depth-4">
               <h5 class="center"> Reservas Realizadas</h5>
@@ -177,7 +177,7 @@
               <canvas id="NoPrazoPorColaboradorData" width="400" height="200"></canvas>
             </div>
           </div><br><br><br><br>
-         </section> --}}
+         </section>
 
    
 
@@ -329,101 +329,101 @@ var myChart = new Chart(ctx, {
 });
 
  
-// // FORA DO PRAZO POR FILIAL
-// var ctx1 = document.getElementById('foraDoPrazoPorFilial').getContext('2d');
-//     var foraDoPrazoPorFilialChart  = new Chart(ctx1, {
-//         type: 'bar',
-//         data: {
-//             labels: {!! json_encode($filiais) !!},
-//             datasets: [{
-//                 label: 'Total Fora do Prazo por Filial',
-//                 data: {!! json_encode($foraDoPrazoPorFilialData) !!},
-//                 backgroundColor: 'rgb(255, 37, 0, 0.5)'
-//             }]
-//         },
-//         options: {
-//         onClick: (e, activeElements) => {
-//             if (activeElements.length > 0) {
-//                 const datasetIndex = activeElements[0].datasetIndex;
-//                 const index = activeElements[0].index;
-//                 const filial = foraDoPrazoPorFilialChart.data.labels[index];
-//                 filterTableByFilial(filial);
-//             }
-//         }
-//     }
-// });
+// FORA DO PRAZO POR FILIAL
+var ctx1 = document.getElementById('foraDoPrazoPorFilial').getContext('2d');
+    var foraDoPrazoPorFilialChart  = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($filiais) !!},
+            datasets: [{
+                label: 'Total Fora do Prazo por Filial',
+                data: {!! json_encode($foraDoPrazoPorFilialData) !!},
+                backgroundColor: 'rgb(255, 37, 0, 0.5)'
+            }]
+        },
+        options: {
+        onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+                const datasetIndex = activeElements[0].datasetIndex;
+                const index = activeElements[0].index;
+                const filial = foraDoPrazoPorFilialChart.data.labels[index];
+                filterTableByFilial(filial);
+            }
+        }
+    }
+});
 
 
-//     var ctx2  = document.getElementById('foraDoPrazoPorUsuario').getContext('2d');
-//     var foraDoPrazoPorUsuarioChart  = new Chart(ctx2, {
-//         type: 'bar',
-//         data: {
-//             labels: {!! json_encode($colaboradores) !!},
-//             datasets: [{
-//                 label: 'Total Fora do Prazo por Usuário',
-//                 data: {!! json_encode($foraDoPrazoPorColaboradorData) !!},
-//                 backgroundColor: 'rgb(255, 37, 0, 0.5)'
-//             }]
-//         },
-//         options: {
-//         onClick: (e, activeElements) => {
-//             if (activeElements.length > 0) {
-//                 const datasetIndex = activeElements[0].datasetIndex;
-//                 const index = activeElements[0].index;
-//                 const user = foraDoPrazoPorUsuarioChart.data.labels[index];
-//                 filterTableByUser(user);
-//             }
-//         }
-//     }
-// });
+    var ctx2  = document.getElementById('foraDoPrazoPorUsuario').getContext('2d');
+    var foraDoPrazoPorUsuarioChart  = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($colaboradores) !!},
+            datasets: [{
+                label: 'Total Fora do Prazo por Usuário',
+                data: {!! json_encode($foraDoPrazoPorColaboradorData) !!},
+                backgroundColor: 'rgb(255, 37, 0, 0.5)'
+            }]
+        },
+        options: {
+        onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+                const datasetIndex = activeElements[0].datasetIndex;
+                const index = activeElements[0].index;
+                const user = foraDoPrazoPorUsuarioChart.data.labels[index];
+                filterTableByUser(user);
+            }
+        }
+    }
+});
 
-// // NO DO PRAZO POR FILIAL
-// var ctx3 = document.getElementById('NoPrazoPorFilialData').getContext('2d');
-//     var noPrazoPorFilialDataChart  = new Chart(ctx3, {
-//         type: 'bar',
-//         data: {
-//             labels: {!! json_encode($filiais) !!},
-//             datasets: [{
-//                 label: 'Total no Prazo por Filial',
-//                 data: {!! json_encode($NoPrazoPorFilialData) !!},
-//                 backgroundColor: 'rgb(20, 255, 0, 0.5)'
-//             }]
-//         },
-//         options: {
-//         onClick: (e, activeElements) => {
-//             if (activeElements.length > 0) {
-//                 const datasetIndex = activeElements[0].datasetIndex;
-//                 const index = activeElements[0].index;
-//                 const filial = noPrazoPorFilialDataChart.data.labels[index];
-//                 filterTableByFilial(filial);
-//             }
-//         }
-//     }
-// });
+// NO DO PRAZO POR FILIAL
+var ctx3 = document.getElementById('NoPrazoPorFilialData').getContext('2d');
+    var noPrazoPorFilialDataChart  = new Chart(ctx3, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($filiais) !!},
+            datasets: [{
+                label: 'Total no Prazo por Filial',
+                data: {!! json_encode($NoPrazoPorFilialData) !!},
+                backgroundColor: 'rgb(20, 255, 0, 0.5)'
+            }]
+        },
+        options: {
+        onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+                const datasetIndex = activeElements[0].datasetIndex;
+                const index = activeElements[0].index;
+                const filial = noPrazoPorFilialDataChart.data.labels[index];
+                filterTableByFilial(filial);
+            }
+        }
+    }
+});
 
 
-//     var ctx4  = document.getElementById('NoPrazoPorColaboradorData').getContext('2d');
-//     var NoPrazoPorColaboradorDataChart  = new Chart(ctx4, {
-//         type: 'bar',
-//         data: {
-//             labels: {!! json_encode($noPrazoColaboradores) !!},
-//             datasets: [{
-//                 label: 'Total Dentro do Prazo por Usuário',
-//                 data: {!! json_encode($NoPrazoPorColaboradorData) !!},
-//                 backgroundColor: 'rgb(20, 255, 0, 0.5)'
-//             }]
-//         },
-//         options: {
-//         onClick: (e, activeElements) => {
-//             if (activeElements.length > 0) {
-//                 const datasetIndex = activeElements[0].datasetIndex;
-//                 const index = activeElements[0].index;
-//                 const user = NoPrazoPorColaboradorDataChart.data.labels[index];
-//                 filterTableByUser(user);
-//             }
-//         }
-//     }
-// });
+    var ctx4  = document.getElementById('NoPrazoPorColaboradorData').getContext('2d');
+    var NoPrazoPorColaboradorDataChart  = new Chart(ctx4, {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode($noPrazoColaboradores) !!},
+            datasets: [{
+                label: 'Total Dentro do Prazo por Usuário',
+                data: {!! json_encode($NoPrazoPorColaboradorData) !!},
+                backgroundColor: 'rgb(20, 255, 0, 0.5)'
+            }]
+        },
+        options: {
+        onClick: (e, activeElements) => {
+            if (activeElements.length > 0) {
+                const datasetIndex = activeElements[0].datasetIndex;
+                const index = activeElements[0].index;
+                const user = NoPrazoPorColaboradorDataChart.data.labels[index];
+                filterTableByUser(user);
+            }
+        }
+    }
+});
 
     // Adiciona o evento de clique ao gráfico 3
     document.getElementById('ControllerForaDoPrazo').addEventListener('click', function() {

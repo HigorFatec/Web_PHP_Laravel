@@ -1,4 +1,4 @@
-@extends('sinistro.layout')
+@extends('layout')
 @section('title', 'Controle de Sinistros')
 @section('conteudo')
 

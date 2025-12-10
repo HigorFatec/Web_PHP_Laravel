@@ -1,5 +1,5 @@
 @extends('layout')
-@section('title', 'Cadastro - Fornecedor')
+@section('title', 'Fornecedor - Financeiro')
 @section('conteudo')
 
 
@@ -11,16 +11,6 @@
           <div class="card-content white-text">
             <span class="card-title">Sucesso!</span>
             <p>Parabéns! O Cadastro foi solicitado com sucesso!<br>
-           </p>
-          </div>
-        </div>
-        @endif
-
-        @if ($message = Session::get('success2'))
-        <div class="card green darken-1">
-          <div class="card-content white-text">
-            <span class="card-title">Sucesso!</span>
-            <p>Parabéns! O Cadastro foi Aprovado com sucesso!<br>
            </p>
           </div>
         </div>
@@ -43,22 +33,22 @@
             <div class="card-content">
                 <span class="card-title center"><b>Cadastro de Fornecedor</b></span>
 
-    <form action="{{ route('empresa.store') }}" method="POST">
+    <form action="{{ route('fornecedor_financeiro.store') }}" method="POST">
         
         <span class="card-title center"><b>Selecione o tipo de Fornecedor:</b></span>
 
         <div class="btn-group center" role="group" aria-label="Tipo de Fornecedor">
             <input type="hidden" name="tipo" id="tipo" required>
-            <button type="button" class="btn" data-value="juridico">Fornecedor Pessoa Jurídica</button>
-            <button type="button" class="btn" data-value="fisico">Fornecedor Pessoa Física</button>
+            <button type="button" class="btn" data-value="juridico">Fornecedor Juridico</button>
+            <button type="button" class="btn" data-value="fisico">Fornecedor Fisico</button>
         </div><br>
         <br>
 
         <div id="campos-fisico" class="tipo-campos" style="display:none;">
 
-                    <span class="card-title center"><b>Cadastro do Fornecedor Física</b></span>
+                    <h3><center><b>Cadastro do Fornecedor Físico</b></center></h3>
 
-                    <span class="card-title center"><b>Informações do solicitante da compra</b></span>
+                    <h4><center>Informações do solicitante da compra</center></h4>
             @csrf
 
             <input type="text" id="nome_remetente" name="nome_remetente" placeholder="Nome do Solicitante da compra(obrigatório):" required>
@@ -67,7 +57,7 @@
             <input type="email" id="email_remetente" name="email_remetente" placeholder="Email do Solicitante da compra(obrigatório):" required>
 
 
-                <span class="card-title center"><b>Informações do Fornecedor</b></span>
+                <h4><center>Informações do Fornecedor</center></h4>
 
 
 
@@ -88,8 +78,7 @@
             <br>
 
 
-
-            <span class="card-title center"><b>Endereço</b></span>
+            <h4><center>Endereço</center></h4>
 
             <input type="text" id="endereco" name="endereco" placeholder="Endereço Completo:" required>
             <br>
@@ -105,23 +94,23 @@
                 @endforeach
             </select>
 
-            <span class="card-title center"><b>Dados Bancários</b></span>
+            <h4><center>Dados Bancários</center></h4>
 
                 <input type="text" id="banco_2" name="banco" placeholder="Banco:" required><br>
                 <input type="text" id="agencia_2" name="agencia" placeholder="Agência:" required><br>
                 <input type="text" id="conta_2" name="conta" placeholder="Conta:" required><br>
                 <input type="text" id="favorecido" name="favorecido" placeholder="Nome do Favorecido:" required><br>
 
-            <span class="card-title center"><b>Dados Pix</b></span>
+            <h4><center>Dados Pix</center></h4>
                 <input type="text" id="pix_aleatorio_2" name="pix_aleatorio" placeholder="Pix:"><br>
 
  
         </div>
         
         <div id="campos-juridico" class="tipo-campos" style="display:none;">
-                <span class="card-title center"><b>Cadastro da Pessoa Jurídica</b></span>
+                <h3><center><b>Cadastro do Fornecedor Juridico</b></center></h3>
                 @csrf
-                <span class="card-title center"><b>Informações do solicitante da compra</b></span>
+                <h4><center>Informações do solicitante da compra</center></h4>
                 <p class = "preenchimento">
 
                 <input type="text" id="nome_remetente" name="nome_remetente" placeholder="Nome do Solicitante da compra(obrigatório):" required>
@@ -130,7 +119,7 @@
                 <input type="email" id="email_remetente" name="email_remetente" placeholder="Email do Solicitante da compra(obrigatório):" required>
                 </p>
 
-                <span class="card-title center"><b>Informações do Fornecedor (obrigatório)</b></span>
+                <h4><center>Informações do Fornecedor (obrigatório)</center></h4>
 
                 <p class="preenchimento">
 
@@ -148,14 +137,15 @@
                     required>
                 <br>
 
-                <input type="text" id="cnpj" name="cnpj" placeholder="CNPJ:" maxlength="14" pattern="\d{14}"  required>
+                <input type="text" id="cnpj" name="cnpj" placeholder="CNPJ:" required>
                 <br>
 
                 <input type="email" id="email_fornecedor" name="email_fornecedor" placeholder="E-mail Fornecedor" required>
                 <br>
+
                 </p>
 
-                <span class="card-title center"><b>Endereço</b></span>
+                <h4><center>Endereço</center></h4>
 
                 <p class="preenchimento">
                 <input type="text" id="endereco" name="endereco" placeholder="Endereco Completo" required>
@@ -172,24 +162,23 @@
                     @endforeach
                 </select>
 
-                <span class="card-title center"><b>Dados Bancários</b></span>
+                <h4><center>Dados Bancários</center></h4>
 
                 <input type="text" id="banco" name="banco" placeholder="Banco:" required><br>
                 <input type="text" id="agencia" name="agencia" placeholder="Agência:" required><br>
                 <input type="text" id="conta" name="conta" placeholder="Conta:" required><br>
                 <input type="text" id="favorecido" name="favorecido" placeholder="Nome do Favorecido:" required><br>
 
-                <span class="card-title center"><b>Dados Pix</b></span>
+                <h4><center>Dados Pix</center></h4>
                 <input type="text" id="pix_aleatorio" name="pix_aleatorio" placeholder="Pix Aleatório:"><br>
 
         </div>
 
 
 
-        <center><button class="btn blue darken-3" type="submit" name="action">Enviar
+        <center><button class="btn" type="submit" name="action">Enviar
             <i class="material-icons right">send</i>
           </button></center><br>
-
 
           
     </form>

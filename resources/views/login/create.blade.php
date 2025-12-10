@@ -1,5 +1,5 @@
 @extends('layout')
-@section('title', 'Reserva - Solicitações')
+@section('title', 'Cadastro - Formulário')
 @section('conteudo')
 
 <div class="row">

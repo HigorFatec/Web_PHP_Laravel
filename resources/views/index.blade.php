@@ -14,15 +14,19 @@
     </div>
     @endif
 
-        @if ($message = Session::get('success2'))
-    <div class="card green darken-1">
-        <div class="card-content white-text">
-        <span class="card-title">Sucesso!</span>
-        <p>Parabéns! A solicitação foi realizada com sucesso!<br>
-        </p>
-        </div>
-    </div>
-    @endif
+    {{-- for de 1 a 5 --}}
+    @for ($i = 1; $i <= 5; $i++)
+        @if ($message = Session::get('success'.$i))
+            <div class="card green darken-1">
+                <div class="card-content white-text">
+                    <span class="card-title">Sucesso!</span>
+                    <p>Parabéns! A solicitação foi realizada com sucesso!<br>
+                    </p>
+                </div>
+            </div>
+        @endif
+    @endfor
+
 
   @if ($errors->any())
   <div class="alert alert-danger">

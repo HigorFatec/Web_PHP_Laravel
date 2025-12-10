@@ -1,5 +1,5 @@
-@extends('fiscal.layout')
-@section('title', 'Fiscal')
+@extends('layout')
+@section('title', 'Nota Fiscal - Emissão')
 @section('conteudo')
 
 
@@ -273,7 +273,7 @@
 
     <br><br>
 
-    <a href="{{route('financeiro.index')}}">
+    <a href="{{route('index')}}">
       <button type="button" class="btn-cadastrar left">Voltar</button></a>
     <!-- Outros campos aqui -->
     <button type="submit" class="btn-cadastrar right">Enviar</button><br><br>

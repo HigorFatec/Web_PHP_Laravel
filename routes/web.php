@@ -6,6 +6,7 @@ use App\Http\Controllers\SiteController;
 use App\Http\Controllers\EmpresaController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\FornecedorFisicoController;
+use App\Http\Controllers\FornecedorFinanceiroController;
 use App\Http\Controllers\SobreController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\UserController;
@@ -27,12 +28,18 @@ use App\Http\Controllers\DescartePneusController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ResetPasswordController;
 
-
+//CHAT
+use App\Http\Controllers\ChatController;
 
 //ORDEM DE SERVIÇO
 use App\Http\Controllers\OSController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+
+
+
+// FR
+use App\Http\Controllers\FinanceiroFrController;
 
 
 use Illuminate\Support\Facades\DB;
@@ -58,13 +65,16 @@ Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::resource('users', UserController::class);
 
 
-Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('empresa.create')->middleware('only.from.home');
+Route::get('/fornecedor_juridico', [EmpresaController::class, 'create'])->name('empresa.create');
 Route::get('/fornecedor_fisico', [FornecedorFisicoController::class, 'create'])->name('fisico.fornecedor_fisico');
-Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create');
-Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index');
+
+Route::get('/fornecedor_financeiro', [FornecedorFinanceiroController::class, 'create'])->name('fisico.fornecedor_financeiro');
+
+Route::get('/produtos', [ProdutoController::class, 'create'])->name('produtos.create')->middleware('only.from.home');
+Route::get('/transf_veiculo', [TransfVeiculoController::class, 'index'])->name('transf_veiculo.index')->middleware('only.from.home');
 
 
-Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index');
+Route::get('/pagamento_pix', [PagamentoPixController::class, 'index'])->name('pagamento_pix.index')->middleware('only.from.home');
 Route::post('/cancelar-pagamento/{id}', [PagamentoPixController::class, 'cancelarPagamento'])->name('cancelar.pagamento');
 Route::post('/finalizar-pagamento/{id}', [PagamentoPixController::class, 'finalizarPagamento'])->name('finalizar.pagamento');
 Route::get('/pagamento/aprovacoes', [PagamentoPixController::class, 'aprovacao'])->name('pagamento_pix.aprovacao');
@@ -80,9 +90,33 @@ Route::get('/sinistro_2', [SinistroController::class, 'sem_terceiro'])->name('si
 
 Route::get('/florestal_pix', [FlorestalPixController::class, 'index'])->name('florestal_pix.index')->middleware('only.from.home');
 
-Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index');
 
-Route::get('/fiscal', [FiscalController::class, 'index'])->name('fiscal.index');
+
+Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index')->middleware('only.from.home');
+
+Route::post('/financeiro', [FinanceiroController::class, 'store'])->name('financeiro.store');
+
+
+
+
+Route::get('/financeiro_fr', [FinanceiroFrController::class, 'index'])->name('financeiro_fr.index');
+
+Route::post('/financeiro_fr', [FinanceiroFrController::class, 'store'])->name('financeiro_fr.store');
+
+
+Route::get('/financeiro_fr/saldo', [FinanceiroFrController::class, 'saldo'])->name('financeiro_fr.saldo');
+
+Route::post('/saldo/update', [FinanceiroFrController::class, 'update'])->name('saldo.update');
+Route::post('/gestor/update', [FinanceiroFrController::class, 'update_gestor'])->name('gestor.update');
+Route::post('/conta/update', [FinanceiroFrController::class, 'update_conta'])->name('conta.update');
+
+
+
+
+
+
+
+Route::get('/fiscal', [FiscalController::class, 'index'])->name('fiscal.index')->middleware('only.from.home');
 
 
 //Descarte de Pneus
@@ -92,14 +126,15 @@ Route::post('/descarte/store', [DescartePneusController::class, 'store'])->name(
 
 Route::post('/empresa/store', [EmpresaController::class, 'store'])->name('empresa.store');
 Route::post('/fornecedor_fisico/store', [FornecedorFisicoController::class, 'store'])->name('fornecedor_fisico.store');
+
+Route::post('/fornecedor_financeiro/store', [FornecedorFinanceiroController::class, 'store'])->name('fornecedor_financeiro.store');
+
 Route::post('/produtos/store', [ProdutoController::class, 'store'])->name('produtos.store');
 Route::post('/transf_veiculo/store', [TransfVeiculoController::class, 'store'])->name('transf_veiculo.store');
 
 Route::post('/pagamento_pix', [PagamentoPixController::class, 'store'])->name('pagamento_pix.store');
 
 Route::post('/florestal_pix', [FlorestalPixController::class, 'store'])->name('florestal_pix.store');
-
-Route::post('/financeiro', [FinanceiroController::class, 'store'])->name('financeiro.store');
 
 Route::post('/fiscal', [FiscalController::class, 'store'])->name('fiscal.store');
 
@@ -128,6 +163,8 @@ Route::post('/finalizar-passagem/{id}', [ReservaController::class, 'finalizarPas
 Route::get('/reserva/canceladas', [ReservaController::class, 'canceladas'])->name('admin.canceladas');
 Route::get('/reserva/finalizadas', [ReservaController::class, 'finalizadas'])->name('admin.finalizadas');
 
+Route::post('/reserva/reenviar/{id}', [ReservaController::class, 'reenviar_pendencia'])->name('reserva.reenviar');
+
 
 
 
@@ -144,6 +181,7 @@ Route::post('/finalizar-hospedagem/{id}', [HospedagemController::class, 'finaliz
 
 
 
+
 Route::get('/reserva/adiantamento', [AdiantamentoController::class, 'index'])->name('reserva.adiantamento');
 Route::post('/reserva/adiantamento', [AdiantamentoController::class, 'store']);
 Route::post('/cancelar-adiantamento/{id}', [AdiantamentoController::class, 'cancelarAdiantamento'])->name('cancelar.adiantamento');
@@ -154,6 +192,8 @@ Route::post('/finalizar-adiantamento/{id}', [AdiantamentoController::class, 'fin
 
 Route::get('/reserva/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 Route::get('/reserva/sobre', [SobreController::class, 'index'])->name('reserva.sobre');
+
+Route::get('/admin/financeiro/dashboard', [FinanceiroController::class, 'dashboard'])->name('admin.financeiro-dashboard');
 
 
 
@@ -202,6 +242,24 @@ Route::get('/produto/aprovar/{token}', [ProdutoController::class, 'aprovar'])->n
 Route::get('/produto/reprovar/{token}', [ProdutoController::class, 'reprovar'])->name('produto.reprovar');
 
 
+Route::get('/financeiro/aprovar/{token}', [FinanceiroFrController::class, 'aprovar'])->name('financeiro.aprovar');
+Route::get('/financeiro/reprovar/{token}', [FinanceiroFrController::class, 'reprovar'])->name('financeiro.reprovar');
+
+
+Route::get('/empresa/aprovar/{token}', [EmpresaController::class, 'aprovar'])->name('empresa.aprovar');
+Route::get('/empresa/reprovar/{token}', [EmpresaController::class, 'reprovar'])->name('empresa.reprovar');
+
+// ROTAS PARA CHAT
+// Rotas para o chat
+Route::middleware('auth')->group(function () {
+    // 1. Enviar nova mensagem (POST)
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+    
+    // 2. Buscar mensagens novas (GET)
+    Route::get('/chat/fetch', [ChatController::class, 'fetchMessages'])->name('chat.fetch');
+});
+
+
 //ROTAS DA ORDEM DE SERVIÇO
 // LOGIN
 Route::get('/os/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -219,13 +277,15 @@ Route::middleware('auth:os')->group(function () {
 
     // DASHBOARD
     Route::get('/os/dashboard', [OSController::class, 'index'])->name('dashboard');
-    Route::get('/os/dashboard/{codord}/{codire}', [OSController::class, 'details'])->name('site.details');
+    Route::get('/os/dashboard/{codord}/{codire}/{codvei}', [OSController::class, 'details'])->name('site.details');
 
-
+    Route::get('/os/servicos', [OSController::class, 'servicos_realizados'])->name('servicos');
 
     // AÇÕES DE OS
     Route::post('/os/assign/{codord}/{codire}', [OSController::class, 'assign'])->name('os.assign');
     Route::post('/os/action/{codord}/{codire}', [OSController::class, 'updateStatus'])->name('os.action');
+    Route::delete('/os/delete/{codord}/{codire}', [OSController::class, 'delete'])->name('os.delete');
+
 
     // BOTÕES DE CONTROLE
     Route::post('/os/{codord}/{codire}/start', [OSController::class, 'start'])->name('os.start');
@@ -233,9 +293,21 @@ Route::middleware('auth:os')->group(function () {
     Route::post('/os/{codord}/{codire}/resume', [OSController::class, 'resume'])->name('os.resume');
     Route::post('/os/{codord}/{codire}/finish', [OSController::class, 'finish'])->name('os.finish');
 
+    Route::post('/os/update-time', [OSController::class, 'updateTime'])->name('os.update_time');
+    Route::delete('/os/delete/{codord}/{codire}', [OSController::class, 'delete'])->name('os.delete');
+    Route::delete('/os/delete/{id}', [OSController::class, 'delete_service'])->name('os.delete_service');
+
+
+    
+
+
+
+
     // ROTAS DE ADMIN – sem proteção adicional
     Route::get('/os/admin/create', [AdminController::class, 'showCreateAdminForm'])->name('admin.create.form');
     Route::post('/os/admin/create', [AdminController::class, 'createAdmin'])->name('admin.create');
+    Route::get('/os/admin/update', [AdminController::class, 'showUpdateUnidade'])->name('admin.update.form');
+    Route::post('/os/admin/update', [AdminController::class, 'updateUnidade'])->name('admin.update');
 
     // ROTAS DE OS – atribuição
     Route::get('/os/atribuir/{codord}', [OsController::class, 'showAssignOsForm'])->name('site.assignOs');

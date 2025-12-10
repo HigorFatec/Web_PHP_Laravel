@@ -1,4 +1,4 @@
-@extends('florestal_pix.layout')
+@extends('layout')
 @section('title', 'Florestal Pix')
 @section('conteudo'),
 

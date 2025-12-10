@@ -159,9 +159,6 @@ class FiscalController extends Controller
             return 'Solicitação já foi processada.';
         }
 
-        $fiscal->update(['status' => 'aprovado']);
-
-
         // ENVIAR VÁRIOS E-MAILS
 
         $emailsString = $fiscal->emails;
@@ -253,6 +250,9 @@ class FiscalController extends Controller
             });
         }
         // idem para venda e descarte
+
+        $fiscal->update(['status' => 'aprovado']);
+
 
         return 'Solicitação aprovada com sucesso!';
     }

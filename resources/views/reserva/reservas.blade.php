@@ -31,6 +31,89 @@
         </div>
         @endif
 
+        @if ($message = Session::get('success5'))
+        <div class="card green darken-1">
+          <div class="card-content white-text">
+            <span class="card-title">E-mail reenviado!</span>
+            <p>O e-mail de solicitação fiscal foi reenviado ao <b>{{ Session::get('email_gestor') }}</b> com sucesso!
+           </p>
+          </div>
+        </div>
+        @endif
+
+{{-- Reservas Pendentes --}}
+    @if($pendentes->isEmpty())
+        @else
+            <div class="card">
+                <div class="card-content">
+                    <span class="card-title center"><b>Solicitações Pendentes</b></span>
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
+
+        <div class="row center"> {{$pendentes->links('custom.pagination')}} </div>
+
+        <table>
+            <thead>
+                <tr>
+                    @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                    <th class="admin">Status</th>
+                    <th class="admin">Solicitante</th>
+                    <th class="admin">Solicitado</th>
+                    <th class="admin">Filial</th>
+                    @endif
+                    <th>Validação</th>
+                    <th>Gestor Aprovador</th>
+                    <th>Motivo</th>
+                    <th>Viajante</th>
+                    @if(auth()->user()->admin == 1|| auth()->user()->admin == 100)
+                        <th class="admin">Reenviar E-mail</th>
+                        <th class="admin">Filial Viajante</th>
+                    @endif
+
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($pendentes as $passagem)
+                    <tr>
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                        <td>{{ $passagem->status }}</td>
+                        <td>{{ $passagem->user_name}}</td>
+                        <td>{{ \Carbon\Carbon::parse($passagem->created_at)->format('d/m/Y H:m:s') }}</td>
+                        <td>{{ $passagem->user->filial}}</td>
+                        @endif
+                        <td>{{ $passagem->validacao }}</td>
+                        <td>{{ $passagem->email_gestor }}</td>
+                        <td>{{ $passagem->motivo }}</td>
+                        <td>{{ $passagem->nome }}</td>
+                       
+
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                        <td>
+                            <form action="{{route('reserva.reenviar', $passagem->id)}}" method="POST" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn btn-success green"> <i class="material-icons">done</i></button>
+                            </form>
+
+                        </td>
+
+                                <td>{{ $passagem->filial }}</td>
+                        @endif
+
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+</div>
+</div>
+
+
+
+@endif
+
+
+
 {{-- Reservas de passagens --}}
     @if($passagens->isEmpty())
         @else
@@ -46,7 +129,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 1)
+                    @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                     <th class="admin">Status</th>
                     <th class="admin">Solicitante</th>
                     <th class="admin">Solicitado</th>
@@ -61,7 +144,7 @@
                     <th>Motivo</th>
                     <th>Viajante</th>
                     <th>Cancelar</th>
-                    @if(auth()->user()->admin == 1)
+                    @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                         <th class="admin">Finalizar</th>
                         <th class="admin">Filial Viajante</th>
                     @endif
@@ -71,7 +154,7 @@
             <tbody>
                 @foreach($passagens as $passagem)
                     <tr>
-                        @if(auth()->user()->admin == 1)
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                         <td>{{ $passagem->status }}</td>
                         <td>{{ $passagem->user_name}}</td>
                         <td>{{ \Carbon\Carbon::parse($passagem->created_at)->format('d/m/Y H:m:s') }}</td>
@@ -99,7 +182,7 @@
                                 <button type="submit" class="btn btn-danger red"> <i class="material-icons">delete</i></button>
                             </form>
                         </td>
-                        @if(auth()->user()->admin == 1)
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                         <td>
                             <form action="{{route('finalizar.passagem', $passagem->id)}}" method="POST" style="display:inline;">
                                 @csrf
@@ -140,7 +223,7 @@
     <thead>
         <tr>
         <tr>
-            @if(auth()->user()->admin == 1)
+            @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
             <th class="admin">Status</th>
             <th class="admin">Solicitante</th>
             <th class="admin">Solicitada:</th>
@@ -153,7 +236,7 @@
             <th>Motivo</th>
             <th>Viajante</th>
             <th>Cancelar</th>
-            @if(auth()->user()->admin == 1)
+            @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                 <th class="admin">Finalizar</th>
                 <th class="admin">Filial Viajante</th>
             @endif
@@ -162,7 +245,7 @@
     <tbody>
         @foreach($veiculos as $veiculo)
             <tr>
-                @if(auth()->user()->admin == 1)
+                @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                 <td>{{ $veiculo->status }}</td>
                 <td>{{ $veiculo->user_name}}</td>
                 <td>{{ \Carbon\Carbon::parse($veiculo->created_at)->format('d/m/Y H:m:s') }}</td>
@@ -178,6 +261,7 @@
                 @endif
                 <td>{{ $veiculo->motivo }}</td>
                 <td>{{ $veiculo->nome }}</td>
+
                
                 <td>
 
@@ -188,7 +272,8 @@
                     </form>
                 </td>
 
-                @if(auth()->user()->admin == 1)
+                @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+
                 <td>
                     <form action="{{route('finalizar.veiculo', $veiculo->id)}}" method="POST" style="display:inline;">
                         @csrf
@@ -228,7 +313,7 @@
             <table>
                 <thead>
                     <tr>
-                        @if(auth()->user()->admin == 1)
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                             <th class="admin">Status</th>
                             <th class="admin">Solicitante</th>
                             <th class="admin">Solicitado:</th>
@@ -241,7 +326,7 @@
                         <th>Motivo</th>
                         <th>Viajante</th>
                         <th>Cancelar</th>
-                        @if(auth()->user()->admin == 1)
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                             <th class="admin">Finalizar</th>
                             <th class="admin">Filial Viajante</th>
                         @endif
@@ -250,7 +335,7 @@
                 <tbody>
                     @foreach($hospedagem as $hospedagem)
                         <tr>
-                            @if(auth()->user()->admin == 1)
+                            @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                                 <td>{{ $hospedagem->status }}</td>
                                 <td>{{ $hospedagem->user_name }}</td>
                                 <td>{{ \Carbon\Carbon::parse($hospedagem->created_at)->format('d/m/Y H:i:s') }}</td>
@@ -272,7 +357,7 @@
                                     <button type="submit" class="btn btn-danger red"><i class="material-icons">delete</i></button>
                                 </form>
                             </td>
-                            @if(auth()->user()->admin == 1)
+                            @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                                 <td>
                                     <form action="{{ route('finalizar.hospedagem', $hospedagem->id) }}" method="POST" style="display:inline;">
                                         @csrf
@@ -315,7 +400,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 1)
+                    @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                         <th class="admin">Status</th>
                         <th class="admin">Solicitante</th>
                         <th class="admin">Solicitada:</th>
@@ -327,7 +412,7 @@
                     <th>Motivo</th>
                     <th>Viajante</th>
                     <th>Cancelar</th>
-                    @if(auth()->user()->admin == 1)
+                    @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                         <th class="admin">Finalizar</th>
                         <th class="admin">Filial Viajante</th>
                     @endif
@@ -336,7 +421,7 @@
             <tbody>
                 @foreach($adiantamento as $adiant)
                     <tr>
-                        @if(auth()->user()->admin == 1)
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                             <td>{{ $adiant->status }}</td>
                             <td>{{ $adiant->user_name }}</td>
                             <td>{{ \Carbon\Carbon::parse($adiant->created_at)->format('d/m/Y H:i:s') }}</td>
@@ -359,7 +444,7 @@
                             </form>
                         </td>
 
-                        @if(auth()->user()->admin == 1)
+                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
                         <td>
                             <form action="{{ route('finalizar.adiantamento', $adiant->id) }}" method="POST" style="display:inline;">
                                 @csrf

@@ -1,4 +1,4 @@
-@extends('saldo_valecard.layout')
+@extends('layout')
 @section('title','Saldo de Combustível ValeCard')
 @section('conteudo')
 

@@ -1,4 +1,4 @@
-@extends('pagamento_pix.layout')
+@extends('layout')
 @section('title', 'Pagamento Pix')
 @section('conteudo'),
 

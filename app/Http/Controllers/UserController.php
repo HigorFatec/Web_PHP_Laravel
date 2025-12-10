@@ -49,7 +49,7 @@ class UserController extends Controller
 
         $filiais = Filial::all();
 
-        return redirect()->route('reserva.home')->with('success', 'Cadastro realizado com sucesso!');
+        return redirect()->route('index')->with('success', 'Cadastro realizado com sucesso!');
     }
 
 

@@ -1,4 +1,4 @@
-@extends('produtos.layout')
+@extends('layout')
 @section('title', 'Cadastro de Produtos')
 @section('conteudo')
 
@@ -84,7 +84,7 @@
         <br>
 
        
-        <center><button class="btn" type="submit" name="action">Enviar
+        <center><button class="btn blue darken-3" type="submit" name="action">Enviar
             <i class="material-icons right">send</i>
           </button></center><br>
 

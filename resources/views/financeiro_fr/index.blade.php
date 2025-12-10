@@ -3,6 +3,7 @@
 @section('conteudo')
 
 
+
 <div class="row">
 <div class="col s12 m6 offset-m3">
 
@@ -11,6 +12,16 @@
         <div class="card-content white-text">
         <span class="card-title">Sucesso!</span>
         <p>Parabéns! A Transferência Pix foi solicitada com sucesso!<br>
+        </p>
+        </div>
+    </div>
+    @endif
+
+    @if ($message = Session::get('aprovado'))
+    <div class="card green darken-1">
+        <div class="card-content white-text">
+        <span class="card-title">Sucesso!</span>
+        <p>Parabéns! A Solicitação de Transferência Pix foi aprovada com sucesso!<br>
         </p>
         </div>
     </div>
@@ -38,7 +49,7 @@
       <span class="card-title center"><b>Financeiro</b></span><br>
       <span class="card-title center"><b>Selecione o tipo de Solicitação:</b></span>
 
-<form id="form-financeiro" action="{{route('financeiro.store')}}"method="POST" enctype="multipart/form-data" onsubmit="return validarEmails() && validarFormulario() && disableButtonOnClick(this.querySelector('button[type=submit]'));">
+<form id="form-financeiro" action="{{route('financeiro_fr.store')}}"method="POST" enctype="multipart/form-data" onsubmit="return validarEmails() && validarFormulario() && disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
     <div class="btn-group center" role="group" aria-label="Tipo de Reserva">
         <input type="hidden" name="tipo" id="tipo" required>
@@ -48,31 +59,60 @@
     </div><br>
     <br>
 
+
+
+
+
     <div id="campos-avista" class="tipo-campos" style="display:none;">
 
-        <input type="number" name="pedido" id = "pedido_1" placeholder="Número Pedido de Compra" >
+        <input type="text" name="solicitante" placeholder="Nome do Solicitante" required>
+
+        Socorro em Rota? <br>
+        <select name="socorro_em_rota" id="socorro_em_rota" required>
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+        </select>
+
+        Tem Nota Fiscal? <br>
+        <select name="tem_nota_fiscal" id="tem_nota_fiscal" required>
+           <option value="nao">Não</option> {{-- BAN RAZ --}}
+           <option value="sim">Sim</option>
+        </select>
+
+        <input type="text" name="pedido" id = "pedido_1" placeholder="Número Pedido de Compra(rodopar)" maxlength="6">
         <input type="text" name="placa" id="placa" placeholder="Placa">
 
         <input type="text" name="referencia" placeholder="Descrição de Solicitação"><br><br>
 
         <span class="card-title center"><b>Dados do fornecedor</b></span>
+        <center><span>Não encontrou o fornecedor? <a href="{{ route('fisico.fornecedor_financeiro') }}">Clique aqui para cadastrar</a></span></center>
+
+        Fornecedor: <br>
+        <select name="fornecedor" id="fornecedor_select" class="browser-default" required>
+            <option value=""></option>
+            @foreach ($fornecedores as $fornecedor)
+                <option value="{{ $fornecedor->codclifor }}" data-cnpj="{{ $fornecedor->cnpj }}" data-name="{{ $fornecedor->razsoc }}" data-banco="{{ $fornecedor->banco }}" data-agencia="{{ $fornecedor->agencia }}" data-conta="{{ $fornecedor->conta }}" data-favorecido="{{ $fornecedor->favorecido }}" data-pix_aleatorio="{{$fornecedor->pix_aleatorio }}">
+                    {{ $fornecedor->codclifor }} {{ $fornecedor->razsoc }}
+                </option>
+            @endforeach
+        </select><br><br>
 
 
-        <input type="text" name="cnpj" placeholder="CNPJ/CPF">
-        <input type="text" name="name" placeholder="Nome do Fornecedor">
+        <input type="text" id="cnpj_input" name="cnpj" placeholder="CNPJ/CPF">
+        <input type="text" id="name_input" name="name" placeholder="Nome do Fornecedor">
         <input type="text" name="pamcard" placeholder="Pamcard"><br><br>
 
 
         <span class="card-title center"><b>Dados bancários</b></span>
 
-        <input type="text" name="banco" placeholder="Banco">
-        <input type="number" name="agencia" placeholder="Agencia">
-        <input type="number" name="conta" placeholder="Conta">
+        <input type="text" id="banco_input" name="banco" placeholder="Banco">
+        <input type="number" id ="agencia_input" name="agencia" placeholder="Agencia">
+        <input type="number" id="conta_input" name="conta" placeholder="Conta">
 
 
-        <input type="text" name="favorecido" placeholder="Nome do Favorecido">
-        <input type="text" name="valor" placeholder="Valor">
-        <input type="text" name="pix" placeholder="Chave Pix">
+        <input type="text" id="favorecido_input" name="favorecido" placeholder="Nome do Favorecido">
+        <input type="text" id="valor" name="valor" placeholder="Valor">
+        <input type="text" id="pix_input" name="pix" placeholder="Chave Pix">
 
         Tipo de Chave Pix: <br>
         <select name="tipo_pix" id="tipo_pix" required>
@@ -202,15 +242,53 @@
 
     </div>
     
+    <br>
     Filial: <br>
-    <select name="filial" id="filial" required>
-
-        <option value=" "></option>
-        @foreach ($filiais as $filial)
-            <option value="{{$filial}}">{{$filial}}</option>
+    <select id="filial_select" name="cod_unidade" class="browser-default" required>
+        <option value=""></option>
+        @foreach ($filiais->unique('cod_unidade') as $filial)
+            <option value="{{ $filial->cod_unidade }}">
+                {{ $filial->unidade_negocio }}
+            </option>
         @endforeach
+    </select><br>
 
-    </select> <br>
+    Centro de Custo: <br>
+    <select id="centro_custo_select" name="cod_custo" class="browser-default" required>
+        <option value=""></option>
+        @foreach ($filiais->unique(fn($item) => $item->cod_custo . '-' . $item->cod_unidade) as $filial)
+            <option value="{{ $filial->cod_custo }}" data-unidade="{{ $filial->cod_unidade }}">
+                {{ $filial->descri_custo }}
+            </option>
+        @endforeach
+    </select><br>
+
+    Centro de Gasto: <br>
+    <select id="centro_gasto_select" name="cod_gasto" class="browser-default" required>
+        <option value=""></option>
+        @foreach ($filiais->unique(fn($item) => $item->cod_gasto . '-' . $item->cod_unidade) as $filial)
+            <option value="{{ $filial->cod_gasto }}" data-unidade="{{ $filial->cod_unidade }}">
+                {{ $filial->descri_gasto }}
+            </option>
+        @endforeach
+    </select><br>
+
+    Gestor Aprovador: <br>
+    <select name="gestor_aprovador" id="gestor_aprovador" class="browser-default" required>
+        <option value=""></option>
+        @foreach ($filiais->unique(fn($item) => $item->cod_unidade . '-' . $item->cod_custo) as $filial)
+            <option value="{{ $filial->email_gestor }}" data-unidade="{{ $filial->cod_unidade }}">
+                {{ $filial->nome_gestor }}
+            </option>
+        @endforeach
+    </select><br><br>
+
+
+
+
+
+
+
     <input type="email" name="email" placeholder="Email Solicitante (obrigatório)" required>
     <input type="email" name="email_gestor" placeholder="Email do Gestor (obrigatório)" required>
 
@@ -347,6 +425,151 @@ function validarFormulario() {
         return true; // Tudo certo, envia o formulário
     }
     </script>
+
+    <script>
+    $(document).ready(function() {
+        $('#fornecedor_select').select2({
+            placeholder: 'Selecione ou pesquise o fornecedor',
+            width: '100%'
+        });
+    });
+    </script>
+
+
+<script>
+  // PRENCHIMENTO AUTOMATICO DE INPUTS
+$(function() {
+    // --- Inicializa Select2 apenas se não estiver aplicado ---
+    if (typeof $.fn.select2 === 'function') {
+        if (!$('#fornecedor_select').hasClass('select2-applied')) {
+            $('#fornecedor_select').select2({
+                placeholder: 'Selecione ou pesquise o fornecedor',
+                width: '100%'
+            }).addClass('select2-applied');
+        }
+    }
+
+    // --- Função que atualiza o input de cnpj a partir da opção selecionada ---
+    function atualizaCnpjDoSelect(el) {
+        var $sel = $(el);
+        // pega option selecionada (compatível com select2 e select normal)
+        var $opt = $sel.find('option:selected');
+        var cnpj = $opt.data('cnpj') || '';
+        $('#cnpj_input').val(cnpj);
+        var name = $opt.data('name') || '';
+        $('#name_input').val(name);
+        var banco = $opt.data('banco') || '';
+        $('#banco_input').val(banco);
+        var agencia = $opt.data('agencia') || '';
+        $('#agencia_input').val(agencia);
+        var conta = $opt.data('conta') || '';
+        $('#conta_input').val(conta);
+        var favorecido = $opt.data('favorecido') || '';
+        $('#favorecido_input').val(favorecido);
+        var pix_aleatorio = $opt.data('pix_aleatorio') || '';
+        $('#pix_input').val(pix_aleatorio);
+    
+    }
+
+    // --- escuta mudança no select (pega tanto evento change nativo quanto os do Select2) ---
+    $('#fornecedor_select').on('change', function() {
+        atualizaCnpjDoSelect(this);
+    });
+
+    // Select2 também dispara 'select2:select' — garantimos captura
+    $('#fornecedor_select').on('select2:select', function(e) {
+        atualizaCnpjDoSelect(this);
+    });
+
+    // --- DEBUG: se ainda não preencher, rode estes comandos no console do navegador ---
+    // console.log($('#fornecedor_select').val());
+    // console.log($('#fornecedor_select option:selected').data('cnpj'));
+
+    // opcional: popula ao carregar caso queira preservar um valor antigo
+    atualizaCnpjDoSelect($('#fornecedor_select'));
+});
+</script>
+
+
+<script>
+    const inputValor = document.getElementById('valor');
+
+    // Permite apenas números, vírgula e ponto
+    inputValor.addEventListener('input', function () {
+        this.value = this.value.replace(/[^0-9.,]/g, "");
+    });
+
+    // Converte para float ao sair do campo
+    inputValor.addEventListener('blur', function () {
+        let v = this.value.replace(",", "."); // troca vírgula por ponto
+        let floatVal = parseFloat(v);
+
+        if (!isNaN(floatVal)) {
+            this.value = floatVal.toFixed(2); // formata com duas casas decimais (opcional)
+        } else {
+            this.value = ""; // se não for número válido, limpa
+        }
+    });
+</script>
+
+
+
+<script>
+  // PRENCHIMENTO AUTOMATICO DE INPUTS
+
+function atualizaCustoDoSelect(el) {
+    let opt = $(el).find('option:selected');
+
+    let codCusto = opt.data('cod_custo') || '';
+    $('#cod_custo_input').val(codCusto);
+
+    let descriCusto = opt.data('descri_custo') || '';
+    $('#descri_custo_input').val(descriCusto);
+}
+
+</script>
+
+
+
+
+<script>
+document.getElementById('filial_select').addEventListener('change', function () {
+    let unidade = this.value;
+
+    // Centro de Custo
+    document.querySelectorAll('#centro_custo_select option').forEach(opt => {
+        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
+    });
+
+    // Centro de Gasto
+    document.querySelectorAll('#centro_gasto_select option').forEach(opt => {
+        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
+    });
+
+    // Gestor Aprovador
+    document.querySelectorAll('#gestor_aprovador option').forEach(opt => {
+        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
+    });
+
+    // limpa seleção anterior
+    document.getElementById('centro_custo_select').value = "";
+    document.getElementById('centro_gasto_select').value = "";
+    document.getElementById('gestor_aprovador').value = "";
+});
+</script>
+
+
+
+<script>
+document.getElementById('pedido_1').addEventListener('input', function () {
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+</script>
+
+
+
+
+
 
 
 @endsection

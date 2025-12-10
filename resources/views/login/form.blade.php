@@ -1,10 +1,10 @@
 @extends('layout')
-@section('title', 'Reserva - Solicitações')
+@section('title', 'Login - Formulário')
 @section('conteudo')
 
 
 @auth
-<script>window.location = "/reserva";</script>
+<script>window.location = "/";</script>
 
 @else
 
@@ -25,11 +25,11 @@
     </div>
     @endif
 
-    @if($mensagem = Session::get('erro'))
+    @if($message = Session::get('erro'))
     <div class="card red darken-1">
         <div class="card-content white-text">
             <span class="card-title">Erro</span>
-            <p>{{$mensagem}}
+            <p>{{$message}}
         </p>
         </div>
         </div>
