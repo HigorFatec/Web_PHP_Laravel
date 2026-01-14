@@ -49,7 +49,6 @@ class FinanceiroController extends Controller
             'referencia' => 'nullable|string',
             'cnpj' => 'nullable|string',
             'name' => 'nullable|string',
-            'pamcard' => 'nullable|string',
             'banco' => 'nullable|string',
             'agencia' => 'nullable|string',
             'conta' => 'nullable|string',

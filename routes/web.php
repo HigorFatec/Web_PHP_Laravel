@@ -56,6 +56,10 @@ Route::get('/teste-sqlserver', function () {
     }
 });
 
+
+
+
+
 Route::get('/goto/{route}', [HomeController::class, 'goToRoute'])
     ->where('route', 'financeiro.index|empresa.create|fiscal.index|pagamento_pix.index|florestal_pix.index|saldo.index|saldo.valecard|produtos.create|transf_veiculo.index|descarte.index|sinistro.index')
     ->name('goto.route');
@@ -92,9 +96,10 @@ Route::get('/florestal_pix', [FlorestalPixController::class, 'index'])->name('fl
 
 
 
-Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index')->middleware('only.from.home');
+Route::get('/financeiro', [FinanceiroController::class, 'index'])->name('financeiro.index');
 
 Route::post('/financeiro', [FinanceiroController::class, 'store'])->name('financeiro.store');
+
 
 
 
@@ -102,6 +107,12 @@ Route::post('/financeiro', [FinanceiroController::class, 'store'])->name('financ
 Route::get('/financeiro_fr', [FinanceiroFrController::class, 'index'])->name('financeiro_fr.index');
 
 Route::post('/financeiro_fr', [FinanceiroFrController::class, 'store'])->name('financeiro_fr.store');
+
+
+Route::get('/fornecedores/buscar', [FinanceiroFrController::class, 'buscarFornecedores'])
+    ->name('fornecedores.buscar');
+
+
 
 
 Route::get('/financeiro_fr/saldo', [FinanceiroFrController::class, 'saldo'])->name('financeiro_fr.saldo');
@@ -246,8 +257,15 @@ Route::get('/financeiro/aprovar/{token}', [FinanceiroFrController::class, 'aprov
 Route::get('/financeiro/reprovar/{token}', [FinanceiroFrController::class, 'reprovar'])->name('financeiro.reprovar');
 
 
+Route::get('/empresa/aprovacao', [EmpresaController::class, 'aprovacao'])->name('empresa.aprovacao');
+
+
 Route::get('/empresa/aprovar/{token}', [EmpresaController::class, 'aprovar'])->name('empresa.aprovar');
-Route::get('/empresa/reprovar/{token}', [EmpresaController::class, 'reprovar'])->name('empresa.reprovar');
+
+Route::post('/empresa/reprovar/{token}', [EmpresaController::class, 'reprovar'])->name('empresa.reprovar');
+Route::get('/empresa/reprovar/{token}', [EmpresaController::class, 'formReprovar'])
+    ->name('empresa.reprovar.form');
+
 
 // ROTAS PARA CHAT
 // Rotas para o chat

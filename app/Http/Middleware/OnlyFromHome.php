@@ -11,7 +11,7 @@ class OnlyFromHome
     {
         // Todas as rotas da dashboard que devem ser protegidas
         $protectedRoutes = [
-            'financeiro.index',
+            //'financeiro.index',
             'empresa.create',
             'fiscal.index',
             'pagamento_pix.index',

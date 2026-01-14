@@ -101,10 +101,10 @@ public function financeiroAvista($id, $valor, $solicitante, $fornecedor, $pedido
 
 DB::connection('sqlsrv')->table('BANRAZ')->insert([
     'ID_RAZ' => DB::raw('(SELECT MAX(ID_RAZ) + 1 FROM BANRAZ)'),
-    'NUMDOC' => $id,
+    'NUMDOC' => $pedido,
     'CODCTA' => $conta,
     'TIPDOC' => 'ADF',
-    'CODFIL' => $filial,
+    'CODFIL' => DB::raw("(SELECT CODFIL FROM ESTPED WHERE NUMPED = {$pedido})"),
     'TIPORI' => 'ADF',
     'CODBCO' => 341,
     'CODHISBC' => 124,
@@ -118,7 +118,7 @@ DB::connection('sqlsrv')->table('BANRAZ')->insert([
     'SITUAC' => 'I',
     'SLDANT' => $saldo_anterior,
     'SLDATU' => $saldo_atualizado,
-    'OBSERV' => 'Socorro em Rota - Formulário Robusto Financeiro - prenchido por '.$prazo,
+    'OBSERV' => 'Socorro em Rota - Formulário Financeiro - aprovado por '.$prazo,
     'COMPEN' => 'N',
     'CODTAR' => 1687,
     'DATATU' => DB::raw('GETDATE()'),
@@ -126,9 +126,9 @@ DB::connection('sqlsrv')->table('BANRAZ')->insert([
     'USUINC' => 'Importacao',
     'CTATRA' => NULL, 
     'DATINC' => DB::raw('GETDATE()'),
-    'CODCLIFOR' => $fornecedor,
+    'CODCLIFOR' => DB::raw("(SELECT CODCLIFOR FROM ESTPED WHERE NUMPED = {$pedido})"),
     'BLOQUE' => 'N',
-    'NUMPED' => $pedido,
+    'NUMPED' => NULL,
     'SOLICI' => $solicitante,
     'VLRITX' => 0,
     'VLRITX_TRA' => 0,
@@ -141,7 +141,7 @@ DB::connection('sqlsrv')->table('BANRAT')->insert([
     'NUMDOC' => $id,
     'CODCTA' => $conta,
     'TIPDOC' => 'ADF',
-    'CODFIL' => $filial,
+    'CODFIL' => DB::raw("(SELECT CODFIL FROM ESTPED WHERE NUMPED = {$pedido})"),
     'CODUNN' => 19,
     'CODCGA' => 59,
     'CODCUS' => '102',
@@ -149,7 +149,7 @@ DB::connection('sqlsrv')->table('BANRAT')->insert([
     'ANALIT' => 374,
     'VALOR' => $valor,
     'DATATU' => DB::raw('GETDATE()'),
-    'USUATU' => 'ODAHCAM',
+    'USUATU' => 'Importacao',
     'DATINC' => DB::raw('GETDATE()'),
     'ID_RAZ' => DB::raw('(SELECT MAX(ID_RAZ) FROM BANRAZ)'),
 
@@ -164,7 +164,7 @@ DB::connection('sqlsrv')->table('BANRAZ')
 }
 
 
-public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas){
+public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
 
     $id = (string) $id;
     $valor = (float) $valor;
@@ -190,9 +190,9 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas){
         'VLRDOC' => $valor,
         'VLRLIQ' => $valor,
         'VLRPAG' => 0,
-        'USUATU' => 'IMPORTACAO',
+        'USUATU' => 'Importacao',
         'DATATU' => DB::raw('GETDATE()'),
-        'REFERE' => 'IMPORTACAO FORMULARIO ROBUSTO FINANCEIRO, Aprovado por',
+        'REFERE' => 'IMPORTACAO FORMULARIO FINANCEIRO, Aprovado por '.$prazo,
 
     ]);
 
@@ -201,7 +201,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas){
         'SERIE' => 'A',
         'NUMDOC' => $fornecedor . '-' . $id,
         'CODFIL' => 5,
-        'USUATU' => 'IMPORTACAO',
+        'USUATU' => 'Importacao',
         'DATATU' => DB::raw('GETDATE()'),
     ]);
 
@@ -216,7 +216,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas){
         'VLRPAR' => $valor,
         'VLRPAG' => 0,
         'VLRLIQ' => $valor,
-        'USUATU' => 'IMPORTACAO',
+        'USUATU' => 'Importacao',
         'DATATU' => DB::raw('GETDATE()'),
     ]);
 
@@ -231,7 +231,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas){
         'SINTET' => 83,
         'ANALIT' => 376,
         'VALOR' => $valor,
-        'USUATU' => 'IMPORTACAO',
+        'USUATU' => 'Importacao',
         'DATATU' => DB::raw('GETDATE()'),
     ]);
 
@@ -246,7 +246,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas){
         'DEBCRE' => 'C',
         'VLRLAN' => $valor,
         'DATATU' => DB::raw('GETDATE()'),
-        'USUATU' => 'IMPORTACAO',
+        'USUATU' => 'Importacao',
     ]);
 
     DB::connection('sqlsrv')->table('PAGDOC')

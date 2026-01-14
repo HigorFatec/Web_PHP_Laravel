@@ -27,10 +27,17 @@ class FornecedorFinanceiro extends Model
         'agencia',
         'conta',
         'favorecido',
+        'pix_preferencial',
+        'pix_cnpj',
+        'pix_email',
+        'pix_telefone',
         'pix_aleatorio',
         'approval_token',
         'status',
-        'email_fornecedor'
+        'email_fornecedor',
+        'telefone_fornecedor',
+        'codclifor',
+        'cep'
 
     ];
 
@@ -41,32 +48,73 @@ public static function cidades(){
             'CODMUN',
             'DESCRI'
         )
+        ->orderBy('DESCRI', 'asc')
         ->get();
 }
 
-public static function fornecedoresQuery()
-{
+
+public static function bancos(){
     return DB::connection('sqlsrv')
-        ->table('RODCLI')
-        ->select('CODCLIFOR as codclifor', 
-                 'RAZSOC as razsoc',
-                 DB::raw('ISNULL(CODCGC, CODCPF) as cnpj'),
-                 DB::raw('ISNULL(BANDEP, \'\') as banco'),
-                 DB::raw('ISNULL(NUMAGE, \'\') as agencia'),
-                 DB::raw('ISNULL(CONTAC, \'\') as conta'),
-                 DB::raw('ISNULL(NOMFAV, \'\') as favorecido'),
-                 DB::raw('ISNULL(CHVALE, \'\') as pix_aleatorio')
+        ->table('RODBCO')
+        ->select(
+            'CODBCO',
+            'DESCRI'
+        )
+        ->orderBy('DESCRI', 'asc')
+        ->get();
+}
+
+// public static function fornecedoresQuery()
+// {
+//     return DB::connection('sqlsrv')
+//         ->table('RODCLI')
+//         ->select('CODCLIFOR as codclifor', 
+//                  'RAZSOC as razsoc',
+//                  DB::raw('ISNULL(CODCGC, CODCPF) as cnpj'),
+//                  DB::raw('ISNULL(BANDEP, \'\') as banco'),
+//                  DB::raw('ISNULL(NUMAGE, \'\') as agencia'),
+//                  DB::raw('ISNULL(CONTAC, \'\') as conta'),
+//                  DB::raw('ISNULL(NOMFAV, \'\') as favorecido'),
+//                  DB::raw('ISNULL(CHVALE, \'\') as pix_aleatorio')
 
                  
-        )
-        ->orderBy('CODCLIFOR', 'desc')
-        ->limit(20000)
-        ->get();
+//         )
+//         ->orderBy('CODCLIFOR', 'desc')
+//         ->limit(20000)
+//         ->get();
+// }
+
+public static function fornecedoresQuery($search = null)
+{
+    $query = DB::connection('sqlsrv')
+        ->table('RODCLI')
+        ->select(
+            'CODCLIFOR as codclifor', 
+            'RAZSOC as razsoc',
+            DB::raw('ISNULL(CODCGC, CODCPF) as cnpj'),
+            DB::raw('ISNULL(BANDEP, \'\') as banco'),
+            DB::raw('ISNULL(NUMAGE, \'\') as agencia'),
+            DB::raw('ISNULL(CONTAC, \'\') as conta'),
+            DB::raw('ISNULL(NOMFAV, \'\') as favorecido'),
+        );
+
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('RAZSOC', 'LIKE', "%{$search}%")
+              ->orWhere('CODCPF', 'LIKE', "%{$search}%")
+              ->orWhere('CODCGC', 'LIKE', "%{$search}%")
+              ->orWhere('CODCLIFOR', 'LIKE', "%{$search}%");
+        });
+    }
+
+    return $query->orderBy('CODCLIFOR', 'desc')
+                 ->limit(50) // deixar leve
+                 ->get();
 }
 
 
 
-public static function cadastro_Fornecedor_juridico($razao_social,$nome_abreviado,$endereco,$bairro,$cod_municipio,$ie,$cnpj,$banco,$agencia,$conta,$favorecido,$pix_aleatorio,$email_fornecedor)
+public static function cadastro_Fornecedor_juridico($razao_social,$nome_abreviado,$endereco,$bairro,$cod_municipio,$ie,$cnpj,$banco,$agencia,$conta,$favorecido,$pix_aleatorio,$email_fornecedor,$pix_preferencial,$pix_cnpj,$pix_email,$pix_celular,$telefone_fornecedor,$cep)
 {
     $nome_abreviado = (string) $nome_abreviado;
     $endereco = (string) $endereco;
@@ -79,6 +127,22 @@ public static function cadastro_Fornecedor_juridico($razao_social,$nome_abreviad
     $agencia = (int) $agencia;
     $conta = (int) $conta;
     $favorecido = (string) $favorecido;
+    $pix_preferencial = (int) $pix_preferencial;
+    $telefone_fornecedor = (string) $telefone_fornecedor;
+    $pix_cnpj = (string) $pix_cnpj;
+
+    // TRATA pix_cnpj
+
+    $pix_cnpj = preg_replace('/\D/', '', $pix_cnpj); // remove espaço
+    $telefone_fornecedor = preg_replace('/\D/', '', $telefone_fornecedor); // remove espaço
+    $pix_aleatorio = preg_replace('/\D/', '', $pix_aleatorio); // remove espaço
+
+    $telefone_fornecedor = '+' . $telefone_fornecedor;
+
+    $telefone_fornecedor = (string) $telefone_fornecedor;
+    $pix_cnpj = (string) $pix_cnpj;
+
+
 
     $cnpj = preg_replace('/\D/', '', $cnpj);
     $cnpj = substr($cnpj, 0, 2) . '.' .
@@ -92,20 +156,10 @@ public static function cadastro_Fornecedor_juridico($razao_social,$nome_abreviad
 // INSERT INTO RODCLI (CODCLIFOR, RAZSOC, CODMUN, CODFIL, DATATU, USUATU, CODPAD)
 // VALUES ('173853', 'NOME TESTE', '4174', '5', GETDATE(), 'USUARIO_TESTE', '1');
 
-DB::connection('sqlsrv')->table('RODCTC')->insert([
-    'USUATU' => 'ODAHCAM',
-    'ID' => DB::raw('(SELECT MAX(ID) + 1 FROM RODCTC)'),
-    'CODCLIFOR' => DB::raw('(SELECT MAX(CODCLIFOR) + 1 FROM RODCLI)'),
-    'DATATU' => DB::raw('GETDATE()'),
-    'CODTIP' => 3,
-    'EMAIL' => $email_fornecedor,
-    'NOMECT' => $nome_abreviado
-]);
-
 
 DB::connection('sqlsrv')->table('RODCLI')->insert([
-    'USUATU' => 'ODAHCAM',
-    'USUINC' => 'ODAHCAM',
+    'USUATU' => 'Importacao',
+    'USUINC' => 'Importacao',
     'DATINC' => DB::raw('GETDATE()'),
     'SITUAC' => 'A',
     'NOMFAV' => $razao_social,
@@ -131,7 +185,39 @@ DB::connection('sqlsrv')->table('RODCLI')->insert([
     'NUMAGE' => $agencia,
     'CONTAC' => $conta,
     'NOMFAV' => $favorecido,
-    'CHVALE' => $pix_aleatorio
+    'CHVALE' => $pix_aleatorio,
+    'CHVPRE' => $pix_preferencial,
+    'CHVCPF' => $pix_cnpj,
+    'CHVEMA' => $pix_email,
+    'CHVCEL' => $pix_celular,
+    'PRTEL1' => $telefone_fornecedor,
+    'CODCEP' => $cep
+
+
+]);
+
+
+
+DB::connection('sqlsrv')->table('RODCTC')->insert([
+    'USUATU' => 'Importacao',
+    'ID' => DB::raw('(SELECT MAX(ID) + 1 FROM RODCTC)'),
+    'CODCLIFOR' => DB::raw('(SELECT MAX(CODCLIFOR) FROM RODCLI)'),
+    'DATATU' => DB::raw('GETDATE()'),
+    'DATINC' => DB::raw('GETDATE()'),
+    'CODTIP' => 3,
+    'EMAIL' => $email_fornecedor,
+    'NOMECT' => $nome_abreviado,
+    'SITUAC' => 'A',
+    'SEQ' => '1',
+    'TELEFO' => '(___)_____-____',
+    'FAX' => '(___)_____-____',
+    'CELULA' => '(___)_____-____',
+    'INATIV' => 'N',
+    'WEBCOL' => 'N',
+    'TIPCOB' => 'N',
+    'RESPRO' => 'N',
+    'CODCGC' => '__.___.___/____-__',
+    'CODCPF' => '___.___.___-__'
 ]);
 
 }
@@ -183,7 +269,7 @@ public static function verificar_cnpj($cnpj){
     }
 }
 
-public static function cadastro_Fornecedor_fisico($razao_social,$nome_abreviado,$endereco,$bairro,$cod_municipio,$rg,$cpf,$banco,$agencia,$conta,$favorecido,$pix_aleatorio,$email_fornecedor)
+public static function cadastro_Fornecedor_fisico($razao_social,$nome_abreviado,$endereco,$bairro,$cod_municipio,$rg,$cpf,$banco,$agencia,$conta,$favorecido,$pix_aleatorio,$email_fornecedor,$pix_preferencial,$pix_cnpj,$pix_email,$pix_celular,$telefone_fornecedor,$cep)
 {  
     $razao_social = (string) $razao_social;
     $nome_abreviado = (string) $nome_abreviado;
@@ -196,6 +282,23 @@ public static function cadastro_Fornecedor_fisico($razao_social,$nome_abreviado,
     $agencia = (int) $agencia;
     $conta = (int) $conta;
     $favorecido = (string) $favorecido;
+    $pix_preferencial = (int) $pix_preferencial;
+    $telefone_fornecedor = (string) $telefone_fornecedor;
+    $pix_cnpj = (string) $pix_cnpj;
+
+
+
+    // TRATA pix_cnpj
+    $pix_cnpj = preg_replace('/\D/', '', $pix_cnpj); // remove espaço
+    $telefone_fornecedor = preg_replace('/\D/', '', $telefone_fornecedor); // remove espaço
+    $pix_aleatorio = preg_replace('/\D/', '', $pix_aleatorio); // remove espaço
+
+    $telefone_fornecedor = '+' . $telefone_fornecedor;
+
+    $telefone_fornecedor = (string) $telefone_fornecedor;
+    $pix_cnpj = (string) $pix_cnpj;
+
+
 
     // TRATA RG
     $rg = preg_replace('/\D/', '', $rg);
@@ -215,20 +318,10 @@ public static function cadastro_Fornecedor_fisico($razao_social,$nome_abreviado,
 
     // dd('CPF formatado antes do insert:', $cpf, strlen($cpf));
 
-DB::connection('sqlsrv')->table('RODCTC')->insert([
-    'USUATU' => 'ODAHCAM',
-    'ID' => DB::raw('(SELECT MAX(ID) + 1 FROM RODCTC)'),
-    'CODCLIFOR' => DB::raw('(SELECT MAX(CODCLIFOR) + 1 FROM RODCLI)'),
-    'DATATU' => DB::raw('GETDATE()'),
-    'CODTIP' => 3,
-    'EMAIL' => $email_fornecedor,
-    'NOMECT' => $nome_abreviado
-]);
-
 
 DB::connection('sqlsrv')->table('RODCLI')->insert([
-    'USUATU' => 'ODAHCAM',
-    'USUINC' => 'ODAHCAM',
+    'USUATU' => 'Importacao',
+    'USUINC' => 'Importacao',
     'DATINC' => DB::raw('GETDATE()'),
     'RAZSOC' => $razao_social,
     'FISJUR' => 'F',
@@ -251,8 +344,38 @@ DB::connection('sqlsrv')->table('RODCLI')->insert([
     'NUMAGE' => $agencia,
     'CONTAC' => $conta,
     'NOMFAV' => $favorecido,
-    'CHVALE' => $pix_aleatorio
+    'CHVALE' => $pix_aleatorio,
+    'CHVPRE' => $pix_preferencial,
+    'CHVCPF' => $pix_cnpj,
+    'CHVEMA' => $pix_email,
+    'CHVCEL' => $pix_celular,
+    'PRTEL1' => $telefone_fornecedor,
+    'CODCEP' => $cep
 ]);
+
+
+DB::connection('sqlsrv')->table('RODCTC')->insert([
+    'USUATU' => 'Importacao',
+    'ID' => DB::raw('(SELECT MAX(ID) + 1 FROM RODCTC)'),
+    'CODCLIFOR' => DB::raw('(SELECT MAX(CODCLIFOR) FROM RODCLI)'),
+    'DATATU' => DB::raw('GETDATE()'),
+    'DATINC' => DB::raw('GETDATE()'),
+    'CODTIP' => 3,
+    'EMAIL' => $email_fornecedor,
+    'NOMECT' => $nome_abreviado,
+    'SITUAC' => 'A',
+    'SEQ' => '1',
+    'TELEFO' => '(___)_____-____',
+    'FAX' => '(___)_____-____',
+    'CELULA' => '(___)_____-____',
+    'INATIV' => 'N',
+    'WEBCOL' => 'N',
+    'TIPCOB' => 'N',
+    'RESPRO' => 'N',
+    'CODCGC' => '__.___.___/____-__',
+    'CODCPF' => '___.___.___-__'
+]);
+
 }
 
 

@@ -88,14 +88,11 @@
         <center><span>Não encontrou o fornecedor? <a href="{{ route('fisico.fornecedor_financeiro') }}">Clique aqui para cadastrar</a></span></center>
 
         Fornecedor: <br>
+        <input type="text" id="search_fornecedor" placeholder="Buscar fornecedor...">
+
         <select name="fornecedor" id="fornecedor_select" class="browser-default" required>
-            <option value=""></option>
-            @foreach ($fornecedores as $fornecedor)
-                <option value="{{ $fornecedor->codclifor }}" data-cnpj="{{ $fornecedor->cnpj }}" data-name="{{ $fornecedor->razsoc }}" data-banco="{{ $fornecedor->banco }}" data-agencia="{{ $fornecedor->agencia }}" data-conta="{{ $fornecedor->conta }}" data-favorecido="{{ $fornecedor->favorecido }}" data-pix_aleatorio="{{$fornecedor->pix_aleatorio }}">
-                    {{ $fornecedor->codclifor }} {{ $fornecedor->razsoc }}
-                </option>
-            @endforeach
-        </select><br><br>
+            <option value="">Selecione...</option>
+        </select>
 
 
         <input type="text" id="cnpj_input" name="cnpj" placeholder="CNPJ/CPF">
@@ -310,6 +307,87 @@
 </div>
 
 
+
+
+
+
+
+<script>
+$(function () {
+
+    const $input = $('#search_fornecedor');
+    const $select = $('#fornecedor_select');
+
+    if ($input.length === 0 || $select.length === 0) {
+        console.warn('Elemento #search_fornecedor ou #fornecedor_select não encontrado.');
+        return;
+    }
+
+    // ---- Debounce ----
+    function debounce(fn, delay) {
+        let timer = null;
+        return function () {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, arguments), delay);
+        };
+    }
+
+    // ---- Função AJAX corrigida ----
+    function buscar(termo) {
+        if (termo.length < 2) return;
+
+        $.ajax({
+            url: '/fornecedores/buscar',
+            method: 'GET',
+            data: { search: termo },
+            success: function (data) {
+
+                console.log("[AJAX] fornecedores:", data);
+
+                $select.empty();
+                $select.append('<option value="">Selecione...</option>');
+
+                if (!data || !Array.isArray(data) || data.length === 0) {
+                    $select.append('<option value="">Nenhum fornecedor encontrado</option>');
+                    return;
+                }
+
+                data.forEach(f => {
+                    $select.append(`
+                        <option value="${f.codclifor}"
+                            data-cnpj="${f.cnpj ?? ''}"
+                            data-razsoc="${f.razsoc ?? ''}"
+                            data-banco="${f.banco ?? ''}"
+                            data-agencia="${f.agencia ?? ''}"
+                            data-conta="${f.conta ?? ''}"
+                            data-favorecido="${f.favorecido ?? ''}">
+                            ${f.codclifor} - ${f.razsoc} - ${f.cnpj}
+                        </option>
+                    `);
+                });
+            },
+            error: function (xhr) {
+                console.error("[AJAX] erro:", xhr.responseText);
+            }
+        });
+    }
+
+    // ---- Input Listener com Debounce ----
+    $input.on('input', debounce(function () {
+        buscar($(this).val().trim());
+    }, 400));
+
+});
+</script>
+
+
+
+
+
+
+
+
+
 <script>
   document.querySelectorAll('.btn-group .btn').forEach(button => {
       button.addEventListener('click', function() {
@@ -456,7 +534,7 @@ $(function() {
         var $opt = $sel.find('option:selected');
         var cnpj = $opt.data('cnpj') || '';
         $('#cnpj_input').val(cnpj);
-        var name = $opt.data('name') || '';
+        var name = $opt.data('razsoc') || '';
         $('#name_input').val(name);
         var banco = $opt.data('banco') || '';
         $('#banco_input').val(banco);
@@ -466,8 +544,6 @@ $(function() {
         $('#conta_input').val(conta);
         var favorecido = $opt.data('favorecido') || '';
         $('#favorecido_input').val(favorecido);
-        var pix_aleatorio = $opt.data('pix_aleatorio') || '';
-        $('#pix_input').val(pix_aleatorio);
     
     }
 

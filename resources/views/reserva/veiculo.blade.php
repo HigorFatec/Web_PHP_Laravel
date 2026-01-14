@@ -4,7 +4,7 @@
 
 
 <div class="row">
-
+<div class="col s12 m6 offset-m3">
 
   @if ($errors->any())
   <div class="alert alert-danger">
@@ -23,13 +23,21 @@
   </div>
 @endif
 
-<div class="container">
 <div class="card">
   <div class="card-content">
       <span class="card-title center"><b>Reserva de Veiculo Leve</b></span><br>
 
 <form action="/reserva/veiculo" method="POST" enctype="multipart/form-data" onsubmit="return disableButtonOnClick(this.querySelector('button[type=submit]'));">
+
+        <div class="btn-group center" role="group" aria-label="Tipo de Locação">
+            <input type="hidden" name="tipo" id="tipo" required>
+            <button type="button" class="btn" data-value="definitivo">Definitivo</button>
+            <button type="button" class="btn" data-value="provisorio">Provisório</button>
+        </div><br>
+        <br>
+
     @csrf
+
     <input type="text" name="origem" placeholder="Local de Retirada" required>
     <input type="text" name="destino" placeholder="Local de Devolução" required><br><br>
 
@@ -70,8 +78,29 @@
 </div>
 </div>
 
+
 </div>
 </div>
+
+<script>
+    const botoes = document.querySelectorAll('.btn-group .btn');
+    const inputTipo = document.getElementById('tipo');
+
+    botoes.forEach(btn => {
+        btn.addEventListener('click', function () {
+
+            // Remove 'active' de todos
+            botoes.forEach(b => b.classList.remove('active'));
+
+            // Adiciona 'active' no botão clicado
+            this.classList.add('active');
+
+            // Preenche o input hidden
+            inputTipo.value = this.dataset.value;
+        });
+    });
+</script>
+
 
 
 @endsection

@@ -56,6 +56,7 @@ class VeiculoController extends Controller
                 'data_nascimento' => 'required|date',
                 'email' => 'required|email',
                 'filial_viajante' => 'required|string',
+                'tipo' => 'nullable|string',
             ]);
     
             
@@ -77,6 +78,9 @@ class VeiculoController extends Controller
             Mail::send('emails.veiculo', ['dados' => $validatedData, 'user' => $user], function($message) use ($user, $validatedData, $foto){
                 $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
+                if($validatedData['tipo'] == 'definitivo'){
+                    $message->cc('documentos.grupocargopolo.com.br');
+                }
                 $message->subject('Nova Reserva de Veículo solicitada');
             //Verificar se existe imagem anexada
             if ($foto)  {

@@ -6,7 +6,7 @@
 
 <div class="row">
 
-    @if(auth()->user()->admin == 1)
+    @if(auth()->user()->admin != 0)
     <div class="col s12 m8 offset-m2">
         @else
         <div class="col s12 m6 offset-m3">

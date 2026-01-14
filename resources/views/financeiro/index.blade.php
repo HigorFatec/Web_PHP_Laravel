@@ -149,8 +149,7 @@
 
 
         <input type="text" name="cnpj" id="cpfCnpj" placeholder="CNPJ/CPF" required>
-        <input type="text" name="name" placeholder="Nome do Recebedor">
-        <input type="text" name="pamcard" placeholder="Pamcard"><br><br>
+        <input type="text" name="name" placeholder="Nome do Recebedor"><br><br>
 
 
         <span class="card-title center"><b>Dados bancários</b></span>

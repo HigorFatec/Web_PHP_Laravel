@@ -33,7 +33,7 @@
             <div class="card-content">
                 <span class="card-title center"><b>Cadastro de Fornecedor</b></span>
 
-    <form action="{{ route('fornecedor_financeiro.store') }}" method="POST">
+    <form action="{{ route('fornecedor_financeiro.store') }}" method="POST" enctype="multipart/form-data">
         
         <span class="card-title center"><b>Selecione o tipo de Fornecedor:</b></span>
 
@@ -46,9 +46,9 @@
 
         <div id="campos-fisico" class="tipo-campos" style="display:none;">
 
-                    <h3><center><b>Cadastro do Fornecedor Físico</b></center></h3>
+                    <span class="card-title center">Cadastro do Fornecedor Físico</b></span>
 
-                    <h4><center>Informações do solicitante da compra</center></h4>
+                    <span class="card-title center">Informações do solicitante da compra</span>
             @csrf
 
             <input type="text" id="nome_remetente" name="nome_remetente" placeholder="Nome do Solicitante da compra(obrigatório):" required>
@@ -57,7 +57,7 @@
             <input type="email" id="email_remetente" name="email_remetente" placeholder="Email do Solicitante da compra(obrigatório):" required>
 
 
-                <h4><center>Informações do Fornecedor</center></h4>
+                <span class="card-title center">Informações do Fornecedor</span>
 
 
 
@@ -77,13 +77,19 @@
             <input type="email" id="email_fornecedor" name="email_fornecedor" placeholder="E-mail Fornecedor" required>
             <br>
 
+            <input type="text" id="telefone_fornecedor_2" name="telefone_fornecedor" placeholder="Telefone Fornecedor" maxlength="16" required>
+            <br>
 
-            <h4><center>Endereço</center></h4>
+
+            <span class="card-title center">Endereço</span>
 
             <input type="text" id="endereco" name="endereco" placeholder="Endereço Completo:" required>
             <br>
 
             <input type="text" id="bairro" name="bairro" placeholder="Bairro:" required>
+            <br>
+
+            <input type="text" id="cep_2" name="cep" placeholder="Cep:" maxlength="8" required>
             <br>
 
             Cidade:
@@ -94,23 +100,34 @@
                 @endforeach
             </select>
 
-            <h4><center>Dados Bancários</center></h4>
+            <span class="card-title center">Dados Bancários</span>
 
                 <input type="text" id="banco_2" name="banco" placeholder="Banco:" required><br>
                 <input type="text" id="agencia_2" name="agencia" placeholder="Agência:" required><br>
                 <input type="text" id="conta_2" name="conta" placeholder="Conta:" required><br>
                 <input type="text" id="favorecido" name="favorecido" placeholder="Nome do Favorecido:" required><br>
 
-            <h4><center>Dados Pix</center></h4>
+            <span class="card-title center">Dados Pix</span>
+                Pix Preferencial:
+                <select name="pix_preferencial" id="pix_preferencial">
+                  <option value = ""></option>
+                  <option value = "1">CPF/CNPJ</option>
+                  <option value = "2">E-mail</option>
+                  <option value = "3">Número Celular</option>
+                  <option value = "4">Chave Aleatória</option>
+                </select><br>
+                <input type="text" id="pix_cnpj_2" name="pix_cnpj" placeholder="CPF/CNPJ"><br>
+                <input type="email" id="pix_email_2" name="pix_email" placeholder="E-mail"><br>
+                <input type="text" id="pix_telefone_2" name="pix_telefone" placeholder="Número Celular"><br>
                 <input type="text" id="pix_aleatorio_2" name="pix_aleatorio" placeholder="Pix:"><br>
 
  
         </div>
         
         <div id="campos-juridico" class="tipo-campos" style="display:none;">
-                <h3><center><b>Cadastro do Fornecedor Juridico</b></center></h3>
+                <span class="card-title center"><b>Cadastro do Fornecedor Juridico</b></span>
                 @csrf
-                <h4><center>Informações do solicitante da compra</center></h4>
+                <span class="card-title center">Informações do solicitante da compra</span>
                 <p class = "preenchimento">
 
                 <input type="text" id="nome_remetente" name="nome_remetente" placeholder="Nome do Solicitante da compra(obrigatório):" required>
@@ -119,23 +136,37 @@
                 <input type="email" id="email_remetente" name="email_remetente" placeholder="Email do Solicitante da compra(obrigatório):" required>
                 </p>
 
-                <h4><center>Informações do Fornecedor (obrigatório)</center></h4>
-
+                <span class="card-title center">Informações do Fornecedor (obrigatório)</span>
+                
                 <p class="preenchimento">
 
                 <input type="text" id="razao_social" name="razao_social" placeholder="Razão Social:" required>
                 <br>
 
                 <input type="text" id="nome_abreviado" name="nome_abreviado" placeholder="Nome Abreviado:" required>
-                <br>
+                <br><br>
 
-                <input type="text" id="inscricao_estadual" name="ie"
-                    placeholder="Inscrição Estadual:"
-                    maxlength="14"
-                    pattern="[0-9]{9,14}"
-                    inputmode="numeric"
-                    required>
-                <br>
+
+                Situação Inscrição Estadual:
+                <select id="ie_status" required>
+                    <option value="nao">NÃO ISENTO</option>
+                    <option value="isento">ISENTO</option>
+                </select>
+
+                <input type="text" 
+                      id="ie_input" 
+                      placeholder="Inscrição Estadual" 
+                      inputmode="numeric"
+                      maxlength="14"
+                      pattern="[0-9]{9,14}">
+                <br><br>
+
+                <!-- ESTE é o valor real enviado ao servidor -->
+                <input type="hidden" id="ie" name="ie">
+
+
+
+
 
                 <input type="text" id="cnpj" name="cnpj" placeholder="CNPJ:" required>
                 <br>
@@ -143,15 +174,20 @@
                 <input type="email" id="email_fornecedor" name="email_fornecedor" placeholder="E-mail Fornecedor" required>
                 <br>
 
+                <input type="text" id="telefone_fornecedor" name="telefone_fornecedor" placeholder="Telefone Fornecedor" maxlength="16" required>
+
                 </p>
 
-                <h4><center>Endereço</center></h4>
+                <span class="card-title center">Endereço</span>
 
                 <p class="preenchimento">
                 <input type="text" id="endereco" name="endereco" placeholder="Endereco Completo" required>
                 <br>
 
                 <input type="text" id="bairro" name="bairro" placeholder="Bairro:" required>
+                <br>
+
+                <input type="text" id="cep" name="cep" placeholder="Cep:" maxlength="8" required>
                 <br>
 
                 Cidade:
@@ -162,15 +198,26 @@
                     @endforeach
                 </select>
 
-                <h4><center>Dados Bancários</center></h4>
+                <span class="card-title center">Dados Bancários</span>
 
-                <input type="text" id="banco" name="banco" placeholder="Banco:" required><br>
-                <input type="text" id="agencia" name="agencia" placeholder="Agência:" required><br>
-                <input type="text" id="conta" name="conta" placeholder="Conta:" required><br>
-                <input type="text" id="favorecido" name="favorecido" placeholder="Nome do Favorecido:" required><br>
+                <input type="text" id="banco" name="banco" placeholder="Banco:" ><br>
+                <input type="text" id="agencia" name="agencia" placeholder="Agência:" ><br>
+                <input type="text" id="conta" name="conta" placeholder="Conta:" ><br>
+                <input type="text" id="favorecido" name="favorecido" placeholder="Nome do Favorecido:" ><br>
 
-                <h4><center>Dados Pix</center></h4>
-                <input type="text" id="pix_aleatorio" name="pix_aleatorio" placeholder="Pix Aleatório:"><br>
+                <span class="card-title center">Dados Pix</span>
+                Pix Preferencial:
+                <select name="pix_preferencial" id="pix_preferencial">
+                  <option value = ""></option>
+                  <option value = "1">CPF/CNPJ</option>
+                  <option value = "2">E-mail</option>
+                  <option value = "3">Número Celular</option>
+                  <option value = "4">Chave Aleatória</option>
+                </select><br>
+                <input type="text" id="pix_cnpj" name="pix_cnpj" placeholder="CPF/CNPJ"><br>
+                <input type="email" id="pix_email" name="pix_email" placeholder="E-mail"><br>
+                <input type="text" id="pix_telefone" name="pix_telefone" placeholder="Número Celular"><br>
+                <input type="text" id="pix_aleatorio" name="pix_aleatorio" placeholder="Chave Aleatório:"><br>
 
         </div>
 
@@ -184,6 +231,223 @@
     </form>
 </body>
 </html>
+
+
+
+<script>
+const select = document.getElementById("ie_status");
+const input = document.getElementById("ie_input");
+const hidden = document.getElementById("ie");
+
+// Quando trocar o select
+select.addEventListener("change", () => {
+    if (select.value === "isento") {
+        input.value = "ISENTO";
+        input.readOnly = true;
+        input.removeAttribute("required");
+        hidden.value = "ISENTO";       // <<< valor enviado ao servidor
+    } else if (select.value === "nao") {
+        input.value = "";
+        input.readOnly = false;
+        input.setAttribute("required", "required");
+        hidden.value = "";             // será atualizado conforme digita
+        input.focus();
+    }
+});
+
+// Quando digitar no input (caso NÃO ISENTO)
+input.addEventListener("input", () => {
+    // Só números
+    input.value = input.value.replace(/\D/g, "");
+    hidden.value = input.value;
+});
+</script>
+
+
+
+
+<script>
+    // CPF ou CNPJ automático
+    document.getElementById("pix_cnpj").addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "");
+
+        if (v.length <= 11) {
+            // CPF: xxx.xxx.xxx-xx
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        } else {
+            // CNPJ: xx.xxx.xxx/xxxx-xx
+            v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+            v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+            v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+            v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        }
+
+        this.value = v;
+    });
+
+    // Telefone: (xx) xxxxx-xxxx
+    document.getElementById("pix_telefone").addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "");
+        v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+        v = v.replace(/(\d{5})(\d)/, "$1-$2");
+        this.value = v;
+    });
+
+    // Telefone: (xx) xxxxx-xxxx
+    document.getElementById("telefone_fornecedor").addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "");
+
+        // limita a 12 números: 000000000000
+        v = v.substring(0, 12);
+
+        // (000)
+        if (v.length > 3) {
+            v = v.replace(/^(\d{3})(\d)/, "($1)$2");
+        }
+
+        // (000)00000-0000
+        if (v.length > 8) {
+            v = v.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+        }
+
+        this.value = v;
+    });
+
+
+            // Telefone: (xx) xxxxx-xxxx
+    document.getElementById("telefone_fornecedor_2").addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "");
+
+        // limita a 12 números: 000000000000
+        v = v.substring(0, 12);
+
+        // (000)
+        if (v.length > 3) {
+            v = v.replace(/^(\d{3})(\d)/, "($1)$2");
+        }
+
+        // (000)00000-0000
+        if (v.length > 8) {
+            v = v.replace(/(\d{5})(\d{1,4})$/, "$1-$2");
+        }
+
+        this.value = v;
+    });
+
+
+    document.getElementById("telefone_fornecedor").addEventListener("keydown", function (e) {
+    if (e.key === " ") {
+        e.preventDefault();
+    }
+});
+
+
+document.getElementById("telefone_fornecedor_2").addEventListener("keydown", function (e) {
+    if (e.key === " ") {
+        e.preventDefault();
+    }
+});
+
+
+    // Chave aleatória → deixar só caracteres válidos
+    document.getElementById("pix_aleatorio").addEventListener("input", function () {
+        this.value = this.value.replace(/[^a-zA-Z0-9-]/g, "");
+    });
+</script>
+
+<script>
+    // CPF ou CNPJ automático
+    document.getElementById("pix_cnpj_2").addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "");
+
+        if (v.length <= 11) {
+            // CPF: xxx.xxx.xxx-xx
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d)/, "$1.$2");
+            v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        } else {
+            // CNPJ: xx.xxx.xxx/xxxx-xx
+            v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+            v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+            v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+            v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        }
+
+        this.value = v;
+    });
+
+    // Telefone: (xx) xxxxx-xxxx
+    document.getElementById("pix_telefone_2").addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "");
+        v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+        v = v.replace(/(\d{5})(\d)/, "$1-$2");
+        this.value = v;
+    });
+
+    // Chave aleatória → deixar só caracteres válidos
+    document.getElementById("pix_aleatorio_2").addEventListener("input", function () {
+        this.value = this.value.replace(/[^a-zA-Z0-9-]/g, "");
+    });
+
+
+    document.getElementById("cep").addEventListener("input", function () {
+    let v = this.value.replace(/\D/g, "");
+
+    if (v.length > 5) {
+        v = v.replace(/^(\d{2})(\d{3})(\d{3})/, "$1.$2-$3");
+    }
+
+    this.value = v;
+    });
+
+    document.getElementById("cep_2").addEventListener("input", function () {
+        let v = this.value.replace(/\D/g, "");
+
+        if (v.length > 5) {
+            v = v.replace(/^(\d{2})(\d{3})(\d{3})/, "$1.$2-$3");
+        }
+
+        this.value = v;
+    });
+
+</script>
+
+<script>
+    function aplicarMascaraTelefone(input) {
+        input.addEventListener("input", function () {
+            let v = this.value.replace(/\D/g, "");
+
+            if (!v.startsWith("55")) {
+                v = "55" + v;
+            }
+
+            v = v.substring(0, 13);
+
+            v = v.replace(/^55(\d{2})(\d{5})(\d{0,4}).*/, "+55 ($1) $2-$3");
+
+            this.value = v;
+        });
+
+        input.addEventListener("keydown", function (e) {
+            if (this.selectionStart < 4 && (e.key === "Backspace" || e.key === "Delete")) {
+                e.preventDefault();
+            }
+        });
+
+        input.value = "+55 ";
+    }
+
+    aplicarMascaraTelefone(document.getElementById("pix_telefone"));
+    aplicarMascaraTelefone(document.getElementById("pix_telefone_2"));
+</script>
+
+
+
+
+
+
 
 <script>
   document.querySelectorAll('.btn-group .btn').forEach(button => {

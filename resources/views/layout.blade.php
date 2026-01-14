@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+        <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- JS Select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
     <style>    
 
     body{
@@ -276,7 +283,7 @@
         <li><a href="{{route('admin.canceladas')}}">Viagens Canceladas</a></li>
         <li><a href="{{route('admin.finalizadas')}}">Viagens Finalizadas</a></li>
       @endif 
-      @if (auth()->user()->admin == 3)
+      @if (auth()->user()->admin == 3 || auth()->user()->admin == 4)
         <li><a href="{{route('fiscal.aprovacao')}}">Pedidos Fiscais</a></li>
         
         <li>
@@ -284,6 +291,8 @@
             <button type="submit" class="btn green" style="width: 100%; text-align: left;">Exportar Dados</button>
           </form>
         </li>
+                <li><a href="{{route('empresa.aprovacao')}}">Fornecedores Pendentes</a></li>
+
       @elseif (auth()->user()->admin == 5)
         <li><a href="{{route('financeiro_fr.saldo')}}">Ajustar Saldo</a></li>
         <li><a href="{{route('admin.financeiro-dashboard')}}">Dashboard Financeiro</a></li> 
@@ -296,6 +305,7 @@
         <li><a href="{{route('fiscal.aprovacao')}}">Pedidos Fiscais</a></li>
         <li><a href="{{route('financeiro_fr.saldo')}}">Ajustar Saldo</a></li>
         <li><a href="{{route('admin.financeiro-dashboard')}}">Dashboard Financeiro</a></li> 
+        <li><a href="{{route('empresa.aprovacao')}}">Fornecedores Pendentes</a></li>
 
       @endif
 
@@ -381,7 +391,7 @@
 
     @endif
 
-  @auth
+  {{-- @auth
   <div id="mini-chat-container" class="chat-closed">
     <div id="chat-header">
         Chat - Grupo Cargo Polo
@@ -399,7 +409,7 @@
         </div>
     </div>
 </div>
-@endauth
+@endauth --}}
 
 
     </div>

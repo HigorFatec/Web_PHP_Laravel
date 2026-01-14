@@ -1,4 +1,4 @@
-@extends('financeiro_fr.layout')
+@extends('layout')
 @section('title', 'Financeiro')
 @section('conteudo')
 <div class="row">
@@ -82,7 +82,7 @@
                         <td>{{ $aprovado->unidade->unidade_negocio }}</td>
                         <td>{{ $aprovado->nome_gestor }}</td>
                         <td>{{ substr($aprovado->email_gestor,0 , 10) }}...</td>
-                        @if(auth()->user()->admin == 5)
+                        @if(auth()->user()->admin == 5 || auth()->user()->admin == 100)
                             <td>R$<input type="number" value="{{$aprovado->saldo}}" class="saldo-input" style="width: 80px; text-align:right;" data-id="{{$aprovado->id}}"></td>
                         @else 
                             <td>R${{ $aprovado->saldo }}</td>
@@ -143,7 +143,7 @@
                         <td>{{ $aprovado->unidade_negocio }}</td>
                         <td>{{ $aprovado->descri_custo }}</td>
                         <td>{{ $aprovado->descri_gasto }} </td>
-                        @if(auth()->user()->admin == 5)
+                        @if(auth()->user()->admin == 5 || auth()->user()->admin == 100)
 
                             <td>
                                 <input type="text"
@@ -217,7 +217,7 @@
                         @if(auth()->user()->admin >= 0)
                         <td><center>{{ $aprovado->cod_unidade }} </center></td>
                         <td>{{ $aprovado->unidade_negocio }}</td>
-                        @if(auth()->user()->admin == 5)
+                        @if(auth()->user()->admin == 5 || auth()->user()->admin == 100)
                             <td><input type="text" value="{{$aprovado->conta}}" class="conta-input" style="width: 80px; text-align:right;" data-id="{{$aprovado->id}}"></td>
                         @else 
                             <td>{{ $aprovado->conta }}</td>

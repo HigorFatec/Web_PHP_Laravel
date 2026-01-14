@@ -28,8 +28,8 @@ class FinanceiroFrController extends Controller
 
 
         $filiais = UnidadesNegocio::orderBy('unidade_negocio')->get(); //->pluck('filial');
-        $fornecedores = FornecedorFinanceiro::fornecedoresQuery();
-
+        // NÃO carregue fornecedores aqui – AJAX fará isso
+        $fornecedores = []; // opcional, apenas para evitar erro no Blade
 
         //dd($fornecedores->count(), $fornecedores->first());
 
@@ -37,6 +37,16 @@ class FinanceiroFrController extends Controller
         return view('financeiro_fr.index', compact('filiais','fornecedores'));
         //
     }
+
+    public function buscarFornecedores(Request $request)
+    {
+        $search = $request->search;
+
+        $fornecedores = FornecedorFinanceiro::fornecedoresQuery($search);
+
+        return response()->json($fornecedores);
+    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -84,16 +94,16 @@ class FinanceiroFrController extends Controller
 
         ]);
 
-        if($validatedData['tem_nota_fiscal'] == 'sim' && $validatedData['tipo'] == 'avista'){
-            $situacao = DB::connection('sqlsrv')
-                ->table('ESTPED')
-                ->where('NUMPED', $validatedData['pedido'])
-                ->value('SITUAC');
+        // if($validatedData['tem_nota_fiscal'] == 'sim' && $validatedData['tipo'] == 'avista'){
+        //     $situacao = DB::connection('sqlsrv')
+        //         ->table('ESTPED')
+        //         ->where('NUMPED', $validatedData['pedido'])
+        //         ->value('SITUAC');
 
-            if ($situacao !== 'A') {
-                return back()->withErrors(['pedido' => 'O pedido informado não está com situação Aprovado!.']);
-            }
-        }
+        //     if ($situacao !== 'A') {
+        //         return back()->withErrors(['pedido' => 'O pedido informado não está com situação Aprovado!.']);
+        //     }
+        // }
 
         if($validatedData['socorro_em_rota'] == 'sim' && $validatedData['placa'] == null){
             return back()->withErrors(['placa' => 'Para socorro em rota, a placa é obrigatória!']);
@@ -367,6 +377,8 @@ class FinanceiroFrController extends Controller
         
         if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
             $financeiro->update(['id_raz' => DB::connection('sqlsrv')->table('BANRAZ')->max('ID_RAZ') + 1]);
+        } else {
+            $financeiro->update(['id_raz' => $financeiro->fornecedor. '-A-' . $financeiro->fornecedor .'-'. $financeiro->id]);
         }
 
         // Decide qual e-mail disparar pelo tipo
@@ -374,14 +386,16 @@ class FinanceiroFrController extends Controller
             Mail::send('emails.financeiro_avista', [
                 'financeiro' => $financeiro,
             ], function($message) use ($financeiro,$emails){
-                //$message->to('contasapagar@grupocargopolo.com.br');
-                $message->to('higor.05@hotmail.com');
+                $message->to('contasapagar@grupocargopolo.com.br');
+                //$message->to('higor.05@hotmail.com');
                 $message->cc($emails);
 
-                 if($financeiro->tipo == 'avista' && $financeiro->pedido != null){ 
-                    $message->subject( 'PAGAMENTO A VISTA; PEDIDO: '. $financeiro->pedido . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
-                } elseif ($financeiro->tipo == 'avista' && $financeiro->pedido == null){
+                if ($financeiro->tipo == 'avista' && ($financeiro->socorro_em_rota == 'nao') && ( $financeiro->pedido == '000000' || $financeiro->pedido == null )){
                     $message->subject( 'PAGAMENTO A VISTA; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
+                } elseif ($financeiro->tipo == 'avista' && ($financeiro->socorro_em_rota == 'nao') &&  $financeiro->pedido != null) {
+                    $message->subject( 'PAGAMENTO A VISTA; PEDIDO: '. $financeiro->pedido . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
+                } elseif($financeiro->socorro_em_rota == 'sim'){
+                    $message->subject( 'SOCORRO EM ROTA; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
                 }
             
             if (!empty($financeiro->anexo_path) && Storage::disk('public')->exists($financeiro->anexo_path)) {
@@ -392,10 +406,10 @@ class FinanceiroFrController extends Controller
         }
 
         if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
-            $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->prazo, $financeiro->cod_unidade, $financeiro->unidades->conta);
+            $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->unidadeAprovadora->nome_gestor, $financeiro->cod_unidade, $financeiro->unidades->conta);
             //$financeiro->update(['id_raz' => DB::connection('sqlsrv')->table('BANRAZ')->max('ID_RAZ')]);
         } else{
-            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto);
+            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora->nome_gestor);
 
         }
 

@@ -1,5 +1,5 @@
-@extends('admin.layout')
-@section('titulo', 'Dashboard Financeiro')
+@extends('layout')
+@section('title', 'Dashboard Financeiro')
 @section('conteudo')
 
 <ul id="dropdown2" class="dropdown-content">
