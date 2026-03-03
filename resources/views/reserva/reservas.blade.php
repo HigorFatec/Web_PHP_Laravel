@@ -41,76 +41,8 @@
         </div>
         @endif
 
-{{-- Reservas Pendentes --}}
-    @if($pendentes->isEmpty())
-        @else
-            <div class="card">
-                <div class="card-content">
-                    <span class="card-title center"><b>Solicitações Pendentes</b></span>
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
-
-        <div class="row center"> {{$pendentes->links('custom.pagination')}} </div>
-
-        <table>
-            <thead>
-                <tr>
-                    @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                    <th class="admin">Status</th>
-                    <th class="admin">Solicitante</th>
-                    <th class="admin">Solicitado</th>
-                    <th class="admin">Filial</th>
-                    @endif
-                    <th>Validação</th>
-                    <th>Gestor Aprovador</th>
-                    <th>Motivo</th>
-                    <th>Viajante</th>
-                    @if(auth()->user()->admin == 1|| auth()->user()->admin == 100)
-                        <th class="admin">Reenviar E-mail</th>
-                        <th class="admin">Filial Viajante</th>
-                    @endif
-
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($pendentes as $passagem)
-                    <tr>
-                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                        <td>{{ $passagem->status }}</td>
-                        <td>{{ $passagem->user_name}}</td>
-                        <td>{{ \Carbon\Carbon::parse($passagem->created_at)->format('d/m/Y H:m:s') }}</td>
-                        <td>{{ $passagem->user->filial}}</td>
-                        @endif
-                        <td>{{ $passagem->validacao }}</td>
-                        <td>{{ $passagem->email_gestor }}</td>
-                        <td>{{ $passagem->motivo }}</td>
-                        <td>{{ $passagem->nome }}</td>
-                       
-
-                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                        <td>
-                            <form action="{{route('reserva.reenviar', $passagem->id)}}" method="POST" style="display:inline;">
-                                @csrf
-                                <button type="submit" class="btn btn-success green"> <i class="material-icons">done</i></button>
-                            </form>
-
-                        </td>
-
-                                <td>{{ $passagem->filial }}</td>
-                        @endif
-
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-</div>
-</div>
 
 
-
-@endif
 
 
 
@@ -130,10 +62,10 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                    <th class="admin">Status</th>
-                    <th class="admin">Solicitante</th>
-                    <th class="admin">Solicitado</th>
-                    <th class="admin">Filial</th>
+                    <th class="card-blue">Status</th>
+                    <th class="card-blue">Solicitante</th>
+                    <th class="card-blue">Solicitado</th>
+                    <th class="card-blue">Filial</th>
                     @endif
                     <th>Passagem</th>
                     <th>Origem</th>
@@ -145,8 +77,8 @@
                     <th>Viajante</th>
                     <th>Cancelar</th>
                     @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                        <th class="admin">Finalizar</th>
-                        <th class="admin">Filial Viajante</th>
+                        <th class="card-blue">Finalizar</th>
+                        <th class="card-blue">Filial Viajante</th>
                     @endif
 
                 </tr>
@@ -191,7 +123,7 @@
 
                         </td>
 
-                                <td>{{ $passagem->filial }}</td>
+                                <td>{{ $passagem->filial_viajante }}</td>
                         @endif
 
                     </tr>
@@ -224,10 +156,10 @@
         <tr>
         <tr>
             @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-            <th class="admin">Status</th>
-            <th class="admin">Solicitante</th>
-            <th class="admin">Solicitada:</th>
-            <th class="admin">Filial</th>
+            <th class="card-blue">Status</th>
+            <th class="card-blue">Solicitante</th>
+            <th class="card-blue">Solicitada:</th>
+            <th class="card-blue">Filial</th>
             @endif
             <th>Origem</th>
             <th>Destino</th>
@@ -237,8 +169,8 @@
             <th>Viajante</th>
             <th>Cancelar</th>
             @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                <th class="admin">Finalizar</th>
-                <th class="admin">Filial Viajante</th>
+                <th class="card-blue">Finalizar</th>
+                <th class="card-blue">Filial Viajante</th>
             @endif
         </tr>
     </thead>
@@ -281,7 +213,7 @@
                     </form>
                 </td>
 
-                    <td>{{ $veiculo->filial }}</td>
+                    <td>{{ $veiculo->filial_viajante }}</td>
 
                 @endif
             </tr>
@@ -314,10 +246,10 @@
                 <thead>
                     <tr>
                         @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                            <th class="admin">Status</th>
-                            <th class="admin">Solicitante</th>
-                            <th class="admin">Solicitado:</th>
-                            <th class="admin">Filial</th>
+                            <th class="card-blue">Status</th>
+                            <th class="card-blue">Solicitante</th>
+                            <th class="card-blue">Solicitado:</th>
+                            <th class="card-blue">Filial</th>
                         @endif
                         <th>Cidade/Hotel</th>
                         <th>Referência</th>
@@ -327,8 +259,8 @@
                         <th>Viajante</th>
                         <th>Cancelar</th>
                         @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                            <th class="admin">Finalizar</th>
-                            <th class="admin">Filial Viajante</th>
+                            <th class="card-blue">Finalizar</th>
+                            <th class="card-blue">Filial Viajante</th>
                         @endif
                     </tr>
                 </thead>
@@ -364,7 +296,7 @@
                                         <button type="submit" class="btn btn-success green"><i class="material-icons">done</i></button>
                                     </form>
                                 </td>
-                                <td>{{ $hospedagem->filial }}</td>
+                                <td>{{ $hospedagem->filial_viajante }}</td>
 
 
                             @endif
@@ -401,10 +333,10 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                        <th class="admin">Status</th>
-                        <th class="admin">Solicitante</th>
-                        <th class="admin">Solicitada:</th>
-                        <th class="admin">Filial</th>
+                        <th class="card-blue">Status</th>
+                        <th class="card-blue">Solicitante</th>
+                        <th class="card-blue">Solicitada:</th>
+                        <th class="card-blue">Filial</th>
                     @endif
                     <th>Destino</th>
                     <th>Periodo de Inicio</th>
@@ -413,8 +345,8 @@
                     <th>Viajante</th>
                     <th>Cancelar</th>
                     @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
-                        <th class="admin">Finalizar</th>
-                        <th class="admin">Filial Viajante</th>
+                        <th class="card-blue">Finalizar</th>
+                        <th class="card-blue">Filial Viajante</th>
                     @endif
                 </tr>
             </thead>
@@ -452,7 +384,7 @@
                             </form>
                         </td>
 
-                            <td>{{ $adiant->filial }}</td>
+                            <td>{{ $adiant->filial_viajante }}</td>
 
                         @endif
                     </tr>

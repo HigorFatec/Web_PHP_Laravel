@@ -79,7 +79,7 @@ class VeiculoController extends Controller
                 $message->to([$validatedData['email'],$validatedData['email_gestor'],'reservas@grupocargopolo.com.br', $user->email ]);
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 if($validatedData['tipo'] == 'definitivo'){
-                    $message->cc('documentos.grupocargopolo.com.br');
+                    $message->cc('documentos@grupocargopolo.com.br');
                 }
                 $message->subject('Nova Reserva de Veículo solicitada');
             //Verificar se existe imagem anexada

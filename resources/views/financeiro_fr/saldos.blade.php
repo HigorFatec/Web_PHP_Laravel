@@ -201,8 +201,7 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin >= 0)
-                    <th>Codigo Unidade</th>
-                    <th>Unidade de Negócio</th>
+                    <th>Unidade</th>
                     <th>Conta</th>
                     <th>Ultima Atualização</th>
 
@@ -215,8 +214,7 @@
                 @foreach($unidades as $aprovado)
                     <tr>
                         @if(auth()->user()->admin >= 0)
-                        <td><center>{{ $aprovado->cod_unidade }} </center></td>
-                        <td>{{ $aprovado->unidade_negocio }}</td>
+                        <td><center>{{ $aprovado->unidade_negocio }} </center></td>
                         @if(auth()->user()->admin == 5 || auth()->user()->admin == 100)
                             <td><input type="text" value="{{$aprovado->conta}}" class="conta-input" style="width: 80px; text-align:right;" data-id="{{$aprovado->id}}"></td>
                         @else 
@@ -249,6 +247,13 @@
 </div>
 
 @endauth
+
+<style>
+table th,
+table td {
+    text-align: center !important;
+}
+</style>
 
 <script>
 document.querySelectorAll('.saldo-input').forEach(input => {

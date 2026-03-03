@@ -1,33 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Novo Adiantamento Solicitado</title>
+    <title>Nova solicitação realizada</title>
+
 </head>
 <body>
-    <p><b>Nome do Solicitante: {{ $user->name }}</b></p>
-    <p><b>E-mail do Solicitante: {{ $user->email }}</b></p>
-    <p><b>CPF do Solicitante: {{ $user->cpf }}</b></p>
-    <p><b>Filial: {{$user->filial}}</b></p><br>
-    <p><b>Dados do Viajante</b></p><br>
-    <p>Nome Completo: {{ $dados['nome'] }}</p>
-    <p>CPF: {{ $dados['cpf'] }}</p>
-    <p>RG: {{ $dados['rg'] }}</p>
-    <p>Filial do Viajante: {{$dados['filial_viajante']}}</p>
-    <p>Data de Nascimento: {{ \Carbon\Carbon::parse($dados['data_nascimento'])->format('d/m/Y') }}</p>
-    <p>Destino: {{ $dados['destino'] }}</p>
-    <p>Data de Ida: {{ \Carbon\Carbon::parse($dados['ida'])->format('d/m/Y') }}</p>
-    <p>Data de Volta: {{ \Carbon\Carbon::parse($dados['volta'])->format('d/m/Y')  }}</p>
-    <p>Motivo: {{ $dados['motivo'] }}</p>
-    <p>Validacao: {{ $dados['validacao'] }}</p>
-    <p>Email_Gestor: {{ $dados['email_gestor'] }}</p>
-    <p>Observações: {{ $dados['observacoes'] }}</p><br>
-    <p><b>Dados Bancários</b></p> <br>
-    <p>Banco: {{ $dados['banco'] }}</p>
-    <p>Agência: {{ $dados['agencia'] }}</p>
-    <p>Conta: {{ $dados['conta'] }}</p>
-    <p>Tipo de Conta: {{ $dados['tipo_conta'] }}</p>
-    <p>Titular da Conta: {{ $dados['titular'] }}</p>
-    <p>PIX: {{ $dados['pix']}} </p><br><br>
+
+    <p><center><h4>Solicitação Aprovada com Sucesso pelo Gestor <b>{{$adiantamento->unidadeAprovadora->nome_gestor}}</b> </h4></center></p><br>
+
+
+    <p><b><center><h4>Descrição da Solicitação</h4></center></b></p><br>
+
+    <p><b><center><h4>Adiantamento de Viagem</h4></center></b></p><br>
+    <p>ID do Lançamento Bancário (ERP RODOPAR): <b>{{ $adiantamento->id_raz }}</b></p><br><br>
+
+    <p>Viajante: {{$adiantamento->nome}} </p>
+    <p>CPF: {{$adiantamento->cpf}} </p>
+    <p>RG: {{$adiantamento->cpf}} </p>
+    <p>Data de Nascimento: {{ \Carbon\Carbon::parse($adiantamento->data_nascimento)->format('d/m/Y') }}</p>
+
+    <p>Motivo da Viagem: {{ $adiantamento->motivo }}</p>
+    <p>Observações: {{ $adiantamento->observacoes }}</p>
+    <p>Destino: {{ $adiantamento->destino }}</p>
+    <p>Data de Ida: {{ \Carbon\Carbon::parse($adiantamento->ida)->format('d/m/Y') }}</p>
+    <p>Data de Volta: {{\Carbon\Carbon::parse($adiantamento->volta)->format('d/m/Y')}}</p>
+
+    
+    <p>Banco: {{ $adiantamento->banco }}</p>
+    <p>Agencia: {{ $adiantamento->agencia }}</p>
+    <p>Conta: {{ $adiantamento->conta }}</p>
+    <p>Placa: {{ $adiantamento->placa }}</p>
+    <p>Tipo Chave Pix: {{ $adiantamento->tipo_pix }}</p>
+    <p>Pix: {{ $adiantamento->pix }}</p>
+    <p>Favorecido: {{$adiantamento->favorecido}}</p>
+
+
+    <p>Valor: R${{ $adiantamento->valor }}</p>
+    <p>Unidade: {{ $adiantamento->unidades->unidade_negocio }}</p>
+    <p>Centro de Custo: {{$adiantamento->centroCusto->descri_custo}} </p>
+    <p>Centro de Gasto: {{$adiantamento->centroGasto->descri_gasto}} </p><br>
 
 
     <p>Atenciosamente <b>Grupo Cargo Polo</b></p>

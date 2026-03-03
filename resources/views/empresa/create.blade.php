@@ -116,7 +116,7 @@
             <select name="banco" id="banco_select" class="browser-default" required>
                 <option value=""></option>
                 @foreach ($bancos as $b)
-                        <option value="{{ $b->CODBCO}}"> {{$b->DESCRI}} </option>
+                        <option value="{{ $b->CODBCO}}"> {{$b->CODBCO}} - {{$b->DESCRI}} </option>
                     
                 @endforeach
             </select>
@@ -223,7 +223,7 @@
                 <select name="banco" id="banco_select" class="browser-default" required>
                     <option value=""></option>
                     @foreach ($bancos as $b)
-                            <option value="{{ $b->CODBCO}}"> {{$b->DESCRI}} </option>
+                            <option value="{{ $b->CODBCO}}"> {{$b->CODBCO}} -  {{$b->DESCRI}} </option>
                         
                     @endforeach
                 </select>

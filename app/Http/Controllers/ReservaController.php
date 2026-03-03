@@ -48,14 +48,15 @@ class ReservaController extends Controller
             $veiculos = Veiculo::where('status','=','ok')->orderBy('created_at')->paginate(3);
             $hospedagem = Hospedagem::where('status','=','ok')->orderBy('created_at')->paginate(3);
             $adiantamento = Adiantamento::where('status','=','ok')->orderBy('created_at')->paginate(3);
-            $pendentes = Reserva::where('status','=','pendente')->orderBy('created_at')->paginate(3);
+
+
         } elseif (auth()->user()->admin == 100) {
 
             $passagens = Reserva::where('status','=','ok')->orderBy('created_at')->paginate(3);
             $veiculos = Veiculo::where('status','=','ok')->orderBy('created_at')->paginate(3);
             $hospedagem = Hospedagem::where('status','=','ok')->orderBy('created_at')->paginate(3);
             $adiantamento = Adiantamento::where('status','=','ok')->orderBy('created_at')->paginate(3);
-            $pendentes = Reserva::where('status','=','pendente')->orderBy('created_at')->paginate(3);
+
 
         } else {
             $passagens = Reserva::where('user_id', auth()->id())
@@ -80,16 +81,24 @@ class ReservaController extends Controller
                                 ->where('ida', '>=', Carbon::now())
                                 ->orderBy('created_at', 'desc')
                                 ->paginate(3);
-            $pendentes = Reserva::where('user_id', auth()->id())
-                                ->where('status', 'pendente')
-                                ->where('ida', '>=', Carbon::now())
-                                ->orderBy('created_at', 'desc')
-                                ->paginate(3);
+
 
         }
 
-        return view('reserva.reservas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento','pendentes'));
+        return view('reserva.reservas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento'));
     }
+
+    public function reservas_pendentes()
+    {
+        if (auth()->user()->admin == 1 || auth()->user()->admin == 100){
+            $pendentes = Reserva::where('status','=','pendente')->orderBy('created_at')->paginate(3);
+            $pendente_hospedagem = Hospedagem::where('status','=','pendente')->orderBy('created_at')->paginate(3);
+        }
+
+        return view('reserva.reservas_pendentes', compact('pendentes', 'pendente_hospedagem'));
+    }
+
+
     public function canceladas()
     {
         if (auth()->user()->admin == 1 || auth()->user()->admin == 100){
@@ -366,7 +375,7 @@ public function reenviar_pendencia($id)
             $reserva = Reserva::findOrFail($id);
 
     
-            if (auth()->user()->admin !== 1) {
+            if (auth()->user()->admin !== 1 || auth()->user()->admin !== 100) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');
                 if ($reserva->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');

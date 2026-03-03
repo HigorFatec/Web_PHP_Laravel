@@ -6,6 +6,39 @@
 <div class="row">
 <div class="col s12 m6 offset-m3">
 
+<div class="row">
+    <div class="col s12">
+        <div class="card gradient-45deg-indigo-blue border-radius-6" style="background: linear-gradient(45deg, #1a237e 0%, #0288d1 100%); color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <div class="card-content">
+                <div class="row valign-wrapper" style="margin-bottom: 0;">
+                    <div class="col s12 m8">
+                        <span class="card-title" style="display: flex; align-items: center; font-weight: bold;">
+                            <i class="material-icons" style="margin-right: 10px;">bolt</i> 
+                            NOVO FINANCEIRO 2.0
+                        </span>
+                        <p style="font-size: 1.1rem; opacity: 0.9;">
+                            Experimente a nova interface integrada ao <b>ERP Rodopar</b> preparada para <b>Pagamento em Tempo Real (F&R)</b>.
+                        </p>
+                    </div>
+                    <div class="col s12 m4 center-align" style="padding-top: 15px;">
+                        <a href="/financeiro_fr" class="btn-large waves-effect waves-light green accent-4 pulse" style="font-weight: bold; border-radius: 30px;">
+                            IR PARA NOVA VERSÃO
+                        </a>
+                        <div style="margin-top: 10px;">
+                            <button onclick="this.closest('.card').parentElement.parentElement.remove()" class="btn-flat white-text" style="font-size: 0.8rem; text-decoration: underline; text-transform: none; opacity: 0.7;">
+                                Continuar com a versão antiga (obsoleto)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
     @if ($message = Session::get('success'))
     <div class="card green darken-1">
         <div class="card-content white-text">
@@ -36,9 +69,16 @@
 <div class="card">
   <div class="card-content">
       <span class="card-title center"><b>Financeiro</b></span><br>
-      <span class="card-title center"><b>Selecione o tipo de Solicitação:</b></span>
+            <span class="card-title center"><b>Utilizar a nova versão 2.0 do <a href="{{route('financeiro_fr.index')}}">Formulário Financeiro</a>.</b></span>
+            <span class="card-title center"><b>Instrução de Trabalho:</b> <a href="/instrucao_financeiro.pdf">Como preencher o formulário financeiro a vista corretamente?</a></span>
+                  {{-- <span class="card-title center"><b>Caso tenha duvidas de preenchimento, favor abrir <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">chamado</a> para T.I</b></span> --}}
 
-<form id="form-financeiro" action="{{route('financeiro.store')}}"method="POST" enctype="multipart/form-data" onsubmit="return validarEmails() && validarFormulario() && disableButtonOnClick(this.querySelector('button[type=submit]'));">
+
+
+
+      {{-- <span class="card-title center"><b>Selecione o tipo de Solicitação:</b></span> --}}
+
+{{-- <form id="form-financeiro" action="{{route('financeiro.store')}}"method="POST" enctype="multipart/form-data" onsubmit="return validarEmails() && validarFormulario() && disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
     <div class="btn-group center" role="group" aria-label="Tipo de Reserva">
         <input type="hidden" name="tipo" id="tipo" required>
@@ -50,7 +90,7 @@
 
     <div id="campos-avista" class="tipo-campos" style="display:none;">
 
-        <input type="number" name="pedido" id = "pedido_1" placeholder="Número Pedido de Compra" >
+        <input type="number" name="pedido" id = "pedido_1" placeholder="Número Pedido de Compra" required>
         <input type="text" name="placa" id="placa" placeholder="Placa">
 
         <input type="text" name="referencia" placeholder="Descrição de Solicitação"><br><br>
@@ -224,7 +264,7 @@
       <button type="button" class="btn-cadastrar left">Voltar</button></a>
     <!-- Outros campos aqui -->
     <button type="submit" class="btn-cadastrar right">Enviar</button><br><br>
-  </form>
+  </form> --}}
 </div>
 </div>
 
@@ -268,6 +308,8 @@ function validarFormulario() {
     foto.focus();
     return false;
   }
+
+
 
   // 3️⃣  Se chegou aqui, deixa o navegador validar normalmente os visíveis
   return true;
@@ -346,6 +388,22 @@ function validarFormulario() {
         return true; // Tudo certo, envia o formulário
     }
     </script>
+
+
+<script>
+    function fecharAlerta() {
+        document.getElementById('alerta-nova-versao').style.display = 'none';
+        // Opcional: Salvar no navegador para não mostrar de novo nesta sessão
+        sessionStorage.setItem('aviso_versao_lido', 'true');
+    }
+
+    // Verifica se o usuário já fechou o aviso anteriormente nesta sessão
+    window.onload = function() {
+        if (sessionStorage.getItem('aviso_versao_lido') === 'true') {
+            document.getElementById('alerta-nova-versao').style.display = 'none';
+        }
+    };
+</script>
 
 
 @endsection

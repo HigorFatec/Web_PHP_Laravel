@@ -28,9 +28,24 @@
   <div class="card-content">
       <span class="card-title center"><b>Hospedagem/Hotel</b></span><br>
 
+      <div style="text-align: center; margin-bottom: 25px;">
+                <a href="https://cargopolo.sharepoint.com/:x:/s/Hospedagem/IQCLbSAVHf0EQJCzqZr8eb-KAfcMgzYNaS0GXv37MKPOszI" target="_blank" 
+                   style="background: linear-gradient(135deg, #0055aa, #003366); color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                    🏨 Ver Lista de Sugestões de Hotéis (SharePoint)
+          </a>
+      </div>
+
 <form action="/reserva/hospedagem" method="POST" enctype="multipart/form-data" onsubmit="return disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
-    <input type="text" name="destino" placeholder="Cidade de Hospedagem" required><br><br>
+
+    Cidade de Hospedagem:
+      <select name="destino" id="cidade_select" class="browser-default" required>
+        <option value = ""></option>
+          @foreach ($cidades as $c)
+              <option value="{{ $c->DESCRI }}">{{ $c->DESCRI }} - {{ $c->ESTADO }}</option>
+          @endforeach
+      </select><br><br>
+
 
 
     Data de Check-In
@@ -44,9 +59,22 @@
     <input type="text" name="motivo" placeholder="Motivo da Viagem" required>
 
     <input type="text" name="referencia" placeholder="Hotel Próximo a: (Ponto de Referência):" required>
+    
 
     <input type="text" name="validacao" placeholder="Validado pelo Gestor (autorização)" required>
-    <input type="email" name="email_gestor" placeholder="Email do Gestor" required>
+
+    
+      Gestor Aprovador: <br>
+    <select name="email_gestor" id="email_gestor" required>
+
+        <option value=" "></option>
+        @foreach ($aprovadores as $aprovador)
+            <option value="{{$aprovador->email}}">{{$aprovador->operacao}} - {{$aprovador->nome}}</option>
+        @endforeach
+
+    </select> <br>
+    
+    
     <input type="text" name="observacoes" placeholder="Observações (não necessariamente)"><br><br>
 
 
@@ -59,7 +87,15 @@
     Data de Nascimento:
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required><br>
     
-    <input type="text" name="filial_viajante" placeholder="Filial do Viajante:" required> <br>
+    Filial do Viajante: <br>
+    <select name="filial_viajante" id="filial" required>
+
+        <option value=" "></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+
+    </select> <br>
 
     
     Anexar Documento(CNH ou RG):<br>
@@ -75,5 +111,14 @@
 
 </div>
 </div>
+
+    <script>
+    $(document).ready(function() {
+        $('#cidade_select').select2({
+            placeholder: 'Selecione ou pesquise a cidade',
+            width: '100%'
+        });
+    });
+    </script>
 
 @endsection

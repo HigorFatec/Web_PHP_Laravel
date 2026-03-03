@@ -47,11 +47,11 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin == 2)
-                    <th class="admin">Status</th>
-                    <th class="admin">Placa</th>
-                    <th class="admin">Favorecido</th>
-                    <th class="admin">Solicitado</th>
-                    <th class="admin">Solicitante</th>
+                    <th class="card-login">Status</th>
+                    <th class="card-login">Placa</th>
+                    <th class="card-login">Favorecido</th>
+                    <th class="card-login">Solicitado</th>
+                    <th class="card-login">Solicitante</th>
                     @endif
                     <th>Posto</th>
                     <th>Produto</th>
@@ -61,7 +61,7 @@
 
                     @if(auth()->user()->admin == 2)
                         <th>Recusar</th>
-                        <th class="admin">Aprovar</th>
+                        <th class="card-login">Aprovar</th>
                     @endif
 
                 </tr>

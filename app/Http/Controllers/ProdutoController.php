@@ -100,7 +100,8 @@ class ProdutoController extends Controller
                 // Enviar o e-mail
                 Mail::send('emails.produtos', ['produto' => $produto], function($message) use($produto) {
                     //$message->to('higor.05@hotmail.com');
-                    $message->to([$produto->email_aprovador,'cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br']);
+                    $message->to([$produto->email_aprovador,'cadastro.suprimentos@grupocargopolo.com.br']);
+                    $message->cc($produto->email_remetente);
                     $message->subject('Novo Produto Registrado');
                 });
 
@@ -135,6 +136,7 @@ class ProdutoController extends Controller
         Mail::send('emails.produtos', ['produto' => $produto], function($message) use($produto) {
             //$message->to('higor.05@hotmail.com');
             $message->to(['patricia.silva@grupocargopolo.com.br','cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br']);
+            $message->cc($produto->email_remetente);
             $message->subject('Novo Produto Registrado Aprovado'. $produto->id);
         });
 

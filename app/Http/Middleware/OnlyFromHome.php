@@ -17,7 +17,7 @@ class OnlyFromHome
             'pagamento_pix.index',
             'florestal_pix.index',
             'saldo.index',
-            'produtos.create',
+            //'produtos.create',
             'transf_veiculo.index',
             'descarte.index',
             'sinistro.index',

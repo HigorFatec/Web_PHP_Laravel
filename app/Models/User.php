@@ -24,6 +24,7 @@ class User extends Authenticatable
         'filial',
         'password',
         'email_gestor',
+        'microsoft_id',
     ];
 
     /**

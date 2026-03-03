@@ -83,6 +83,22 @@ public function unidadeAprovadora()
 
 public function financeiroAvista($id, $valor, $solicitante, $fornecedor, $pedido,$placa,$prazo, $filial, $conta){
 
+
+    // 1. Inicia uma transação no SQL Server
+    DB::connection('sqlsrv')->beginTransaction();
+
+    try{
+
+    // 2. BUSCA O ID E BLOQUEIA A TABELA (lockForUpdate)
+    // Isso diz ao SQL: "Estou lendo este valor e ninguém mais pode ler ou gravar até eu dar commit"
+    $ultimo = DB::connection('sqlsrv')->table('BANRAZ')
+                ->lockForUpdate() 
+                ->orderBy('ID_RAZ', 'desc')
+                ->first();
+
+    $novo_id = ($ultimo ? $ultimo->ID_RAZ : 0) + 1;
+
+    
     $id = (int) $id;
     $valor = (float) $valor;
 
@@ -96,6 +112,22 @@ public function financeiroAvista($id, $valor, $solicitante, $fornecedor, $pedido
     $saldo_atualizado = $saldo_anterior - (float) $valor;
 
     $filial = 5;
+
+    // Primeiro, buscamos o código da filial do pedido
+    $codFil = DB::connection('sqlsrv')
+                ->table('ESTPED')
+                ->where('NUMPED', $pedido)
+                ->value('CODFIL');
+
+
+    // Agora sim, fazemos a lógica de padronização das contas
+    if (in_array($codFil, [37, 38])) {
+        $conta = '13202-4';
+    } elseif ($codFil == 40) {
+        $conta = '181646-2';
+    } else {
+        $conta = '39020-5';
+    }
 
 
 
@@ -122,8 +154,8 @@ DB::connection('sqlsrv')->table('BANRAZ')->insert([
     'COMPEN' => 'N',
     'CODTAR' => 1687,
     'DATATU' => DB::raw('GETDATE()'),
-    'USUATU' => 'Importacao',
-    'USUINC' => 'Importacao',
+    'USUATU' => 'IMPORTACAO',
+    'USUINC' => 'IMPORTACAO',
     'CTATRA' => NULL, 
     'DATINC' => DB::raw('GETDATE()'),
     'CODCLIFOR' => DB::raw("(SELECT CODCLIFOR FROM ESTPED WHERE NUMPED = {$pedido})"),
@@ -149,7 +181,7 @@ DB::connection('sqlsrv')->table('BANRAT')->insert([
     'ANALIT' => 374,
     'VALOR' => $valor,
     'DATATU' => DB::raw('GETDATE()'),
-    'USUATU' => 'Importacao',
+    'USUATU' => 'IMPORTACAO',
     'DATINC' => DB::raw('GETDATE()'),
     'ID_RAZ' => DB::raw('(SELECT MAX(ID_RAZ) FROM BANRAZ)'),
 
@@ -158,13 +190,24 @@ DB::connection('sqlsrv')->table('BANRAT')->insert([
 DB::connection('sqlsrv')->table('BANRAZ')
     ->where('ID_RAZ', DB::raw('(SELECT MAX(ID_RAZ) FROM BANRAZ)'))
     ->update([
-    'SITUAC' => 'P',
+    'SITUAC' => 'I',
 ]);
 
+DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
+
+} catch (\Exception $e) {
+    DB::connection('sqlsrv')->rollBack();
+    throw $e;
+}
 }
 
 
 public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
+
+// 1. Inicia uma transação no SQL Server
+DB::connection('sqlsrv')->beginTransaction();
+
+try{
 
     $id = (string) $id;
     $valor = (float) $valor;
@@ -190,7 +233,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
         'VLRDOC' => $valor,
         'VLRLIQ' => $valor,
         'VLRPAG' => 0,
-        'USUATU' => 'Importacao',
+        'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
         'REFERE' => 'IMPORTACAO FORMULARIO FINANCEIRO, Aprovado por '.$prazo,
 
@@ -201,7 +244,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
         'SERIE' => 'A',
         'NUMDOC' => $fornecedor . '-' . $id,
         'CODFIL' => 5,
-        'USUATU' => 'Importacao',
+        'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
     ]);
 
@@ -216,7 +259,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
         'VLRPAR' => $valor,
         'VLRPAG' => 0,
         'VLRLIQ' => $valor,
-        'USUATU' => 'Importacao',
+        'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
     ]);
 
@@ -231,7 +274,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
         'SINTET' => 83,
         'ANALIT' => 376,
         'VALOR' => $valor,
-        'USUATU' => 'Importacao',
+        'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
     ]);
 
@@ -246,7 +289,7 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
         'DEBCRE' => 'C',
         'VLRLAN' => $valor,
         'DATATU' => DB::raw('GETDATE()'),
-        'USUATU' => 'Importacao',
+        'USUATU' => 'IMPORTACAO',
     ]);
 
     DB::connection('sqlsrv')->table('PAGDOC')
@@ -265,7 +308,11 @@ public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
         'VLRDOC' => $valor,
     ]);
 
+DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
+
+} catch (\Exception $e) {
+    DB::connection('sqlsrv')->rollBack();
+    throw $e;
 }
-
-
+}
 }

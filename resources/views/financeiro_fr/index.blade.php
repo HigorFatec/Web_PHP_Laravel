@@ -80,7 +80,7 @@
         </select>
 
         <input type="text" name="pedido" id = "pedido_1" placeholder="Número Pedido de Compra(rodopar)" maxlength="6">
-        <input type="text" name="placa" id="placa" placeholder="Placa">
+        <input type="text" name="placa" id="placa" placeholder="Placa" maxlength="10">
 
         <input type="text" name="referencia" placeholder="Descrição de Solicitação"><br><br>
 

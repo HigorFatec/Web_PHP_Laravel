@@ -9,22 +9,72 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
         <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- JS Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 
     <style>    
 
-    body{
-      font-family: 'Montserrat', sans-serif !important;
-      background-color: #f4f4f4; /* Fundo cinza claro suave */
+    /* Apenas para login */
+    .card-blue {
+        background: linear-gradient(135deg, #0055aa, #003366) !important;
+        color: white;
+        border-radius: 20px;
     }
 
-    .red{
-      background-color: #184693 !important;
+    .card-title-login {
+    color: #ffffff !important;
+    }
+
+    .btn-cadastrar-2 {
+        background-color: #ffffff;
+        color: #184693;
+        padding: 10px 20px; /* Espaçamento interno */
+        border: none; /* Remover bordas */
+        border-radius: 5px; /* Bordas arredondadas */
+        cursor: pointer; /* Cursor de mãozinha ao passar o mouse */
+        text-align: center; /* Centralizar texto */
+        text-decoration: none; /* Remover sublinhado */
+        display: inline-block; /* Mostrar como bloco inline */
+        font-size: 16px; /* Tamanho da fonte */
+    }
+
+    .btn-cadastrar-2:hover {
+        background-color: #dbe6ff;
+        color: #184693;
+    }
+    
+    /* Isso força o corpo da página a ter no mínimo a altura da tela */
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+
+
+    body{
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ocupa 100% da altura da visualização */
+
+      font-family: 'Montserrat', sans-serif !important;
+      background-color: #f4f7fa !important; /* Fundo cinza claro suave */
+    }
+
+    /* O segredo está aqui: o main vai ocupar todo o espaço sobrando */
+    main {
+        flex: 1 0 auto;
+    }
+
+
+    .blue{
+      background: linear-gradient(135deg, #0055aa, #003366) !important;
     }    
 
     .row{
@@ -154,6 +204,210 @@
   input[readonly]:focus {
     outline: none;             /* remove brilho ao focar */
   }
+
+
+
+
+
+/* --- WRAPPERS E ESTRUTURA --- */
+    .login-wrapper {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        padding: 40px 0;
+    }
+
+    /* --- CARDS --- */
+    /* Card Branco (Usado no Cadastro e Fornecedor) */
+    .card-login {
+        border-radius: 20px !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+        background: #fff !important;
+        color: #333 !important; /* Garante texto escuro no card branco */
+    }
+
+    .login-title {
+        color: #003366;
+        font-weight: 800;
+        margin-bottom: 5px;
+        font-size: 2rem;
+    }
+
+    .login-subtitle {
+        color: #777;
+        font-size: 0.95rem;
+        margin-bottom: 20px;
+    }
+
+    /* --- FORMULÁRIOS E ÍCONES --- */
+    .input-field .prefix.icon-blue {
+        color: #003366 !important;
+    }
+
+    .input-field input:focus {
+        border-bottom: 2px solid #005bb6 !important;
+        box-shadow: 0 1px 0 0 #005bb6 !important;
+    }
+
+    .input-field input:focus + label {
+        color: #005bb6 !important;
+    }
+
+    /* --- BOTÕES --- */
+    .btn-login {
+        background-color: #003366 !important;
+        height: 45px !important;
+        line-height: 45px !important;
+        border-radius: 8px !important;
+        padding: 0 25px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase;
+    }
+
+    .btn-back {
+        color: #777 !important;
+        font-weight: 600;
+        text-transform: none;
+    }
+
+    .btn-back:hover {
+        background: rgba(0,0,0,0.05) !important;
+        color: #333 !important;
+    }
+
+    .shadow-btn {
+        box-shadow: 0 4px 14px 0 rgba(0, 51, 102, 0.39) !important;
+    }
+
+    /* --- BOX DE ERRO --- */
+    .error-box {
+        background: #fff5f5;
+        border-left: 5px solid #ff5252;
+        padding: 15px;
+        margin-bottom: 20px;
+        color: #d32f2f;
+        border-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* --- UTILITÁRIOS --- */
+    .mt-2 { margin-top: 2rem; }
+    .mb-2 { margin-bottom: 2rem; }
+    .ml-1 { margin-left: 8px; }
+
+
+    /* --- ESTILOS EXCLUSIVOS DO LOGIN --- */
+.btn-microsoft {
+    background-color: #2F2F2F !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 45px !important;
+    line-height: 45px !important;
+    border-radius: 8px !important;
+    text-transform: none !important;
+    font-weight: 500 !important;
+}
+
+.btn-microsoft img {
+    width: 20px;
+}
+
+.btn-microsoft:hover {
+    background-color: #1f1f1f !important;
+}
+
+.full-width {
+    width: 100% !important;
+}
+
+.divider-text {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #777;
+    margin: 20px 0;
+}
+
+.divider-text::before, .divider-text::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+}
+
+.divider-text:not(:empty)::before { margin-right: .5em; }
+.divider-text:not(:empty)::after { margin-left: .5em; }
+
+/* Ajuste para garantir que labels e inputs de login (fundo branco) fiquem visíveis */
+.card-login .input-field input {
+    color: #333 !important;
+}
+
+
+    /* FIM */
+
+
+
+/* Estilização do Rodapé de Suporte */
+.page-footer-custom {
+    background-color: #ffffff !important;
+    border-top: 1px solid #e0e0e0;
+    padding: 10px 0; /* Reduzido de 20px para 10px */
+    color: #777;
+    flex-shrink: 0;
+}
+
+.support-link-slim {
+    display: inline-flex;
+    align-items: center;
+    color: #184693 !important;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: opacity 0.3s;
+}
+
+.support-link-slim:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+}
+
+.support-link-slim i {
+    margin-right: 5px;
+    font-size: 1.1rem;
+}
+
+
+nav .nav-wrapper i {
+    height: 64px;
+    line-height: 64px;
+}
+.dropdown-content {
+    top: 64px !important; /* Garante que o dropdown não cubra o nav */
+}
+/* Padding para sub-itens do menu para criar hierarquia visual */
+.sidenav .collapsible-body li a {
+    padding-left: 54px !important;
+    font-size: 13px;
+}
+
+/* Deixa os títulos dos setores (Suprimentos, Fiscal...) mais destacados */
+.sidenav .subheader {
+    color: #184693 !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+/* Alinhamento dos ícones */
+.sidenav li > a > i.material-icons {
+    margin-right: 20px;
+}
+
+
     
 
 
@@ -275,7 +529,8 @@
 
   <!-- Dropdown Structure -->
   <ul id="dropdown2" class="dropdown-content">
-    <li><a href="{{route('reserva.reservas')}}">Minhas reservas</a></li>
+    {{-- <li><a href="{{route('reserva.reservas')}}">Minhas reservas</a></li>
+    <li><a href="{{route('reserva.pendentes')}}">Reservas Pendentes</a></li>
     @auth
       @if (auth()->user()->admin == 1)
         <li><a href="https://app.powerbi.com/view?r=eyJrIjoiYmNkNDJhZDQtMjk3NS00MDk0LWFhYmYtMzFhNDFmZjI4ZDIwIiwidCI6IjE5MDE3MzlkLTg1M2YtNDkwMS1iMTYwLTYxMDY4NWMwYzc5ZSJ9">Power BI</a></li>
@@ -310,112 +565,160 @@
       @endif
 
     @endauth
-    <li><a href="{{route('reserva.sobre')}}">Sobre</a></li>
+    <li><a href="{{route('reserva.sobre')}}">Sobre</a></li> --}}
     <li><a href="{{route('login.logout')}}">Sair</a></li>
 </ul>
 
 
 
-  <nav class="red">
-    <div class="nav-wrapper container">
-      <a href="{{route('index')}}" class="brand-logo center">@yield('title')</a>
-      <a href="#" class="brand-logo" href="index.html">
-        <img src="{{ asset('img/LogoSite.png') }}" style="width: 100px; height: auto; margin:10px;margin-left:80px">
-    </a>
-      <ul id="nav-mobile" class="left">
-        @auth
-          <a href="#" data-target="slide-out" class="sidenav-trigger left  show-on-large"><i class="material-icons">menu</i></a>
-        @else
-            @php
-                session()->flash('erro', 'Você precisa estar autenticado para acessar esta área.');
-            @endphp
+<nav class="blue">
+  <div class="nav-wrapper container" style="display: flex; align-items: center; justify-content: space-between;">
+    
+    <div style="display: flex; align-items: center;">
+      @auth
+        <a href="#" data-target="slide-out" class="sidenav-trigger show-on-large" style="display: block; margin: 0 15px 0 0;"><i class="material-icons">menu</i></a>
+      @else
+        <a href="{{route('login.form')}}" style="display: block; margin: 0 15px 0 0;"><i class="material-icons">menu</i></a>
+      @endauth
 
-          <a href="{{route('login.form')}}" data-target="slide-out" class="sidenav-trigger left  show-on-large"><i class="material-icons">menu</i></a>
-        @endauth
-      </ul>
+      <a href="{{route('index')}}" style="display: flex; align-items: center;">
+        <img src="{{ asset('img/LogoSite.png') }}" style="width: 80px; height: auto;">
+      </a>
+    </div>
+
+    <ul class="right" style="display: flex; margin: 0;">
+      <li style="position: relative;">
+        <a href="#!" class="dropdown-trigger" data-target="dropdown-notif" style="display: flex; align-items: center; padding: 0 15px;">
+          <i class="material-icons">notifications</i>
+          <span id="notif-badge" class="new badge red" data-badge-caption="" 
+                style="display:none; position: absolute; top: 10px; right: 5px; min-width: 18px; height: 18px; line-height: 18px; font-size: 10px; padding: 0;">
+            0
+          </span>
+        </a>
+      </li>
 
       @auth
-      <ul id="nav-mobile" class="right">
-        <li><a href="" class="dropdown-trigger" data-target='dropdown2'> Olá {{auth()->user()->name}} <i class="material-icons right">expand_more</i></a></li>
-      </ul>
+        <li>
+          <a href="#!" class="dropdown-trigger" data-target='dropdown2' style="display: flex; align-items: center;">
+            <span class="hide-on-small-only">Olá {{auth()->user()->name}}</span>
+            <i class="material-icons right">expand_more</i>
+          </a>
+        </li>
     @else
-      <ul id="nav-mobile" class="right">
-        <li><a href="{{route('login.form')}}">Login <i class="material-icons right">lock</i></a></li>
-      </ul>
+    <li>
+        <a href="{{route('login.form')}}" style="display: flex; align-items: center;">
+        Login <i class="material-icons right">lock</i>
+        </a>
+    </li>
     @endauth
 
-      @if (@auth()->user()->id != null)
-        
-      <ul id="slide-out" class="sidenav">
-        <li>
-            <div class="user-view">
-                <div class="background red">
-                    <img src="{{asset('img/office2.jpg')}}" style="opacity: 0.5"> 
-                </div>
-                <a href="#user"><img class="circle" src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Anonymous_emblem.svg"></a>
-                <a href="#name"><span class="white-text name"> {{auth()->user()->name }} </span></a>
-                <a href="#email"><span class="white-text email"> {{auth()->user()->email}} </span></a>
-                <a href="#filial"><span class="white-text filial"> {{auth()->user()->filial}} </span></a>
+
+
+
+@auth
+<ul id="slide-out" class="sidenav">
+    <li>
+        <div class="user-view" style="padding: 30px 32px 20px;">
+            <div class="background" style="background: #184693;">
+                <img src="{{asset('img/office2.jpg')}}" style="opacity: 0.2; width: 100%; height: 100%; object-fit: cover;">
             </div>
-        </li> 
-        <li><a href="{{route('index')}}"><i class="material-icons">home</i>Home</a></li>
-          <!-- Portal Reservas -->
-
-          <li>
-    <ul class="collapsible collapsible-accordion">
-      <li>
-        <a class="collapsible-header">
-          <i class="material-icons">business_center</i>Portal Reservas
-          <i class="material-icons right">arrow_drop_down</i>
-            </a>
-            <div class="collapsible-body">
-              <ul>
-
-              <li><a href="{{route('reserva.home')}}"><i class="material-icons">home</i>Home</a></li>
-              <li><a href="{{route('reserva.reservas')}}"><i class="material-icons">description</i>Minhas Reservas</a></li>
-              <li><a href="{{route('reserva.passagem-aerea')}}"><i class="material-icons">flight</i>Reservar Passagem</a></li>
-              <li><a href="{{route('reserva.veiculo')}}"><i class="material-icons">directions_car</i>Reservar Veiculo</a></li>
-              <li><a href="{{route('reserva.hospedagem')}}"><i class="material-icons">hotel</i>Reservar Hospedagem</a></li>
-              <li><a href="{{route('reserva.adiantamento')}}"><i class="material-icons">attach_money</i>Solicitar Adiantamento</a></li>
-              <li><a href="{{route('reserva.sobre')}}"><i class="material-icons">help</i>Sobre</a></li>
-            </ul>
-          </div>
-        </li>
-      </ul>
+            <a href="#user"><img class="circle shadow" src="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=fff&color=184693"></a>
+            <span class="white-text name" style="font-weight: 600;">{{ auth()->user()->name }}</span>
+            <span class="white-text email" style="font-size: 11px; opacity: 0.8;">{{ auth()->user()->email }}</span>
+            <span class="white-text unidade"  style="font-weight: 600; opacity: 0.8;">{{ auth()->user()->filial }}</span>
+        </div>
     </li>
-        {{-- <li><a href="{{route()}}"></a></li> --}}
-        <li><a href="{{route('login.logout')}}"><i class="material-icons">exit_to_app</i>Sair</a></li>
 
-  </ul>
+    <li><a class="waves-effect" href="{{route('index')}}"><i class="material-icons blue-text text-darken-4">home</i>Início</a></li>
 
+    <li><div class="divider"></div></li>
+    <li><a class="subheader">Suprimentos</a></li>
+    
+    <li class="no-padding">
+        <ul class="collapsible collapsible-accordion">
+            <li>
+                <a class="collapsible-header waves-effect">
+                    <i class="material-icons orange-text">luggage</i>Portal de Reservas
+                    <i class="material-icons right">arrow_drop_down</i>
+                </a>
+                <div class="collapsible-body">
+                    <ul>
+                        <li><a href="{{route('reserva.home')}}">Solicitar Reserva</a></li>
+                        <li><a href="{{route('reserva.reservas')}}">Minhas Reservas</a></li>
+                        <li><a href="{{route('reserva.pendentes')}}">Pendentes</a></li>
+                    </ul>
+                </div>
+            </li>
 
+            @if(in_array(auth()->user()->admin, [1, 100]))
+            <li>
+                <a class="collapsible-header waves-effect">
+                    <i class="material-icons blue-text">assessment</i>Gestão Viagens
+                    <i class="material-icons right">arrow_drop_down</i>
+                </a>
+                <div class="collapsible-body">
+                    <ul>
+                        <li><a href="{{route('admin.dashboard')}}">Painel de Controle</a></li>
+                        <li><a href="{{route('admin.finalizadas')}}">Viagens Finalizadas</a></li>
+                        <li><a href="{{route('admin.canceladas')}}">Viagens Canceladas</a></li>
+                    </ul>
+                </div>
+            </li>
+            @endif
+        </ul>
+    </li>
+
+    @if(in_array(auth()->user()->admin, [3, 4, 100]))
+    <li><a class="waves-effect" href="{{route('empresa.aprovacao')}}"><i class="material-icons teal-text">storefront</i>Fornecedores</a></li>
     @endif
 
-  {{-- @auth
-  <div id="mini-chat-container" class="chat-closed">
-    <div id="chat-header">
-        Chat - Grupo Cargo Polo
-        <button id="toggle-chat-button" aria-label="Abrir Chat">
-            <span class="chat-toggle-icon">◀</span>
-        </button>
-    </div>
-    <div id="chat-body">
-        <div class="chat-messages">
-             <p class="system-message">Carregando mensagens...</p>
-        </div>
-        <div class="chat-input">
-            <input type="text" placeholder="Digite sua mensagem...">
-            <button>Enviar</button>
-        </div>
-    </div>
-</div>
-@endauth --}}
+    @if(in_array(auth()->user()->admin, [3, 4, 100]))
+    <li><div class="divider"></div></li>
+    <li><a class="subheader">Fiscal</a></li>
+    <li><a class="waves-effect" href="{{route('fiscal.aprovacao')}}"><i class="material-icons teal-text">fact_check</i>Pedidos Fiscais</a></li>
+    <li>
+        <a class="waves-effect" href="#" onclick="event.preventDefault(); document.getElementById('export-form').submit();">
+            <i class="material-icons green-text">file_download</i>Exportar Dados
+        </a>
+        <form id="export-form" action="{{ route('exportar.fiscais') }}" method="GET" style="display: none;"></form>
+    </li>
+    @endif
+
+    @if(in_array(auth()->user()->admin, [5, 100]))
+    <li><div class="divider"></div></li>
+    <li><a class="subheader">Financeiro</a></li>
+    <li><a class="waves-effect" href="{{route('financeiro_fr.saldo')}}"><i class="material-icons amber-text text-darken-3">account_balance_wallet</i>Ajustar Saldos e Gestores</a></li>
+    <li><a class="waves-effect" href="{{route('admin.financeiro-dashboard')}}"><i class="material-icons amber-text text-darken-3">insert_chart</i>Gestão Financeira</a></li>
+    @endif
+
+    <li><div class="divider"></div></li>
+    <li><a class="waves-effect grey-text" href="{{route('reserva.sobre')}}"><i class="material-icons">info_outline</i>Sobre</a></li>
+    <li><a class="waves-effect red-text" href="{{route('login.logout')}}"><i class="material-icons red-text">power_settings_new</i>Sair</a></li>
+</ul>
+@endauth
 
 
-    </div>
-  </nav>
+
+
+
+
+
+  </div>
+</nav>
+
+<ul id="dropdown-notif" class="dropdown-content" style="min-width: 300px; max-height: 400px;">
+  <li><span class="blue-text" style="font-weight:bold; display: block; padding: 15px;">Notificações</span></li>
+  <li class="divider"></li>
+  <div id="notif-lista">
+    <li><a href="#!" class="grey-text center">Carregando...</a></li>
+  </div>
+</ul>
+
+  <main>
 
 @yield('conteudo')
+
+</main>
     <!-- Compiled and minified JavaScript -->
 
         <script>
@@ -605,6 +908,94 @@
 {{-- FIM DA ESTRUTURA CHAT --}}
 
     @stack('graficos')
+
+<footer class="page-footer-custom">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            
+            <div style="font-size: 0.8rem;">
+                © {{ date('Y') }} <b>Grupo Cargo Polo</b> 
+                <span style="margin: 0 8px; color: #ccc;">|</span> 
+                Governança de Dados
+            </div>
+
+            <div>
+                <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do" target="_blank" class="support-link-slim">
+                    <i class="material-icons">help_outline</i>
+                    Suporte Técnico
+                </a>
+            </div>
+
+        </div>
+    </div>
+</footer>
+
+
+
+
+
+<script>
+    function carregarNotificacoes() {
+        $.ajax({
+            url: "{{ route('notifications.fetch') }}", 
+            method: "GET",
+            dataType: "json",
+            // Dentro do seu success do AJAX:
+            success: function(response) {
+                const badge = $('#notif-badge');
+                
+                // Agora o contador mostra Globais + Privadas que ainda não foram lidas pelo user
+                if (response.unread_count > 0) {
+                    badge.text(response.unread_count).show();
+                } else {
+                    badge.hide();
+                }
+
+                const lista = $('#notif-lista');
+                lista.empty();
+
+                if (response.notifications.length > 0) {
+                    response.notifications.forEach(function(n) {
+                        let icon = n.is_global ? 'public' : 'notifications';
+                        let iconColor = n.is_global ? 'orange-text' : 'blue-text';
+                        let label = n.is_global ? '<span class="new badge orange left" data-badge-caption="AVISO" style="margin-right:10px; float:none;"></span>' : '';
+                        
+                        lista.append(`
+                            <li>
+                                <a href="/notificacoes/ler/${n.id}" style="line-height: 1.4; padding: 15px; display: block;">
+                                    <i class="material-icons left ${iconColor}">${icon}</i>
+                                    <strong style="display:block; color: #333;">${label} ${n.titulo}</strong>
+                                    <span style="font-size: 12px; color: #666;">${n.mensagem}</span>
+                                </a>
+                            </li>
+                            <li class="divider"></li>
+                        `);
+                    });
+                } else {
+                    lista.append('<li><a href="#!" class="grey-text center" style="padding:20px;">Tudo limpo por aqui!</a></li>');
+                }
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        // Inicializa o Menu Lateral
+        $('.sidenav').sidenav();
+
+        // Inicializa os Menus Expansíveis (Acordions) do Sideout
+        $('.collapsible').collapsible();
+
+        // Inicializa os Dropdowns (Notificações, etc)
+        $('.dropdown-trigger').dropdown({
+            coverTrigger: false,
+            constrainWidth: false
+        });
+
+        carregarNotificacoes();
+    });
+    </script>
+
+
 
 </body>
 </html>

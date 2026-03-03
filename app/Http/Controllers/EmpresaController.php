@@ -80,30 +80,30 @@ class EmpresaController extends Controller
         Log::info('Dados do formulário:', $request->all());
 
         // --- CONSULTA CNPJ ---
-        if (!empty($request->cnpj)) {
+        // if (!empty($request->cnpj)) {
 
-            $dadosCNPJ = $this->consultarCNPJ($request->cnpj);
+        //     $dadosCNPJ = $this->consultarCNPJ($request->cnpj);
 
-            if (isset($dadosCNPJ['erro'])) {
-                return back()->withErrors(['cnpj' => $dadosCNPJ['erro']])->withInput();
-            }
+        //     if (isset($dadosCNPJ['erro'])) {
+        //         return back()->withErrors(['cnpj' => $dadosCNPJ['erro']])->withInput();
+        //     }
 
-            //$razaoOficial = strtoupper(trim($dadosCNPJ['razao_social']));
-            $razaoOficial = strtoupper(trim($dadosCNPJ['nome']));
-            $razaoInformada = strtoupper(trim($request->razao_social));
+        //     //$razaoOficial = strtoupper(trim($dadosCNPJ['razao_social']));
+        //     $razaoOficial = strtoupper(trim($dadosCNPJ['nome']));
+        //     $razaoInformada = strtoupper(trim($request->razao_social));
 
-            // --- COMPARAÇÃO ---
-            if ($razaoInformada !== $razaoOficial) {
-                return back()
-                    ->withErrors([
-                        'razao_social' =>
-                            "A razão social informada não confere com o cadastro oficial da Receita Federal.
-                            <br><b>Digitado:</b> {$request->razao_social}
-                            <br><b>Correto:</b> {$dadosCNPJ['razao_social']}"
-                    ])
-                    ->withInput();
-            }
-        }
+        //     // --- COMPARAÇÃO ---
+        //     if ($razaoInformada !== $razaoOficial) {
+        //         return back()
+        //             ->withErrors([
+        //                 'razao_social' =>
+        //                     "A razão social informada não confere com o cadastro oficial da Receita Federal.
+        //                     <br><b>Digitado:</b> {$request->razao_social}
+        //                     <br><b>Correto:</b> {$dadosCNPJ['razao_social']}"
+        //             ])
+        //             ->withInput();
+        //     }
+        // }
 
         
         $fornecedor = FornecedorFinanceiro::create(array_merge(

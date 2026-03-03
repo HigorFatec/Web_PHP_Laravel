@@ -27,7 +27,9 @@ class Hospedagem extends Model
         'user_name',
         'user_id',
         'user_cpf',
-        'user_email'
+        'user_email',
+        'approval_token',
+        'anexo_path'
         ];
 
         //Relacionamento com a tabela usuário
@@ -35,5 +37,14 @@ class Hospedagem extends Model
         {
         return $this->belongsTo(User::class);
         }
+
+        // Relacionamento com o gestor
+        public function gestor()
+        {
+            return $this->belongsTo(UsersGestores::class, 'email_gestor', 'email'); 
+            // 'email_gestor' é a coluna em fiscais
+            // 'email' é a coluna correspondente em fiscais_aprovadores
+        }
+
 
 }

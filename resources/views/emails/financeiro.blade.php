@@ -5,42 +5,38 @@
 </head>
 <body>
 
-    <p><center><h4>Solicitação Aprovada com Sucesso pelo Gestor <b>{{$financeiro->gestorFinanceiro->nome_gestor}}</b> </h4></center></p><br>
 
-    @if ($financeiro->tipo == 'avista')
-
-        <p><b><center><h4>Pagamento À Vista</h4></center></b></p><br>
+    <p><b><center><h4>Pagamento a Vista</h4></center></b></p>
         
-    @else 
-
-        <p><b><center><h4>Adiantamento à fornecedor</h4></center></b></p>
-        
-    @endif
-
-    @if ($financeiro->tem_nota_fiscal == 'nao')
-        <p><b><center><h4>Solicitação sem Nota Fiscal</h4></center></b></p><br>
-        <p>ID do Lançamento Bancário (RODOPAR): <b>{{ $financeiro->id_raz }}</b></p><br><br>
-    @else
-        <p><b><center><h4>Solicitação com Nota Fiscal</h4></center></b></p><br>
-        <p>ID do Lançamento no Contas a Pagar (RODOPAR): <b>{{$financeiro->id}}</b></p><br><br>
-    @endif
 
     <p>Pedido {{ $financeiro->pedido }}</p>
-    <p>Descrição: {{ $financeiro->referencia }}</p>
-    <p>CPF/CNPJ: {{ $financeiro->cnpj }}</p>
-    <p>Fornecedor: {{$financeiro->name}}</p>
-    <p>Banco: {{ $financeiro->banco }}</p>
-    <p>Agencia: {{ $financeiro->agencia }}</p>
-    <p>Conta: {{ $financeiro->conta }}</p>
-    <p>Placa: {{ $financeiro->placa }}</p>
-    <p>Tipo Chave Pix: {{ $financeiro->tipo_pix }}</p>
-    <p>Pix: {{ $financeiro->pix }}</p>
-    <p>Observação {{$financeiro->prazo}} </p>
-    <p>Favorecido: {{$financeiro->favorecido}}</p>
-    <p>Valor: R${{ $financeiro->valor }}</p>
-    <p>Unidade: {{ $financeiro->unidades->unidade_negocio }}</p>
-    <p>Centro de Custo: {{$financeiro->centroCusto->descri_custo}} </p>
-    <p>Centro de Gasto: {{$financeiro->centroGasto->descri_gasto}} </p><br>
+    <p>Descrição: {{ $dados['referencia'] }}</p>
+    <p>CPF/CNPJ: {{ preg_replace('/\D/','',$dados['cnpj']) }}</p>
+    <p>Fornecedor: {{$dados['name']}}</p>
+    <p>Banco: {{ $dados['banco'] }}</p>
+    <p>Agencia: {{ $dados['agencia'] }}</p>
+    <p>Conta: {{ $dados['conta'] }}</p>
+    <p>Placa: {{ $dados['placa'] }}</p>
+    <p>Tipo Chave Pix: {{ $dados['tipo_pix'] }}</p>
+    <p>Pix: {{ 
+    strpos($dados['pix'],'@') === false
+       ? preg_replace('/\D/','',$dados['pix'])
+       : $dados['pix']
+    }}
+    </p>
+    <p>Observação: {{$dados['prazo']}} </p>
+    <p>Favorecido: {{$dados['favorecido']}}</p>
+    <p>Valor: R${{ $dados['valor'] }}</p>
+
+    @if ($financeiro->tipo == 'avista')
+        <p>Filial: {{ $dados['filial'] }}</p><br>
+    @else
+        <p>Filial: {{ $financeiro->unidades?->unidade_negocio ?? $dados['filial'] }}</p><br>
+    @endif
+
+
+
+
 
     <p>Atenciosamente <b>Grupo Cargo Polo</b></p>
 </body>

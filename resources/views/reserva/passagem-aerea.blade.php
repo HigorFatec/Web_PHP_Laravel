@@ -71,7 +71,15 @@
       <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required>
       <input type="email" name="email" placeholder="E-mail" required><br>
       
-      <input type="text" name="filial_viajante" placeholder="Filial do viajante" required> <br>
+    Filial do Viajante: <br>
+    <select name="filial_viajante" id="filial" required>
+
+        <option value=" "></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+
+    </select> <br>
 
       Gestor Aprovador: <br>
     <select name="email_gestor" id="email_gestor" required>
@@ -98,8 +106,22 @@
     </select> <br>
     
 
-    <input type="text" name="origem" placeholder="Origem" required>
-    <input type="text" name="destino" placeholder="Destino" required><br><br>
+    Origem: <br>
+    <select name="origem" id="filial" required>
+        <option value=" "></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+    </select> <br>
+
+
+    Destino: <br>
+    <select name="destino" id="filial" required>
+        <option value=" "></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+    </select> <br><br>
 
 
     Data de ida

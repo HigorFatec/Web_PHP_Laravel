@@ -83,7 +83,7 @@ class FinanceiroFrController extends Controller
             'prazo' => 'nullable|string',
             'socorro_em_rota' => 'nullable|string',
             'solicitante' => 'nullable|string',
-            'fornecedor' => ['required', 'string', 'not_regex:/^\s*$/'],
+            'fornecedor' => ['required_if:tipo,avista', 'nullable', 'string', 'not_regex:/^\s*$/'],
             'cod_unidade' => ['required', 'string', 'not_regex:/^\s*$/'],
             'cod_custo' => ['required', 'string', 'not_regex:/^\s*$/'],
             'cod_gasto' => ['required', 'string', 'not_regex:/^\s*$/'],
@@ -94,19 +94,27 @@ class FinanceiroFrController extends Controller
 
         ]);
 
-        // if($validatedData['tem_nota_fiscal'] == 'sim' && $validatedData['tipo'] == 'avista'){
-        //     $situacao = DB::connection('sqlsrv')
-        //         ->table('ESTPED')
-        //         ->where('NUMPED', $validatedData['pedido'])
-        //         ->value('SITUAC');
 
-        //     if ($situacao !== 'A') {
-        //         return back()->withErrors(['pedido' => 'O pedido informado não está com situação Aprovado!.']);
-        //     }
-        // }
+        if ($validatedData['tipo'] == 'avista') {
+            if($validatedData['tem_nota_fiscal'] == 'sim'){
+            // Buscamos a situação do pedido
+            $situacao = DB::connection('sqlsrv')
+                ->table('ESTPED')
+                ->where('NUMPED', $validatedData['pedido'])
+                ->value('SITUAC');
 
-        if($validatedData['socorro_em_rota'] == 'sim' && $validatedData['placa'] == null){
-            return back()->withErrors(['placa' => 'Para socorro em rota, a placa é obrigatória!']);
+            // 1. Verifica se o pedido sequer existe (se $situacao for null, o pedido não foi encontrado)
+            if (is_null($situacao)) {
+                return back()->withErrors(['pedido' => 'O número do pedido informado não existe no sistema.']);
+            }
+            }
+        }
+
+
+        if($validatedData['tipo'] == 'avista'){
+            if($validatedData['socorro_em_rota'] == 'sim' && $validatedData['placa'] == null){
+                return back()->withErrors(['placa' => 'Para socorro em rota, a placa é obrigatória!']);
+            }
         }
 
         // dd($validatedData);
@@ -115,7 +123,9 @@ class FinanceiroFrController extends Controller
             $validatedData,
             [
                 'approval_token' => Str::uuid(),
-                'status' => 'pendente'
+                // 'status' => 'pendente'
+                'status' => ($validatedData['tipo'] === 'avista') ? 'pendente' : ($validatedData['status'] ?? null),
+
             ]
         ));
 
@@ -189,6 +199,8 @@ class FinanceiroFrController extends Controller
 
         // TRATAMENTO DO UPLOAD DO ANEXO
         // STORE
+        if($validatedData['tipo'] == 'avista'){
+
         if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
             $file = $request->file('foto');
             $extension = $file->guessExtension() ?? 'bin';
@@ -203,7 +215,7 @@ class FinanceiroFrController extends Controller
             $financeiro->update(['anexo_path' => $path]);
         }
         // FIM ANEXO
-
+        }
 
         $tipos = $request->input('tipo_reembolso', []);
 
@@ -249,8 +261,8 @@ class FinanceiroFrController extends Controller
         if ($validatedData['tipo'] == 'adiantamento' || $validatedData['tipo'] == 'adiantamento'){
             // Envia o email com os dados do formulário
             Mail::send('emails.financeiro', ['dados' => $validatedData, 'financeiro' => $financeiro,], function($message) use ($validatedData, $foto, $financeiro, $emails){
-                //$message->to(['contasapagar@grupocargopolo.com.br']);
-                $message->to('higor.05@hotmail.com');
+                $message->to(['contasapagar@grupocargopolo.com.br']);
+                //$message->to('higor.05@hotmail.com');
                 //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                 if($validatedData['tipo'] == 'adiantamento'){
                     $message->cc($emails);
@@ -258,13 +270,13 @@ class FinanceiroFrController extends Controller
                     $message->cc($emails);
                 }
                 if($validatedData['tipo'] == 'avista' && $validatedData['pedido'] != null){ 
-                    $message->subject( 'PAGAMENTO A VISTA; PEDIDO: '. $validatedData['pedido'] . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] . ' PLACA: ' . $validatedData['placa'] );
+                    $message->subject( 'PAGAMENTO A VISTA; PEDIDO: '. $validatedData['pedido'] . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $validatedData['placa'] );
                 } elseif ($validatedData['tipo'] == 'avista' && $validatedData['pedido'] == null){
-                    $message->subject( 'PAGAMENTO A VISTA; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] . ' PLACA: ' . $validatedData['placa'] );
+                    $message->subject( 'PAGAMENTO A VISTA; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $validatedData['placa'] );
                 } elseif ($validatedData['tipo'] == 'adiantamento' && $validatedData['pedido'] != null){
-                    $message->subject( 'ADIANTAMENTO À FORNECEDOR; PEDIDO: '. $validatedData['pedido'] . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] );
+                    $message->subject( 'ADIANTAMENTO À FORNECEDOR; PEDIDO: '. $validatedData['pedido'] . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
                 } elseif ($validatedData['tipo'] == 'adiantamento' && $validatedData['pedido'] == null){
-                    $message->subject( 'ADIANTAMENTO À FORNECEDOR; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] );
+                    $message->subject( 'ADIANTAMENTO À FORNECEDOR; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
                 }
 
                 //Verificar se existe imagem anexada
@@ -292,7 +304,7 @@ class FinanceiroFrController extends Controller
                             // $message->to('higor.05@hotmail.com');
                             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
                             $message->cc($emails);
-                            $message->subject( 'DESPESAS/REEMBOLSO; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $validatedData['filial'] . ' PLACA: ' . $validatedData['placa'] );
+                            $message->subject( 'DESPESAS/REEMBOLSO; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $validatedData['placa'] );
 
                             if ($nota_fiscal) {
                                 $pathToFile = $nota_fiscal->getPathname();
@@ -335,7 +347,7 @@ class FinanceiroFrController extends Controller
         $financeiro = Financeiro::where('approval_token', $token)->firstOrFail();
 
         if ($financeiro->status !== 'pendente') {
-            return back()->withErrors('Solicitação já foi processada.');
+            return 'Solicitação já foi processada.';
         }
 
         // ENVIAR VÁRIOS E-MAILS
@@ -387,7 +399,7 @@ class FinanceiroFrController extends Controller
                 'financeiro' => $financeiro,
             ], function($message) use ($financeiro,$emails){
                 $message->to('contasapagar@grupocargopolo.com.br');
-                //$message->to('higor.05@hotmail.com');
+                //$message->to('higor.machado@grupocargopolo.com.br');
                 $message->cc($emails);
 
                 if ($financeiro->tipo == 'avista' && ($financeiro->socorro_em_rota == 'nao') && ( $financeiro->pedido == '000000' || $financeiro->pedido == null )){
@@ -415,7 +427,7 @@ class FinanceiroFrController extends Controller
 
         $financeiro->update(['status' => 'aprovado']);
 
-        return back()->with('aprovado','Solicitação aprovada com sucesso!');
+        return 'Solicitação aprovada com sucesso!';
     }
 
 
@@ -439,7 +451,7 @@ class FinanceiroFrController extends Controller
         $gestor = $financeiro->unidadeAprovadora?->gestorRegional;
 
         if (!$gestor) {
-            return back()->withErrors('Gestor regional não encontrado para esta unidade.');
+            return 'Gestor regional não encontrado para esta unidade.';
         }
 
         $calculo = $gestor->saldo + $financeiro->valor;
@@ -449,7 +461,7 @@ class FinanceiroFrController extends Controller
 
         $financeiro->update(['status' => 'reprovado']);
 
-        return back()->withErrors('Solicitação reprovada com sucesso! Seu saldo foi atualizado.');
+        return 'Solicitação reprovada com sucesso! Seu saldo foi atualizado.';
     }
 
 

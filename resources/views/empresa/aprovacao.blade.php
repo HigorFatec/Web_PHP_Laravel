@@ -64,15 +64,15 @@
         <table>
             <thead>
                 <tr>
-                    <th class="admin">Status</th>
+                    <th class="card-login">Status</th>
                     <th>Id</th>
                     <th>Solicitante</th>
                     <th>Fornecedor</th>
                     <th>CPF/CNPJ</th>
                     <th>Data Solicitação</th>
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                        <th class="admin">Reprovar</th>
-                        <th class="admin">Reenviar E-mail</th>
+                        <th class="card-login">Reprovar</th>
+                        <th class="card-login">Reenviar E-mail</th>
                     @endif
 
                 </tr>

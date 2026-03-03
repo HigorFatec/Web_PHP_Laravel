@@ -46,7 +46,8 @@ public static function cidades(){
         ->table('RODMUN')
         ->select(
             'CODMUN',
-            'DESCRI'
+            'DESCRI',
+            'ESTADO'
         )
         ->orderBy('DESCRI', 'asc')
         ->get();
@@ -96,6 +97,7 @@ public static function fornecedoresQuery($search = null)
             DB::raw('ISNULL(NUMAGE, \'\') as agencia'),
             DB::raw('ISNULL(CONTAC, \'\') as conta'),
             DB::raw('ISNULL(NOMFAV, \'\') as favorecido'),
+
         );
 
     if ($search) {
@@ -158,8 +160,8 @@ public static function cadastro_Fornecedor_juridico($razao_social,$nome_abreviad
 
 
 DB::connection('sqlsrv')->table('RODCLI')->insert([
-    'USUATU' => 'Importacao',
-    'USUINC' => 'Importacao',
+    'USUATU' => 'IMPORTACAO',
+    'USUINC' => 'IMPORTACAO',
     'DATINC' => DB::raw('GETDATE()'),
     'SITUAC' => 'A',
     'NOMFAV' => $razao_social,
@@ -199,7 +201,7 @@ DB::connection('sqlsrv')->table('RODCLI')->insert([
 
 
 DB::connection('sqlsrv')->table('RODCTC')->insert([
-    'USUATU' => 'Importacao',
+    'USUATU' => 'IMPORTACAO',
     'ID' => DB::raw('(SELECT MAX(ID) + 1 FROM RODCTC)'),
     'CODCLIFOR' => DB::raw('(SELECT MAX(CODCLIFOR) FROM RODCLI)'),
     'DATATU' => DB::raw('GETDATE()'),
@@ -320,8 +322,8 @@ public static function cadastro_Fornecedor_fisico($razao_social,$nome_abreviado,
 
 
 DB::connection('sqlsrv')->table('RODCLI')->insert([
-    'USUATU' => 'Importacao',
-    'USUINC' => 'Importacao',
+    'USUATU' => 'IMPORTACAO',
+    'USUINC' => 'IMPORTACAO',
     'DATINC' => DB::raw('GETDATE()'),
     'RAZSOC' => $razao_social,
     'FISJUR' => 'F',
@@ -355,7 +357,7 @@ DB::connection('sqlsrv')->table('RODCLI')->insert([
 
 
 DB::connection('sqlsrv')->table('RODCTC')->insert([
-    'USUATU' => 'Importacao',
+    'USUATU' => 'IMPORTACAO',
     'ID' => DB::raw('(SELECT MAX(ID) + 1 FROM RODCTC)'),
     'CODCLIFOR' => DB::raw('(SELECT MAX(CODCLIFOR) FROM RODCLI)'),
     'DATATU' => DB::raw('GETDATE()'),

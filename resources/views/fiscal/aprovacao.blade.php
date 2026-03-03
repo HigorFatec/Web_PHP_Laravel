@@ -103,7 +103,7 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                    <th class="admin">Status</th>
+                    <th class="card-blue">Status</th>
                     <th>Id</th>
                     <th>Finalidade da Compra</th>
                     <th>Mercadoria Devolvida</th>
@@ -116,10 +116,10 @@
                     @endif
 
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                        <th class="admin">Reprovar</th>
-                        <th class="admin">Emitir NF</th>
-                        <th class="admin">Credito Pendente</th>
-                        <th class="admin">Concluido</th>
+                        <th class="card-blue">Reprovar</th>
+                        <th class="card-blue">Emitir NF</th>
+                        <th class="card-blue">Credito Pendente</th>
+                        <th class="card-blue">Concluido</th>
                     @endif
 
                 </tr>
@@ -205,7 +205,7 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin >= 3 || auth()->user()->admin == 100)
-                    <th class="admin">Status</th>
+                    <th class="card-blue">Status</th>
                     <th>Id</th>
                     <th>Tipo de Remessa</th>
                     <th>Cod.Fornecedor Rodopar</th>
@@ -217,14 +217,14 @@
                     @endif
 
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                        <th class="admin">Reprovar</th>
-                        <th class="admin">Emitir NF</th>
-                        <th class="admin">Pendente Entrada Estoque Filial</th>
-                        <th class="admin">Retorno Pendente</th>
-                        <th class="admin">Concluido</th>
+                        <th class="card-blue">Reprovar</th>
+                        <th class="card-blue">Emitir NF</th>
+                        <th class="card-blue">Pendente Entrada Estoque Filial</th>
+                        <th class="card-blue">Retorno Pendente</th>
+                        <th class="card-blue">Concluido</th>
                     @elseif (auth()->user()->admin == 4 || auth()->user()->admin == 100)
-                        <th class="admin">Pendente Entrada Estoque Filial</th>
-                        <th class="admin">Retorno Pendente</th>
+                        <th class="card-blue">Pendente Entrada Estoque Filial</th>
+                        <th class="card-blue">Retorno Pendente</th>
                     @endif
 
                 </tr>
@@ -338,7 +338,7 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                    <th class="admin">Status</th>
+                    <th class="card-blue">Status</th>
                     <th>Id</th>
                     <th>Tipo de Venda</th>
                     <th>Cliente</th>
@@ -349,9 +349,9 @@
                     @endif
 
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                        <th class="admin">Reprovar</th>
-                        <th class="admin">Emitir NF</th>
-                        <th class="admin">Concluido</th>
+                        <th class="card-blue">Reprovar</th>
+                        <th class="card-blue">Emitir NF</th>
+                        <th class="card-blue">Concluido</th>
                     @endif
 
                 </tr>
@@ -432,7 +432,7 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                    <th class="admin">Status</th>
+                    <th class="card-blue">Status</th>
                     <th>Id</th>
                     <th>Remetente</th>
                     <th>Motivo Descarte</th>
@@ -442,9 +442,9 @@
                     @endif
 
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                        <th class="admin">Reprovar</th>
-                        <th class="admin">Emitir NF</th>
-                        <th class="admin">Concluido</th>
+                        <th class="card-blue">Reprovar</th>
+                        <th class="card-blue">Emitir NF</th>
+                        <th class="card-blue">Concluido</th>
                     @endif
 
                 </tr>
@@ -522,7 +522,7 @@
             <thead>
                 <tr>
                     @if(auth()->user()->admin >= 3 || auth()->user()->admin == 100)
-                    <th class="admin">Status</th>
+                    <th class="card-blue">Status</th>
                     <th>Id</th>
                     <th>Tipo de Nota Fiscal</th>
                     <th>Fornecedor</th>
@@ -531,9 +531,9 @@
                     <th>Filial</th>
                     <th>Aprovador</th>
                     @if(auth()->user()->admin == 3 || auth()->user()->admin == 100)
-                        <th class="admin">Reprovar</th>
+                        <th class="card-blue">Reprovar</th>
                     @endif
-                    <th class="admin">Reenviar E-mail</th>
+                    <th class="card-blue">Reenviar E-mail</th>
                     @endif
 
                 </tr>

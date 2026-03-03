@@ -37,9 +37,24 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 
 
+// AZURE MICROSOFT LOGIN
+use App\Http\Controllers\AuthMicrosoftController;
+
+
 
 // FR
 use App\Http\Controllers\FinanceiroFrController;
+
+//ONFLY
+use App\Http\Controllers\RdvController;
+
+
+use App\Http\Controllers\NotificationController;
+
+
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Response;
+
 
 
 use Illuminate\Support\Facades\DB;
@@ -61,7 +76,7 @@ Route::get('/teste-sqlserver', function () {
 
 
 Route::get('/goto/{route}', [HomeController::class, 'goToRoute'])
-    ->where('route', 'financeiro.index|empresa.create|fiscal.index|pagamento_pix.index|florestal_pix.index|saldo.index|saldo.valecard|produtos.create|transf_veiculo.index|descarte.index|sinistro.index')
+    ->where('route', 'financeiro.index|empresa.create|fiscal.index|pagamento_pix.index|florestal_pix.index|saldo.index|saldo.valecard|produtos.create|transf_veiculo.index|descarte.index|rdv.index')
     ->name('goto.route');
 
 
@@ -112,6 +127,10 @@ Route::post('/financeiro_fr', [FinanceiroFrController::class, 'store'])->name('f
 Route::get('/fornecedores/buscar', [FinanceiroFrController::class, 'buscarFornecedores'])
     ->name('fornecedores.buscar');
 
+
+
+Route::get('/adiantamentos/buscar', [AdiantamentoController::class, 'buscarFornecedores'])
+    ->name('adiantamentos.buscar');
 
 
 
@@ -174,7 +193,10 @@ Route::post('/finalizar-passagem/{id}', [ReservaController::class, 'finalizarPas
 Route::get('/reserva/canceladas', [ReservaController::class, 'canceladas'])->name('admin.canceladas');
 Route::get('/reserva/finalizadas', [ReservaController::class, 'finalizadas'])->name('admin.finalizadas');
 
+Route::get('/reserva/pendentes', [ReservaController::class, 'reservas_pendentes'])->name('reserva.pendentes');
 Route::post('/reserva/reenviar/{id}', [ReservaController::class, 'reenviar_pendencia'])->name('reserva.reenviar');
+Route::post('/hospedagem/reenviar/{id}', [HospedagemController::class, 'reenviar_pendencia'])->name('hospedagem.reenviar');
+
 
 
 
@@ -220,6 +242,12 @@ Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEm
 Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
 
+// AZURE MICROSOFT LOGIN
+Route::get('/auth/microsoft', [AuthMicrosoftController::class, 'redirect']);
+Route::get('/auth/microsoft/callback', [AuthMicrosoftController::class, 'callback']);
+Route::get('/completar-cadastro', [AuthMicrosoftController::class, 'completarCadastro']);
+Route::post('/completar-cadastro', [AuthMicrosoftController::class, 'salvarCadastro']);
+
 
 
 
@@ -249,6 +277,9 @@ Route::post('/fiscal/reprovado/{id}', [FiscalController::class, 'fiscal_reprovar
 Route::get('/reserva/aprovar/{token}', [ReservaController::class, 'aprovar'])->name('reserva.aprovar');
 Route::get('/reserva/reprovar/{token}', [ReservaController::class, 'reprovar'])->name('reserva.reprovar');
 
+Route::get('/hospedagem/aprovar/{token}', [HospedagemController::class, 'aprovar'])->name('hospedagem.aprovar');
+Route::get('/hospedagem/reprovar/{token}', [HospedagemController::class, 'reprovar'])->name('hospedagem.reprovar');
+
 Route::get('/produto/aprovar/{token}', [ProdutoController::class, 'aprovar'])->name('produto.aprovar');
 Route::get('/produto/reprovar/{token}', [ProdutoController::class, 'reprovar'])->name('produto.reprovar');
 
@@ -256,15 +287,75 @@ Route::get('/produto/reprovar/{token}', [ProdutoController::class, 'reprovar'])-
 Route::get('/financeiro/aprovar/{token}', [FinanceiroFrController::class, 'aprovar'])->name('financeiro.aprovar');
 Route::get('/financeiro/reprovar/{token}', [FinanceiroFrController::class, 'reprovar'])->name('financeiro.reprovar');
 
+Route::get('/adiantamento/aprovar/{token}', [AdiantamentoController::class, 'aprovar'])->name('adiantamento.aprovar');
+Route::post('/adiantamento/reprovar/{token}', [AdiantamentoController::class, 'reprovar'])->name('adiantamento.reprovar');
+Route::get('/adiantamento/reprovar/{token}', [AdiantamentoController::class, 'formReprovar'])->name('adiantamento.reprovar.form');
+
+
+
+Route::get('/pagamento_pix/aprovar/{token}', [PagamentoPixController::class, 'aprovar'])->name('pagamento_pix.aprovar');
+Route::get('/pagamento_pix/reprovar/{token}', [PagamentoPixController::class, 'reprovar'])->name('pagamento_pix.reprovar');
+
 
 Route::get('/empresa/aprovacao', [EmpresaController::class, 'aprovacao'])->name('empresa.aprovacao');
-
-
 Route::get('/empresa/aprovar/{token}', [EmpresaController::class, 'aprovar'])->name('empresa.aprovar');
-
 Route::post('/empresa/reprovar/{token}', [EmpresaController::class, 'reprovar'])->name('empresa.reprovar');
-Route::get('/empresa/reprovar/{token}', [EmpresaController::class, 'formReprovar'])
-    ->name('empresa.reprovar.form');
+Route::get('/empresa/reprovar/{token}', [EmpresaController::class, 'formReprovar'])->name('empresa.reprovar.form');
+
+
+
+
+Route::get('/rdv', [RdvController::class, 'index'])->name('rdv.index');
+
+Route::get('/rdv/despesa', [RdvController::class, 'create'])->name('rdv.despesas');
+Route::post('/rdv/despesa/post', [RdvController::class, 'store'])->name('despesa.store');
+
+Route::get('/rdv/relatorio', [RdvController::class, 'relatorio'])->name('rdv.relatorio');
+Route::post('/rdv/relatorio/post', [RdvController::class, 'store_relatorio'])->name('relatorio.store');
+
+
+// Tela que o gestor acessa pelo link do e-mail
+Route::get('/relatorio/analise/{token}', [RdvController::class, 'telaAprovacao'])->name('relatorio.tela_aprovacao');
+
+// Rota para o gestor aprovar/reprovar CADA despesa (item por item)
+Route::post('/despesa/{id}/status', [RdvController::class, 'updateStatus'])->name('despesa.status');
+
+// Rota para o botão final de aprovação do Relatório todo
+Route::post('/relatorio/{id}/finalizar', [RdvController::class, 'finalizar'])->name('relatorio.finalizar');
+
+
+
+
+Route::get('/notificacoes/buscar', [NotificationController::class, 'fetch'])->name('notifications.fetch');
+
+// Rota para marcar uma notificação específica como lida
+Route::get('/notificacoes/ler/{id}', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+
+
+Route::get('/fix-permissions', function () {
+    $path = storage_path('app/public/despesas');
+    
+    if (file_exists($path)) {
+        // Tenta definir a permissão para 775
+        chmod($path, 0775);
+        return "Permissões de '{$path}' alteradas para 775 com sucesso!";
+    }
+    
+    return "Diretório não encontrado.";
+});
+
+Route::get('/storage/despesas/{filename}', function ($filename) {
+    $path = 'public/despesas/' . $filename;
+
+    if (!Storage::exists($path)) {
+        abort(404);
+    }
+
+    $file = Storage::get($path);
+    $type = Storage::mimeType($path);
+
+    return Response::make($file, 200)->header("Content-Type", $type);
+});
 
 
 // ROTAS PARA CHAT

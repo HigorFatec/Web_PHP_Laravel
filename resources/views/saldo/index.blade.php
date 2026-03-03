@@ -55,7 +55,10 @@
   <div class="row center">
     <div class="col s12 m6 offset-m3">
       <div class="card white darken-1">
+                  <br><span class="card-title center"><b>Saldo - Rede Frota</b></span> <br>
+
         <div class="card-content white-text">
+
           <span class="saldo"><b> {{ $saldo->valor }} </b></span>
           <div class="data"><center>Atualizado em: {{ \Carbon\Carbon::parse($saldo->data_insercao)->format('d/m/Y H:i') }} </center></div>
         </div>

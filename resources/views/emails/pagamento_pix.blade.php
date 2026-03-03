@@ -4,6 +4,26 @@
     <title>Novo Pagamento Pix solicitado</title>
 </head>
 <body>
+
+
+<p>Olá Gestor ,<b>{{$dados['email_gestor']}}</b></p><br>
+
+<p>Deseja aprovar ou reprovar?</p>
+
+<p>
+    <a href="{{ route('pagamento_pix.aprovar', ['token' => $pagamentoPix->approval_token]) }}"
+       style="background:green;color:white;padding:10px 15px;text-decoration:none;border-radius:5px;">
+       ✅ Aprovar
+    </a>
+
+    <a href="{{ route('pagamento_pix.reprovar', ['token' =>  $pagamentoPix->approval_token]) }}"
+       style="background:red;color:white;padding:10px 15px;text-decoration:none;border-radius:5px;">
+       ❌ Reprovar
+    </a>
+</p><br>
+
+
+
     <p>Data/Hora {{ $dados['data'] }}</p>
     <p>Número do Cupom: {{ $dados['cupom'] }}</p>
     <p>Placa: {{ $dados['placa'] }}</p>

@@ -38,8 +38,21 @@
 
     @csrf
 
-    <input type="text" name="origem" placeholder="Local de Retirada" required>
-    <input type="text" name="destino" placeholder="Local de Devolução" required><br><br>
+    Local de Retirada: <br>
+    <select name="origem" id="filial" required>
+        <option value=" "></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+    </select> <br><br>
+
+    Local de Devolução: <br>
+    <select name="destino" id="filial" required>
+        <option value=" "></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+    </select> <br><br>
 
 
     Data de Retirada
@@ -65,7 +78,15 @@
     Data de Nascimento:
     <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required><br>
     
-    <input type="text" name="filial_viajante" placeholder="Filial do Viajante:" required> <br>
+    Filial do Viajante: <br>
+    <select name="filial_viajante" id="filial" required>
+
+        <option value=" "></option>
+        @foreach ($filiais as $filial)
+            <option value="{{$filial}}">{{$filial}}</option>
+        @endforeach
+
+    </select> <br>
 
     Anexar Documento(CNH ou RG):<br>
     <input type="file" name="imagem" id="imagem" accept="image/*"><br><br>

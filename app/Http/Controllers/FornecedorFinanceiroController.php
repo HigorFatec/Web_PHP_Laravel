@@ -81,8 +81,8 @@ class FornecedorFinanceiroController extends Controller
                 return back()->withErrors(['cnpj' => $dadosCNPJ['erro']])->withInput();
             }
 
-            //$razaoOficial = strtoupper(trim($dadosCNPJ['razao_social']));
-            $razaoOficial = strtoupper(trim($dadosCNPJ['nome']));
+            $razaoOficial = strtoupper(trim($dadosCNPJ['razao_social']));
+            //$razaoOficial = strtoupper(trim($dadosCNPJ['nome']));
             $razaoInformada = strtoupper(trim($request->razao_social));
 
             // --- COMPARAÇÃO ---
@@ -148,8 +148,8 @@ class FornecedorFinanceiroController extends Controller
 
         try {
             $response = Http::timeout(8)->get(
-                //"https://brasilapi.com.br/api/cnpj/v1/{$cnpj}"
-                "https://receitaws.com.br/v1/cnpj/{$cnpj}"
+                "https://brasilapi.com.br/api/cnpj/v1/{$cnpj}"
+                //"https://receitaws.com.br/v1/cnpj/{$cnpj}"
             );
         } catch (\Exception $e) {
             return ['erro' => 'Erro ao consultar API de CNPJ.'];

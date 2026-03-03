@@ -87,7 +87,7 @@
                     Contato Técnico
                 </a>
 
-                <a href="https://www.linkedin.com/in/higormachado"
+                <a href="https://www.linkedin.com/in/higor-dos-santos-machado-9a269a139/"
                   target="_blank" class="btn-enterprise secondary">
                     LinkedIn
                 </a>

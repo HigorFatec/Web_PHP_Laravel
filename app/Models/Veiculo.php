@@ -27,7 +27,8 @@ class Veiculo extends Model
         'user_name',
         'user_id',
         'user_cpf',
-        'user_email'
+        'user_email',
+        'tipo'
         ];
 
         //Relacionamento com a tabela usuário

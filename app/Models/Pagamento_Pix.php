@@ -32,6 +32,9 @@ class Pagamento_Pix extends Model
         'pix',
         'valor_3',
         'email_gestor',
-        'filial'
+        'filial',
+        'approval_token',
+        'anexo_path',
+        'status'
     ];
 }
