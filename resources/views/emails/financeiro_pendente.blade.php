@@ -37,10 +37,10 @@
     @endif
 
     @if ($financeiro->tem_nota_fiscal == 'sim')
-        <p><b><center><h4>Solicitação sem Nota Fiscal</h4></center></b></p><br>
+        <p><b><center><h4>Solicitação com Nota Fiscal</h4></center></b></p><br>
         {{-- <p>ID do Lançamento Bancário (RODOPAR): <b>{{ $financeiro->id_raz }}</b></p><br><br> --}}
     @else
-        <p><b><center><h4>Solicitação com Nota Fiscal</h4></center></b></p><br>
+        <p><b><center><h4>Solicitação sem Nota Fiscal</h4></center></b></p><br>
         <p>ID do Lançamento no Contas a Pagar (RODOPAR): Fornecedor: <b>{{$financeiro->fornecedor}}</b> Série: <b>A</b> Documento: <b>{{$financeiro->fornecedor}}-{{$financeiro->id}}</b></p><br><br>
     @endif
 
@@ -58,8 +58,8 @@
     <p>Favorecido: {{$financeiro->favorecido}}</p>
     <p>Valor: R${{ $financeiro->valor }}</p>
     <p>Unidade: {{ $financeiro->unidades->unidade_negocio }}</p>
-    <p>Centro de Custo: {{$financeiro->centroCusto->descri_custo}} </p>
-    <p>Centro de Gasto: {{$financeiro->centroGasto->descri_gasto}} </p><br>
+    <p>Centro de Custo: {{$financeiro->centroCusto?->descri_custo}} </p>
+    <p>Centro de Gasto: {{$financeiro->centroGasto?->descri_gasto}} </p><br>
 
 
     <p>Atenciosamente <b>Grupo Cargo Polo</b></p>

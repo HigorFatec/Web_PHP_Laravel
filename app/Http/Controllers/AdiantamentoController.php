@@ -85,7 +85,10 @@ class AdiantamentoController extends Controller
             // if ($volta->diffInDays($ida) < 5){
             //     return redirect()->route('reserva.adiantamento')->with('error_dias', 'A data de volta deve ser maior que a data de ida.');
             // }
-    
+
+            if(Adiantamento::where('fornecedor', $validatedData['fornecedor'])->where('status', 'aprovado')->exists()){
+                return back()->withErrors('Você já possui uma solicitação de adiantamento realizada. Por favor, faça uma nova solicitação somente após a finalização da anterior.');
+            }
             
             // Se precisar salvar em um banco de dados, adicione o código aqui
             // Exemplo:
@@ -192,8 +195,8 @@ class AdiantamentoController extends Controller
                 Mail::send('emails.adiantamento', [
                     'adiantamento' => $adiantamento,
                 ], function($message) use ($adiantamento){
-                    //$message->to('contasapagar@grupocargopolo.com.br');
-                   $message->to('contasapagar@grupocargopolo.com.br');
+                    $message->to('contasapagar@grupocargopolo.com.br');
+                    //$message->to('higor.machado@grupocargopolo.com.br');
                     $message->cc([$adiantamento->email_gestor,$adiantamento->email,$adiantamento->gestor_aprovador,$adiantamento->unidadeAprovadora?->gestorRegional?->email_gestor]);
                     
                     $message->subject( 'ADIANTAMENTO; PROTOCOLO:'. $adiantamento->id  . ' FUNCIONARIO: ' . $adiantamento->name . ' FILIAL: ' . $adiantamento->unidades->unidade_negocio);
@@ -206,7 +209,7 @@ class AdiantamentoController extends Controller
             );
     
 
-            $adiantamento->financeiroAvista($adiantamento->id, $adiantamento->valor, $adiantamento->solicitante, $adiantamento->fornecedor, $adiantamento->unidadeAprovadora->nome_gestor, $adiantamento->cod_unidade, $adiantamento->unidades->conta, $adiantamento->cod_unidade, $adiantamento->cod_custo, $adiantamento->cod_gasto);
+            $adiantamento->financeiroAvista($adiantamento->id, $adiantamento->valor, $adiantamento->solicitante, $adiantamento->fornecedor, $adiantamento->unidadeAprovadora->nome_gestor, $adiantamento->cod_unidade, '39020-5', $adiantamento->cod_unidade, $adiantamento->cod_custo, $adiantamento->cod_gasto);
             //$financeiro->update(['id_raz' => DB::connection('sqlsrv')->table('BANRAZ')->max('ID_RAZ')]);
             
 

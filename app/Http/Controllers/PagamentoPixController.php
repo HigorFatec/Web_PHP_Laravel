@@ -135,6 +135,10 @@ class PagamentoPixController extends Controller
     public function cancelarPagamento($id)
     {
         $reserva = Pagamento_Pix::findOrFail($id);
+        
+        if($reserva->status !== 'pendente'){
+            return 'Solicitação já foi processada.';    
+        }
 
         if (auth()->user()->admin == 0) {
                 return redirect()->route('pagamento_pix.index')->with('error', 'Você não tem permissão para cancelar este veiculo.');
@@ -162,6 +166,10 @@ class PagamentoPixController extends Controller
     {
         $reserva = Pagamento_Pix::findOrFail($id);
         $pagamentoPix = Pagamento_Pix::findOrFail($id);
+
+        if($reserva->status !== 'pendente'){
+            return 'Solicitação já foi processada.';    
+        }
 
         if (auth()->user()->admin == 0) {
                 return redirect()->route('pagamento_pix.index')->with('error', 'Você não tem permissão para finalizar esta reserva.');
@@ -212,11 +220,11 @@ class PagamentoPixController extends Controller
         // Decide qual e-mail disparar pelo tipo
 
         // Envia o e-mail de finalização
-        Mail::send('emails.pagamento_pix', ['dados' => $reserva], function($message) use ($reserva, $user){
+        Mail::send('emails.pagamento_pix_aprovado', ['dados' => $reserva, 'pagamentoPix' => $reserva], function($message) use ($reserva, $user){
             $message->to(['combustivel@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br', 'michel.plevka@grupocargopolo.com.br', 'vanderlei.nascimento@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br']);
             //$message->to('higor.05@hotmail.com');
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-            $message->cc([$reserva->email,$user->email]);
+            $message->cc([$reserva->email,$user->email, $reserva->email_gestor]);
             $message->subject( ' TRANSFERÊNCIA DE PIX; POSTO: '. $reserva->cnpj . ' PLACA: ' . $reserva->placa );
         });
         

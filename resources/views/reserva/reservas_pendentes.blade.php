@@ -6,7 +6,7 @@
 
 <div class="row">
 
-    @if(auth()->user()->admin != 0)
+    @if(auth()->user()->temSetor(['admin', 'suprimentos']))
     <div class="col s12 m8 offset-m2">
         @else
         <div class="col s12 m6 offset-m3">
@@ -56,7 +56,7 @@
         <table>
             <thead>
                 <tr>
-                    @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                    @if(auth()->user()->temSetor(['admin', 'suprimentos']))
                     <th class="card-blue">Status</th>
                     <th class="card-blue">Solicitante</th>
                     <th class="card-blue">Solicitado</th>
@@ -67,8 +67,8 @@
                     <th>Motivo</th>
                     <th>Viajante</th>
                     <th class="card-blue">Cancelar</th>
-                    @if(auth()->user()->admin == 1|| auth()->user()->admin == 100)
-                        <th class="card-blue">Finalizar</th>
+                    @if(auth()->user()->temSetor(['admin', 'suprimentos']))
+                        <th class="card-blue">Reenviar</th>
                         <th class="card-blue">Filial Viajante</th>
                     @endif
 
@@ -77,7 +77,7 @@
             <tbody>
                 @foreach($pendentes as $passagem)
                     <tr>
-                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                        @if(auth()->user()->temSetor(['admin', 'suprimentos']))
                         <td>{{ $passagem->status }}</td>
                         <td>{{ $passagem->user_name}}</td>
                         <td>{{ \Carbon\Carbon::parse($passagem->created_at)->format('d/m/Y H:m:s') }}</td>
@@ -95,10 +95,10 @@
                             </form>
                         </td>
 
-                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                        @if(auth()->user()->temSetor(['admin', 'suprimentos']))
 
                         <td>
-                            <form action="{{route('finalizar.passagem', $passagem->id)}}" method="POST" style="display:inline;">
+                            <form action="{{route('reserva.reenviar', $passagem->id)}}" method="POST" style="display:inline;">
                                 @csrf
                                 <button type="submit" class="btn btn-success green"> <i class="material-icons">done</i></button>
                             </form>
@@ -143,7 +143,7 @@
             <table>
                 <thead>
                     <tr>
-                        @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                        @if(auth()->user()->temSetor(['admin', 'suprimentos']))
                             <th class="card-blue">Status</th>
                             <th class="card-blue">Solicitante</th>
                             <th class="card-blue">Solicitado:</th>
@@ -165,7 +165,7 @@
                 <tbody>
                     @foreach($pendente_hospedagem as $ph)
                         <tr>
-                            @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                            @if(auth()->user()->temSetor(['admin', 'suprimentos']))
                                 <td>{{ $ph->status }}</td>
                                 <td>{{ $ph->user_name }}</td>
                                 <td>{{ \Carbon\Carbon::parse($ph->created_at)->format('d/m/Y H:i:s') }}</td>
@@ -189,7 +189,7 @@
                                 </form>
                             </td>
 
-                            @if(auth()->user()->admin == 1 || auth()->user()->admin == 100)
+                            @if(auth()->user()->temSetor(['admin', 'suprimentos']))
                             <td>
                                 <form action="{{route('finalizar.hospedagem', $ph->id)}}" method="POST" style="display:inline;">
                                     @csrf

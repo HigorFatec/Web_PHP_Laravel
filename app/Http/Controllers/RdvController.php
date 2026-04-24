@@ -11,7 +11,8 @@ use Illuminate\Support\Str;
 use App\Models\UnidadesNegocio;
 use App\Models\Relatorio;
 use Illuminate\Support\Facades\Mail;
-
+use ZipArchive;
+use Illuminate\Support\Facades\File;
 
 
 class RdvController extends Controller
@@ -33,6 +34,15 @@ class RdvController extends Controller
         $produtos = Rdv::produtos();
 
 
+        $adiantamentoModel = Adiantamento::where('status', 'aprovado')->where('user_id',auth()->id())->orderBy('id','desc')
+            ->first();
+
+        if($adiantamentoModel){
+            return view('rdv.despesas', compact('produtos','adiantamentoModel'));
+
+        }
+
+
         return view('rdv.despesas', compact('produtos'));
     }
 
@@ -44,7 +54,124 @@ class RdvController extends Controller
                         ->where('status', 'pendente')
                         ->get();
 
+        // $adiantamentoModel = Adiantamento::where('fornecedor', $fornecedorId)
+        //     ->where('status', 'aprovado')->orderBy('id','desc')
+        //     ->first();
+
         return view('rdv.relatorio', compact('filiais','despesas'));
+    }
+
+    public function resumo(Request $request)
+    {
+        //
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['admin','financeiro'])){
+
+            $relatorios = Relatorio::where('status','aprovado')->orderBy('created_at', 'desc')->paginate(3);
+            $despesas = Rdv::where('status','pendente')->where('user_id', auth()->id())->orderBy('created_at', 'desc')->paginate(3);
+            $adiantamentos = Adiantamento::where('status','utilizado')->orderBy('created_at', 'desc')->paginate(3);
+        } else {
+            $relatorios = Relatorio::where('user_id', auth()->id())->orderBy('created_at', 'desc')->paginate(3);
+            $despesas = Rdv::where('status','pendente')->where('user_id', auth()->id())->orderBy('created_at', 'desc')->paginate(3);
+            $adiantamentos = Adiantamento::where('status','utilizado')->where('user_id', auth()->id())->orderBy('created_at', 'desc')->paginate(3);
+
+        }
+
+        $relatorios->load('unidades', 'despesas', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+
+        return view('rdv.resumo', compact('relatorios','despesas','adiantamentos'));
+    }
+
+
+    public function cancelarRelatorio($id)
+    {
+        $relatorio = Relatorio::findOrFail($id);
+
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['financeiro','admin'])){
+            if ($relatorio->user_id !== auth()->id()) {
+                return redirect()->route('rdv.resumo')->with('error', 'Você não tem permissão para cancelar este relatório.');
+            }
+        }
+
+        //$reserva->delete();
+        // Altera o status da coluna "Ok" para "Cancelada"
+        $relatorio->status = 'cancelada';
+        $relatorio->save();
+
+                // Obtém o usuário autenticado
+    $user = Auth::user();
+
+    $relatorio->load('unidades', 'despesas', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+    // Envia o e-mail de cancelamento
+    Mail::send('emails.cancelamento_relatorio', ['relatorio' => $relatorio, 'user' => $user], function($message) use ($user, $relatorio) {
+        $message->to([$relatorio->user_email,$relatorio->gestor_aprovador , $user->email]);
+        $message->subject('Relatório de Despesas Cancelado');
+    });
+
+
+    return redirect()->route('rdv.index')->with('success', 'Relatório cancelado com sucesso.');
+    }
+
+    public function finalizarRelatorio($id)
+    {
+        $relatorio = Relatorio::findOrFail($id);
+
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['financeiro','admin'])){
+
+            if ($relatorio->user_id !== auth()->id()) {
+                return redirect()->route('rdv.index')->with('error', 'Você não tem permissão para finalizar este relatório.');
+            }
+        }
+
+        //$relatorio->delete();
+        // Altera o status da coluna "Ok" para "Cancelada"
+        $relatorio->status = 'finalizado';
+        $relatorio->save();
+
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+        // Envia o e-mail de finalização
+        Mail::send('emails.finalizar_relatorio', ['relatorio' => $relatorio, 'user' => $user], function($message) use ($user, $relatorio) {
+            $message->to([$relatorio->user_email,$relatorio->gestor_aprovador, $user->email]);
+            $message->subject('Relatório Finalizado');
+        });
+
+        return redirect()->route('rdv.index')->with('success', 'Relatório finalizado com sucesso.');
+
+    }
+
+        // No Controller de Despesas
+    public function cancelarDespesa($id)
+    {
+        $despesa = Rdv::findOrFail($id);
+        $despesa->update([
+            'status' => 'cancelada', 
+        ]);
+
+        return redirect()->route('rdv.index')->with('success', 'Despesa cancelada com sucesso!');
     }
 
 
@@ -102,8 +229,15 @@ class RdvController extends Controller
                     'status'       => 'em_relatorio' 
                 ]);
 
+            
+
 
             $relatorio->load('unidades', 'despesas', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+            $relatorio->update([
+                'pix_reembolso' => ($relatorio->despesas->first()->pix ?? '0')
+            ]);
+            
 
             // Se chegou aqui sem erro, confirma no banco
             DB::commit();
@@ -156,76 +290,61 @@ class RdvController extends Controller
      */
     public function store(Request $request)
     {
-        //
-
         $user = Auth::user();
 
-        // dd($user);
-
-        $validatedData = $request->validate([
-            'fornecedor' => 'required|string',
-            'despesa' => 'required|numeric',
-            'date' => 'required|date',
-            'valor' => 'required',
-            'foto' => 'required',
+        // Validação agora espera arrays
+        $request->validate([
+            'fornecedor' => 'required',
+            'pix'        => 'required',
+            'despesa.*'  => 'required',
+            'valor.*'    => 'required',
+            'date.*'     => 'required',
+            'foto.*'     => 'required',
         ]);
 
-        $descricaoFornecedor = DB::connection('sqlsrv')
-                                ->table('RODCLI')
-                                ->where('CODCLIFOR', $validatedData['fornecedor'])
-                                ->value('RAZSOC');
-
+        $fornecedorId = $request->fornecedor;
         
-        $descricaoDespesa = DB::connection('sqlsrv')
-                                ->table('ESTPRO')
-                                ->where('CODPROD', $validatedData['despesa'])
-                                ->value('DESCRI');
+        // Busca Razão Social do Fornecedor uma única vez (otimização)
+        $descricaoFornecedor = DB::connection('sqlsrv')->table('RODCLI')
+                                ->where('CODCLIFOR', $fornecedorId)->value('RAZSOC');
 
-        $classificacao_sintetica = DB::connection('sqlsrv')
-                                    ->table('ESTCPP')
-                                    ->where('CODPROD', $validatedData['despesa'])
-                                    ->value('SINTET');
+        // Loop através do array de despesas
+        foreach ($request->despesa as $key => $valorDespesa) {
+            
+            // Busca detalhes de cada tipo de despesa no loop
+            $produto = DB::connection('sqlsrv')->table('ESTPRO')
+                        ->where('CODPROD', $valorDespesa)->first();
+                        
+            $classificacao = DB::connection('sqlsrv')->table('ESTCPP')
+                            ->where('CODPROD', $valorDespesa)->first();
 
-        $classificacao_analitica = DB::connection('sqlsrv')
-                                    ->table('ESTCPP')
-                                    ->where('CODPROD', $validatedData['despesa'])
-                                    ->value('ANALIT');
-
-        // dd($validatedData);
-
-        $despesa = Rdv::create(array_merge(
-            $request->all(),
-            [
-                'approval_token' => Str::uuid(),
-                'user_name' => $user->name,
-                'user_id' => $user->id,
-                'user_email' => $user->email,
+            // Cria a despesa
+            $despesa = Rdv::create([
+                'fornecedor'           => $fornecedorId,
+                'despesa'              => $valorDespesa,
+                'date'                 => $request->date[$key],
+                'valor'                => $request->valor[$key],
+                'user_name'            => $user->name,
+                'user_id'              => $user->id,
+                'user_email'           => $user->email,
                 'descricao_fornecedor' => $descricaoFornecedor,
-                'descricao_despesa' => $descricaoDespesa,
-                'SINTET' => $classificacao_sintetica,
-                'ANALIT' => $classificacao_analitica
-            ]
-        ));
+                'descricao_despesa'    => $produto->DESCRI ?? '',
+                'SINTET'               => $classificacao->SINTET ?? null,
+                'ANALIT'               => $classificacao->ANALIT ?? null,
+                'approval_token'       => Str::uuid(),
+                'pix'                  => $request->pix, // Salvando o valor do PIX na despesa
+            ]);
 
-            // TRATAMENTO DO UPLOAD DO ANEXO
-            // STORE
-            if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
-                $file = $request->file('foto');
-                $extension = $file->guessExtension() ?? 'bin';
-                $filename = time() . '_' . Str::uuid() . '.' . $extension;
-
+            // Upload da Foto específica dessa linha ($key)
+            if ($request->hasFile("foto.$key")) {
+                $file = $request->file("foto.$key");
+                $filename = time() . '_' . Str::uuid() . '.' . $file->guessExtension();
                 $file->move(storage_path('app/public/despesas'), $filename);
-
-                $path = 'despesas/' . $filename;
-                $despesa->update(['anexo' => $path]);
-
-
-                $despesa->update(['anexo' => $path]);
+                $despesa->update(['anexo' => 'despesas/' . $filename]);
             }
-            // FIM ANEXO
+        }
 
-        return redirect()->route('rdv.index')->with('success', 'Deu Certo');
-
+        return redirect()->route('rdv.index')->with('success', 'Todas as despesas foram cadastradas!');
     }
 
     public function telaAprovacao($token)
@@ -261,187 +380,331 @@ public function finalizar(Request $request, $id)
     try {
         DB::beginTransaction();
 
-        // 1. Carregamos as relações necessárias
-        $relatorio = Relatorio::with(['despesas', 'unidades', 'centroGasto', 'centroCusto'])
+        $statusFinal = $request->input('status_final'); // 'aprovado' ou 'reprovado'
+
+        // 1. Carregamos as relações
+        $relatorio = Relatorio::with(['despesas', 'unidades', 'unidadeAprovadora', 'centroGasto', 'centroCusto'])
             ->where('status', 'pendente')
             ->findOrFail($id);
 
-        // 2. Validação de pendências
+        // 2. Validação de pendências de análise técnica
         if ($relatorio->despesas->where('status', 'pendente')->count() > 0) {
-            return redirect()->back()->withErrors(['error' => 'Existem despesas pendentes!']);
+            return redirect()->back()->withErrors(['error' => 'Existem despesas que ainda não foram analisadas!']);
+        }
+
+        // --- BLOCO DE REPROVAÇÃO TOTAL DO RELATÓRIO ---
+        if ($statusFinal === 'reprovado') {
+            // 1. Resetar as despesas que foram APROVADAS (voltam a ser pendentes e sem relatório)
+            $relatorio->despesas()->where('status', 'aprovado')->update([
+                'status' => 'pendente',
+                'relatorio_id' => null
+            ]);
+
+            // 2. Desvincular as despesas que foram REPROVADAS (mantêm o status reprovado para o usuário ver o erro)
+            $relatorio->despesas()->where('status', 'reprovado')->update([
+                'relatorio_id' => null
+            ]);
+
+            // 2. Desvincular as despesas que foram IGNORADAS (mantêm o status ignorado para o usuário ver o erro)
+            $relatorio->despesas()->where('status', 'em_relatorio')->update([
+                'status' => 'pendente',
+                'relatorio_id' => null
+            ]);
+
+            // 3. Atualizar o status do relatório pai
+            $relatorio->update([
+                'status' => 'reprovado',
+                'observacao_gestor' => 'Relatório reprovado. As despesas aprovadas foram liberadas e as reprovadas devem ser corrigidas.'
+            ]);
+
+            DB::commit();
+            
+            return redirect()->route('rdv.index')
+                ->with('error', 'Relatório reprovado. As despesas foram desvinculadas para correção.');
+        }
+
+        // --- BLOCO DE APROVAÇÃO (SÓ EXECUTA SE TUDO FOR 'aprovado') ---
+        
+        // Validação extra de segurança: Se o usuário tentar aprovar o relatório, 
+        // mas houver QUALQUER despesa reprovada no meio.
+        if ($relatorio->despesas->where('status', 'reprovado')->count() > 0) {
+            return redirect()->back()->withErrors(['error' => 'Não é permitido aprovar um relatório que contenha despesas reprovadas. Reprove o relatório para ajuste.']);
         }
 
         // 3. Recálculo do valor (apenas aprovados)
         $despesasAprovadas = $relatorio->despesas->where('status', 'aprovado');
         $novoValorTotal = $despesasAprovadas->sum('valor');
 
-        // 4. Atualiza o Relatório
+
+
+        // [ INÍCIO DAS INTEGRAÇÕES FINANCEIRAS - MANTIDAS IGUAIS ]
+        // Pegamos o fornecedor da primeira despesa aprovada
+        $primeiraDespesa = $despesasAprovadas->first();
+        $fornecedorId = $primeiraDespesa->fornecedor ?? '0';
+
+        $adiantamentoModel = Adiantamento::where('fornecedor', $fornecedorId)
+            ->where('status', 'aprovado')->orderBy('id','desc')
+            ->first();
+        
+        if ($adiantamentoModel) {
+            if($adiantamentoModel->valor > $relatorio->valor) {
+                
+                $valorPix = $adiantamentoModel->valor - $relatorio->valor;
+
+                try {
+                    // Enviando para o user_email do relatório
+                    Mail::send('emails.relatorio_adiantamento_pix', [
+                        'relatorio' => $relatorio, 
+                        'valorPix' => $valorPix,
+                        'adiantamentoTotal' => $adiantamentoModel->valor
+                    ], function ($message) use ($relatorio) {
+                        $message->to($relatorio->user_email); // Destinatário principal: Solicitante
+                        $message->cc([$relatorio->unidades?->email_gestor]);
+                        $message->subject('AÇÃO NECESSÁRIA: Devolução de Saldo PIX - Protocolo: ' . $relatorio->id);
+                    });
+
+
+                } catch (\Exception $e) {
+                    \Log::error("Erro ao enviar email de PIX: " . $e->getMessage());
+                }
+
+
+            return "<script>
+                        alert('O valor do adiantamento é maior que o valor do relatório. Instruções de PIX enviadas para: " . $relatorio->user_email . "');
+                        window.history.back();
+                    </script>";       
+
+             }
+        
+        }
+
+        // 4. Atualiza o Relatório para Aprovado
         $relatorio->update([
             'valor'  => $novoValorTotal,
             'status' => 'aprovado'
         ]);
-
-        // 5. Integração do Cabeçalho
-        // CORREÇÃO: Pegamos o fornecedor da primeira despesa aprovada da lista
-        $primeiraDespesa = $despesasAprovadas->first();
-        $fornecedorId = $primeiraDespesa->fornecedor ?? '0'; // ID/Código do fornecedor
         
         $relatorio->entradaMateriais(
             $relatorio->id, 
             $relatorio->valor, 
             $fornecedorId, 
-            $relatorio->unidades->nome_gestor ?? 'Gestor não definido'
+            $relatorio->unidadeAprovadora->nome_gestor ?? 'Gestor não definido'
         );
 
-        // dd($despesasAprovadas);
-
         $x = 0;
-
-        // 6. Integração dos Itens
         foreach ($despesasAprovadas as $item) {
-
             $ultimoId = DB::connection('sqlsrv')->table('ESTAIE')->max('ID_AIE');
             $proximo = $ultimoId + 1;
-  
-            $x = $x + 1;
+            $x++;
 
             $item->produtosMateriais(
-                $item->id, 
-                $item->fornecedor, 
-                $item->despesa, 
-                $item->valor,
-                $proximo,
-                $item->relatorio_id,
-                $x
+                $item->id, $item->fornecedor, $item->despesa, $item->valor,
+                $proximo, $item->relatorio_id, $x
             );
         }
 
-        // 7. Limpeza: Desvincular despesas reprovadas
+        // Limpeza: Desvincular despesas reprovadas (embora o bloqueio acima impeça isso de chegar aqui, é uma boa segurança)
         Rdv::where('relatorio_id', $relatorio->id)
             ->where('status', 'reprovado')
             ->update(['relatorio_id' => null]);
 
-        // 8. Atualiza ID Rodopar (Usando o fornecedor da despesa aprovada)
         $relatorio->update([
             'id_rodopar' => ($fornecedorId) . '-A-' . $relatorio->id
         ]);
 
-        // CORREÇÃO AQUI: Use $fornecedorId em vez de $relatorio->fornecedor
         $adiantamentoModel = Adiantamento::where('fornecedor', $fornecedorId)
             ->where('status', 'aprovado')->orderBy('id','desc')
             ->first();
 
-        // Debug temporário: se quiser testar, descomente a linha abaixo
-        // if (!$adiantamentoModel) { dd("Não encontrou adiantamento para o fornecedor: " . $fornecedorId); }
-
-        $situacaoPadrao = 'L';
+        $situacaoPadrao = 'D';
 
         if ($adiantamentoModel) {
-            $relatorio->adiantamentos(
-                $fornecedorId, 
-                $relatorio->id, 
-                $relatorio->valor, 
-                $adiantamentoModel->id_raz,
-            );
+            $relatorio->adiantamentos($fornecedorId, $relatorio->id, $relatorio->valor, $adiantamentoModel->id_raz);
             $adiantamentoModel->update(['status' => 'utilizado']);
-
-            // 3. O SEGREDO ESTÁ AQUI: Força a variável a buscar os dados novos no banco!
             $adiantamentoModel->refresh();
 
-            // 4. REDE DE SEGURANÇA: Se a coluna estiver vazia no banco, ele assume o padrão e NÃO envia NULL
             $situacaoParaEnviar = $adiantamentoModel->situac ?? $situacaoPadrao;
             $valorLiquidoParaEnviar = $adiantamentoModel->valor_liquido ?? $relatorio->valor;
             $valorUtilizadoParaEnviar = $adiantamentoModel->valor_utilizado ?? 0;
-
-            $relatorio->finalizar(
-            $fornecedorId,
-            $relatorio->valor,
-            $relatorio->id,
-            $relatorio->cod_unidade,
-            $relatorio->cod_custo,
-            $relatorio->cod_gasto,
-            $relatorio->unidades->nome_gestor ?? 'Gestor não definido',
-            $valorLiquidoParaEnviar,
-            $valorUtilizadoParaEnviar,
-            $situacaoParaEnviar);
-
-        } else {$relatorio->finalizar(
-            $fornecedorId,
-            $relatorio->valor,
-            $relatorio->id,
-            $relatorio->cod_unidade,
-            $relatorio->cod_custo,
-            $relatorio->cod_gasto,
-            $relatorio->unidades->nome_gestor ?? 'Gestor não definido',
-            $relatorio->valor,
-            0,
-            $situacaoPadrao
-            
-
-        );}
-
-
-                // 6. Integração dos Itens
-        foreach ($despesasAprovadas as $item) {
-            $item->pagrat(
-                $fornecedorId, 
-                $item->valor,
-                $relatorio->id, 
-                $relatorio->cod_unidade,
-                $relatorio->cod_custo,
-                $relatorio->cod_gasto,
-                $item->despesa,
-                $item->SINTET,
-                $item->ANALIT
-            );
+        } else {
+            $situacaoParaEnviar = $situacaoPadrao;
+            $valorLiquidoParaEnviar = $relatorio->valor;
+            $valorUtilizadoParaEnviar = 0;
         }
 
+        // Finalizações no Rodopar
+        $relatorio->finalizar($fornecedorId, $relatorio->valor, $relatorio->id, $relatorio->cod_unidade, $relatorio->cod_custo, $relatorio->cod_gasto, $relatorio->unidadeAprovadora->nome_gestor ?? 'Gestor não definido', $valorLiquidoParaEnviar, $valorUtilizadoParaEnviar, $situacaoParaEnviar);
+
+        foreach ($despesasAprovadas as $item) {
+            $item->pagrat($fornecedorId, $item->valor, $relatorio->id, $relatorio->cod_unidade, $relatorio->cod_custo, $relatorio->cod_gasto, $item->despesa, $item->SINTET, $item->ANALIT);
         
-        // 4. REDE DE SEGURANÇA: Se a coluna estiver vazia no banco, ele assume o padrão e NÃO envia NULL
-        $situacaoParaEnviar = $adiantamentoModel->situac ?? $situacaoPadrao;
+            if($item->despesa == '946762') { // Código específico para reembolso de hospedagem
+                $item->pagratReembolso($relatorio->id, $item->valor, $relatorio->unidadeAprovadora->nome_gestor ?? 'Gestor não definido', $relatorio->cod_unidade, $relatorio->cod_custo, $relatorio->cod_gasto, $item->id, $item->descricao_fornecedor);
+            }
+        }
 
+        $relatorio->finalizar_2($fornecedorId, $relatorio->valor, $relatorio->id, $relatorio->cod_unidade, $relatorio->cod_custo, $relatorio->cod_gasto, $relatorio->unidadeAprovadora->nome_gestor ?? 'Gestor não definido', $valorLiquidoParaEnviar, $valorUtilizadoParaEnviar, $situacaoParaEnviar);
+        // [ FIM DAS INTEGRAÇÕES ]
 
-        $relatorio->finalizar_2(
-            $fornecedorId,
-            $relatorio->valor,
-            $relatorio->id,
-            $relatorio->cod_unidade,
-            $relatorio->cod_custo,
-            $relatorio->cod_gasto,
-            $relatorio->unidades->nome_gestor ?? 'Gestor não definido',
-            $adiantamentoModel->valor_liquido,
-            $adiantamentoModel->valor_utilizado,
-            $situacaoParaEnviar);
+        DB::commit(); 
 
 
 
 
+        // --- LÓGICA DO ZIP FINAL ---
+        $zip = new \ZipArchive;
+        $zipName = 'relatorio_' . $relatorio->id . '.zip';
+        $zipDirectory = storage_path('app/public/zips');
+
+        if (!File::exists($zipDirectory)) {
+            File::makeDirectory($zipDirectory, 0777, true, true);
+        }
+
+        $zipPath = $zipDirectory . DIRECTORY_SEPARATOR . $zipName;
+
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+            $arquivosAdicionados = 0;
+
+            foreach ($despesasAprovadas as $item) {
+                // Como o $item->anexo já traz "despesas/nome.avif"
+                // usamos storage_path('app/public/') para não duplicar a pasta
+                $caminhoAnexoOriginal = storage_path('app/public/' . $item->anexo);
+
+                if (!empty($item->anexo) && file_exists($caminhoAnexoOriginal)) {
+                    // basename() extrai apenas o nome do arquivo, removendo o "despesas/"
+                    // assim o ZIP fica limpo, sem pastas dentro dele
+                    $zip->addFile($caminhoAnexoOriginal, basename($item->anexo));
+                    $arquivosAdicionados++;
+                }
+            }
+            
+            $zip->close();
+
+            if ($arquivosAdicionados === 0) {
+                if(file_exists($zipPath)) { unlink($zipPath); }
+                throw new \Exception("Arquivos não encontrados no servidor. Verifique o caminho: " . storage_path('app/public/'));
+            }
+        }
+
+        $zipUrl = asset('storage/zips/' . $zipName);
 
 
 
-        DB::commit();
 
-        // 9. Envio de E-mail
+
+
+        // 9. Envio de E-mail de Sucesso
         try {
-            Mail::send('emails.relatorio_finalizar', ['relatorio' => $relatorio], function ($message) use ($relatorio) {
+            Mail::send('emails.relatorio_finalizar', [
+                'relatorio' => $relatorio, 
+                'zipUrl'    => $zipUrl,
+                'zipName'   => $zipName
+            ], function ($message) use ($relatorio) {
                 $message->to('contasapagar@grupocargopolo.com.br');
+                //$message->to('higor.machado@grupocargopolo.com.br');
                 $message->cc([$relatorio->unidades?->email_gestor ?? null,$relatorio->user_email]);
                 $message->subject('Relatório de Despesa Aprovado - Protocolo: ' . $relatorio->id);
             });
-        } catch (\Exception $e) {
-            // E-mail falhou, mas o processo no banco foi um sucesso.
-        }
+        } catch (\Exception $e) { }
 
         return redirect()->route('rdv.index')
-            ->with('success', 'Relatório finalizado! Valor aprovado: R$ ' . number_format($novoValorTotal, 2, ',', '.'));
+            ->with('success', 'Relatório finalizado com sucesso! Valor: R$ ' . number_format($novoValorTotal, 2, ',', '.'));
 
     } catch (\Exception $e) {
         DB::rollBack();
         return redirect()->back()
-            ->withErrors(['error' => 'Falha ao finalizar relatório: ' . $e->getMessage()])
+            ->withErrors(['error' => 'Falha ao processar relatório: ' . $e->getMessage()])
             ->withInput();
     }
 }
+
+
+
+    // No DespesaController.php
+
+    public function createPix(Request $request, $relatorio_id) {
+        $relatorio = Relatorio::findOrFail($relatorio_id);
+        $valorPix = $request->query('valor');
+
+        // Retorna uma view simples só com o campo de FOTO
+        return view('rdv.create_pix', compact('relatorio', 'valorPix'));
+    }
+
+    public function storePix(Request $request) 
+    {
+        $user = Auth::user();
+
+        // Validamos APENAS a foto e o ID do relatório (que vêm escondidos no form)
+        $request->validate([
+            'relatorio_id' => 'required',
+            'valor' => 'required',
+            'foto' => 'required', // Máx 5MB
+        ]);
+
+        $relatorio = Relatorio::findOrFail($request->relatorio_id);
+        $fornecedor_despesa = Rdv::where('relatorio_id', $relatorio->id)->first();
+
+        // DADOS AUTOMÁTICOS DEFINIDOS POR VOCÊ
+        $fornecedorId = $fornecedor_despesa->fornecedor; // Pega do relatório
+        $codigoDespesaFixa = '946762';         // Código fixo que você pediu
+        $dataAtual = now();                    // Data de agora
+
+        // BUSCA OS DADOS NO SQL SERVER (Igual ao seu store original)
+        $descricaoFornecedor = DB::connection('sqlsrv')->table('RODCLI')
+            ->where('CODCLIFOR', $fornecedorId)->value('RAZSOC');
+
+        $descricaoDespesa = DB::connection('sqlsrv')->table('ESTPRO')
+            ->where('CODPROD', $codigoDespesaFixa)->value('DESCRI');
+
+        $classificacao = DB::connection('sqlsrv')->table('ESTCPP')
+            ->where('CODPROD', $codigoDespesaFixa)->first();
+
+        // CRIA A DESPESA (RDV)
+        $despesa = Rdv::create([
+            'relatorio_id' => $relatorio->id, // Inserindo o ID do relatório
+            'fornecedor'   => $fornecedorId,
+            'despesa'      => $codigoDespesaFixa,
+            'date'         => $dataAtual,
+            'valor'        => $request->valor,
+            'user_name'    => $user->name,
+            'user_id'      => $user->id,
+            'user_email'   => $user->email,
+            'descricao_fornecedor' => $descricaoFornecedor,
+            'descricao_despesa'    => $descricaoDespesa,
+            'SINTET'       => $classificacao->SINTET ?? null,
+            'ANALIT'       => $classificacao->ANALIT ?? null,
+            'approval_token' => (string) Str::uuid(),
+        ]);
+
+        // TRATAMENTO DO UPLOAD (Igual ao seu original)
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $file = $request->file('foto');
+            $extension = $file->guessExtension() ?? 'bin';
+            $filename = time() . '_' . (string) Str::uuid() . '.' . $extension;
+
+            $file->move(storage_path('app/public/despesas'), $filename);
+            $path = 'despesas/' . $filename;
+            
+            $despesa->update(['anexo' => $path]);
+        }
+
+        $relatorio->update([
+            'valor' => $relatorio->valor + $request->valor
+        ]);
+
+        
+
+        // Email só para o gestor aprovar/reprovar
+        Mail::send('emails.relatorio_pendente', ['relatorio' => $relatorio], function ($message) use ($relatorio) {
+            $message->to($relatorio->gestor_aprovador);
+            $message->subject('Solicitação de Relatório de Despesa Pendente - Protocolo: ' . $relatorio->id);
+            
+
+        });
+
+
+        return redirect()->route('rdv.index')->with('success', 'Comprovante de PIX anexado como despesa!');
+    }
 
 
 

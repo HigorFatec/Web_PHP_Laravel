@@ -1,53 +1,45 @@
 @extends('layout')
-@section('title', 'Financeiro')
+@section('title', 'Central Financeiro')
 @section('conteudo')
 
 
-<div class="row">
+
 <div class="col s12 m6 offset-m3">
-
-<div class="row">
-    <div class="col s12">
-        <div class="card gradient-45deg-indigo-blue border-radius-6" style="background: linear-gradient(45deg, #1a237e 0%, #0288d1 100%); color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-            <div class="card-content">
-                <div class="row valign-wrapper" style="margin-bottom: 0;">
-                    <div class="col s12 m8">
-                        <span class="card-title" style="display: flex; align-items: center; font-weight: bold;">
-                            <i class="material-icons" style="margin-right: 10px;">bolt</i> 
-                            NOVO FINANCEIRO 2.0
-                        </span>
-                        <p style="font-size: 1.1rem; opacity: 0.9;">
-                            Experimente a nova interface integrada ao <b>ERP Rodopar</b> preparada para <b>Pagamento em Tempo Real (F&R)</b>.
-                        </p>
-                    </div>
-                    <div class="col s12 m4 center-align" style="padding-top: 15px;">
-                        <a href="/financeiro_fr" class="btn-large waves-effect waves-light green accent-4 pulse" style="font-weight: bold; border-radius: 30px;">
-                            IR PARA NOVA VERSÃO
-                        </a>
-                        <div style="margin-top: 10px;">
-                            <button onclick="this.closest('.card').parentElement.parentElement.remove()" class="btn-flat white-text" style="font-size: 0.8rem; text-decoration: underline; text-transform: none; opacity: 0.7;">
-                                Continuar com a versão antiga (obsoleto)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
+  <div class="container my-5">
 
     @if ($message = Session::get('success'))
     <div class="card green darken-1">
         <div class="card-content white-text">
         <span class="card-title">Sucesso!</span>
-        <p>Parabéns! A Transferência Pix foi solicitada com sucesso!<br>
+        <p>Parabéns! A solicitação foi realizada com sucesso!<br>
         </p>
         </div>
     </div>
     @endif
+
+    {{-- for de 1 a 5 --}}
+    @for ($i = 1; $i <= 5; $i++)
+        @if ($message = Session::get('success'.$i))
+            <div class="card green darken-1">
+                <div class="card-content white-text">
+                    <span class="card-title">Sucesso!</span>
+                    <p>Parabéns! A solicitação foi realizada com sucesso!<br>
+                    </p>
+                </div>
+            </div>
+        @endif
+    @endfor
+
+    {{-- Adicione isso logo acima do @if ($errors->any()) --}}
+@if ($message = Session::get('error'))
+    <div class="card red darken-1">
+        <div class="card-content white-text">
+            <span class="card-title">Atenção</span>
+            <p>{{ $message }}</p>
+        </div>
+    </div>
+@endif
+
 
   @if ($errors->any())
   <div class="alert alert-danger">
@@ -63,15 +55,70 @@
           </div>
         @endforeach
       </ul>
+    </div>
   </div>
 @endif
 
-<div class="card">
-  <div class="card-content">
-      <span class="card-title center"><b>Financeiro</b></span><br>
+</div>
+</div>
+
+<div class="container" style="padding-top: 50px; width: 95%;">
+    <div class="dashboard-header-zone center-align">
+        <h3 class="brand-title">Portal Financeiro <span class="accent-text">CargoPolo</span></h3>
+        <p class="brand-tagline">PLATAFORMA INTEGRADA DE PAGAMENTOS E BI</p>
+    </div>
+
+    <div class="balanced-grid">
+        {{-- CARD 1: PAINEL DE CONTROLE (GESTÃO E BI) --}}
+        <a href="{{ route('financeiro.resumo') }}" class="premium-card master-card">
+            <div class="shimmer"></div>
+            <div class="card-top">
+                <div class="main-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <div class="live-indicator">
+                    <span class="dot"></span> MÓDULO GESTOR
+                </div>
+            </div>
+            
+            <div class="card-info">
+                <h4 class="item-title">Painel de Controle</h4>
+                <p class="item-desc">Aprovação de chamados, liquidação de pagamentos, conferência de comprovantes e indicadores de BI.</p>
+            </div>
+
+            <div class="card-action">
+                <span>Gerenciar Operações</span>
+                <i class="fa-solid fa-arrow-right-long"></i>
+            </div>
+        </a>
+
+        {{-- CARD 2: FORMULÁRIO DE SOLICITAÇÃO --}}
+        <a href="{{ route('financeiro_fr.index') }}" class="premium-card request-card">
+            <div class="shimmer"></div>
+            <div class="card-top">
+                <div class="main-icon request-icon">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div class="status-badge">ACESSO RÁPIDO</div>
+            </div>
+            <div class="card-info">
+                <h4 class="item-title">Nova Solicitação</h4>
+                <p class="item-desc">Acesse o formulário para registrar novas demandas de pagamento, anexar notas e solicitar reembolsos.</p>
+            </div>
+            <div class="card-action">
+                <span>Abrir Formulário</span>
+                <i class="fa-solid fa-plus"></i>
+            </div>
+        </a>
+    </div>
+</div>
+
+
+
+{{--
             <span class="card-title center"><b>Utilizar a nova versão 2.0 do <a href="{{route('financeiro_fr.index')}}">Formulário Financeiro</a>.</b></span>
             <span class="card-title center"><b>Instrução de Trabalho:</b> <a href="/instrucao_financeiro.pdf">Como preencher o formulário financeiro a vista corretamente?</a></span>
-                  {{-- <span class="card-title center"><b>Caso tenha duvidas de preenchimento, favor abrir <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">chamado</a> para T.I</b></span> --}}
+                   <span class="card-title center"><b>Caso tenha duvidas de preenchimento, favor abrir <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">chamado</a> para T.I</b></span> --}}
 
 
 
@@ -269,6 +316,121 @@
 </div>
 
 </div>
+
+
+<style>
+    :root {
+        --deep-blue: #0a192f;
+        --electric-blue: #007bff;
+        --neon-cyan: #00f2ff;
+        --soft-gray: #f8f9fa;
+    }
+
+    .dashboard-header-zone { margin-bottom: 50px; }
+    .brand-title { font-weight: 900; color: var(--deep-blue); font-size: 2.2rem; letter-spacing: -1px; }
+    .brand-title .accent-text { color: var(--electric-blue); }
+    .brand-tagline { font-size: 0.7rem; font-weight: 700; color: #86868b; letter-spacing: 4px; }
+
+    /* Grid Simétrica */
+    .balanced-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    /* Base Premium */
+    .premium-card {
+        background: #ffffff;
+        border-radius: 30px;
+        padding: 45px 40px;
+        text-decoration: none !important;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 350px;
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    }
+
+    /* Cores dos Cards */
+    .master-card { background: var(--deep-blue) !important; color: white; }
+    .request-card { background: white !important; border: 1px solid rgba(0,0,0,0.08); }
+
+    /* Ícones Modernos */
+    .main-icon {
+        width: 65px; height: 65px;
+        background: linear-gradient(135deg, var(--electric-blue), var(--neon-cyan));
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem; color: white;
+        box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+    }
+
+    .request-icon {
+        background: var(--soft-gray);
+        color: var(--deep-blue);
+        box-shadow: none;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* Brilho Animado (Shimmer) */
+    .shimmer {
+        position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+        background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+        transform: skewX(-20deg);
+        animation: swipe 7s infinite linear;
+    }
+
+    @keyframes swipe {
+        0% { left: -120%; }
+        15% { left: 150%; }
+        100% { left: 150%; }
+    }
+
+    /* Badges de Status */
+    .live-indicator, .status-badge {
+        position: absolute; top: 45px; right: 40px;
+        font-size: 10px; font-weight: 800; padding: 7px 14px; border-radius: 50px;
+    }
+    .live-indicator { color: var(--neon-cyan); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; }
+    .status-badge { color: #5f6368; background: #f1f3f4; }
+
+    .dot { width: 7px; height: 7px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 10px var(--neon-cyan); animation: blink 2s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Textos */
+    .item-title { font-size: 1.8rem; font-weight: 800; margin: 30px 0 12px 0; letter-spacing: -0.5px; }
+    .request-card .item-title { color: var(--deep-blue); }
+    .item-desc { font-size: 1.05rem; line-height: 1.5; opacity: 0.8; font-weight: 400; }
+    .request-card .item-desc { color: #4b5563; }
+
+    /* Botão de Ação no Card */
+    .card-action {
+        margin-top: 35px; display: flex; align-items: center; gap: 12px;
+        font-weight: 700; font-size: 1rem; color: var(--neon-cyan);
+        transition: 0.3s ease;
+    }
+    .request-card .card-action { color: var(--electric-blue); }
+
+    /* Hover State */
+    .premium-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+    }
+    .master-card:hover { border-color: var(--neon-cyan); }
+    .request-card:hover { border-color: var(--electric-blue); }
+    .premium-card:hover .card-action { gap: 18px; }
+
+    /* Mobile */
+    @media (max-width: 850px) {
+        .balanced-grid { grid-template-columns: 1fr; }
+        .premium-card { min-height: auto; padding: 35px; }
+    }
+</style>
+
 
 
 <script>

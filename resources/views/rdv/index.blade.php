@@ -1,5 +1,5 @@
 @extends('layout')
-@section('title', 'RDV - Cargo Polo')
+@section('title', 'Relatório de Despesas')
 @section('conteudo')
 
 
@@ -29,6 +29,16 @@
         @endif
     @endfor
 
+    {{-- Adicione isso logo acima do @if ($errors->any()) --}}
+@if ($message = Session::get('error'))
+    <div class="card red darken-1">
+        <div class="card-content white-text">
+            <span class="card-title">Atenção</span>
+            <p>{{ $message }}</p>
+        </div>
+    </div>
+@endif
+
 
   @if ($errors->any())
   <div class="alert alert-danger">
@@ -44,6 +54,7 @@
           </div>
         @endforeach
       </ul>
+    </div>
   </div>
 @endif
 
@@ -54,7 +65,7 @@
   
   <div class="dashboard-grid">
 
-    <a href="{{ route('rdv.despesas')}}" class="dashboard-card">
+    <a href="{{ route('relatorio.resumo')}}" class="dashboard-card">
       <div class="icon">
         <i class="fa-solid fa-clipboard-list"></i>
       </div>

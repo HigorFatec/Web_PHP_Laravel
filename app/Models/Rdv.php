@@ -30,7 +30,9 @@ class Rdv extends Model
         'approval_token',
         'observacao',
         'SINTET',
-        'ANALIT'
+        'ANALIT',
+        'relatorio_id',
+        'pix'
     ];
 
     // É bom definir o inverso da relação também
@@ -230,53 +232,222 @@ public function produtosMateriais($id, $fornecedor, $produto, $valor,$ultimoId,$
 
 
 
-public function pagrat($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$produto,$sintet,$analit){
+public function pagrat($fornecedor, $valor, $id, $codunn, $codcus, $codgas, $produto, $sintet, $analit) {
 
+    DB::connection('sqlsrv')->beginTransaction();
 
-// 1. Inicia uma transação no SQL Server
-DB::connection('sqlsrv')->beginTransaction();
+    try {
+        // Convertemos para os tipos corretos
+        $id = (string) $id;
+        $valor = (float) $valor;
+        $codunn = (int) $codunn;
+        $codcus = (string) $codcus;
+        $codgas = (int) $codgas;
 
-try{
-
-    $id = (string) $id;
-    $valor = (float) $valor;
-    $codunn = (int) $codunn;
-    $codcus = (string) $codcus;
-    $codgas = (int) $codgas;
-
-        // 🔎 Verifica duplicidade e ajusta valor
-    while (
-        DB::connection('sqlsrv')->table('PAGRAT')
+        // 1. Procuramos se já existe um registro para este documento/rateio específico
+        // Note que NÃO incluímos o VALOR no 'where', pois queremos achar o registro para SOMAR a ele.
+        $registroId = DB::connection('sqlsrv')->table('PAGRAT')
             ->where('CODCLIFOR', $fornecedor)
             ->where('NUMDOC', $id)
-            ->where('VALOR', $valor)
-            ->exists()
-    ) {
-        $valor += 0.01; // soma 1 centavo até ficar único
+            ->where('CODUNN', $codunn)
+            ->where('CODCUS', $codcus)
+            ->where('CODCGA', $codgas)
+            ->where('SINTET',    $sintet) // Adicionado conforme sua regra
+            ->where('ANALIT',    $analit) // Adicionado conforme sua regra
+            ->value('ID_PAGRAT'); // Pega apenas o ID se existir
+
+        if ($registroId) {
+            // 2. Se existe, fazemos o UPDATE somando o valor novo ao atual
+            DB::connection('sqlsrv')->table('PAGRAT')
+                ->where('ID_PAGRAT', $registroId)
+                ->update([
+                    'VALOR'  => DB::raw("VALOR + $valor"), // Soma direto no SQL para evitar erro de precisão
+                    'DATATU' => DB::raw('GETDATE()'),
+                    'USUATU' => 'IMPORTACAO'
+                ]);
+        } else {
+            // 3. Se não existe, fazemos o INSERT normal
+            DB::connection('sqlsrv')->table('PAGRAT')->insert([
+                'ID_PAGRAT' => DB::raw('(SELECT ISNULL(MAX(ID_PAGRAT), 0) + 1 FROM PAGRAT)'),
+                'CODCLIFOR' => $fornecedor,
+                'SERIE'     => 'A',
+                'NUMDOC'    => $id,
+                'CODUNN'    => $codunn,
+                'CODCUS'    => $codcus,
+                'CODCGA'    => $codgas,
+                'SINTET'    => $sintet,
+                'ANALIT'    => $analit,
+                'VALOR'     => $valor,
+                'USUATU'    => 'IMPORTACAO',
+                'DATATU'    => DB::raw('GETDATE()'),
+            ]);
+        }
+
+        DB::connection('sqlsrv')->commit();
+
+    } catch (\Exception $e) {
+        DB::connection('sqlsrv')->rollBack();
+        throw $e;
     }
+}
 
-    DB::connection('sqlsrv')->table('PAGRAT')->insert([
-        'ID_PAGRAT' => DB::raw('(SELECT MAX(ID_PAGRAT) + 1 FROM PAGRAT)'),
-        'CODCLIFOR' => $fornecedor,
-        'SERIE' => 'A',
-        'NUMDOC' => $id,
-        'CODUNN' => $codunn,
-        'CODCUS' => $codcus,
-        'CODCGA' => $codgas,
-        'SINTET' => $sintet,
-        'ANALIT' => $analit,
-        'VALOR' => $valor,
-        'USUATU' => 'IMPORTACAO',
-        'DATATU' => DB::raw('GETDATE()'),
-    ]);
 
-    DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
+// public function pagrat($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$produto,$sintet,$analit){
+
+
+// // 1. Inicia uma transação no SQL Server
+// DB::connection('sqlsrv')->beginTransaction();
+
+// try{
+
+//     $id = (string) $id;
+//     $valor = (float) $valor;
+//     $codunn = (int) $codunn;
+//     $codcus = (string) $codcus;
+//     $codgas = (int) $codgas;
+
+//         // 🔎 Verifica duplicidade e ajusta valor
+//     while (
+//         DB::connection('sqlsrv')->table('PAGRAT')
+//             ->where('CODCLIFOR', $fornecedor)
+//             ->where('NUMDOC', $id)
+//             ->where('VALOR', $valor)
+//             ->exists()
+//     ) {
+//         $valor += 0.01; // soma 1 centavo até ficar único
+//     }
+
+//     DB::connection('sqlsrv')->table('PAGRAT')->insert([
+//         'ID_PAGRAT' => DB::raw('(SELECT MAX(ID_PAGRAT) + 1 FROM PAGRAT)'),
+//         'CODCLIFOR' => $fornecedor,
+//         'SERIE' => 'A',
+//         'NUMDOC' => $id,
+//         'CODUNN' => $codunn,
+//         'CODCUS' => $codcus,
+//         'CODCGA' => $codgas,
+//         'SINTET' => $sintet,
+//         'ANALIT' => $analit,
+//         'VALOR' => $valor,
+//         'USUATU' => 'IMPORTACAO',
+//         'DATATU' => DB::raw('GETDATE()'),
+//     ]);
+
+//     DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
+
+// } catch (\Exception $e) {
+//     DB::connection('sqlsrv')->rollBack();
+//     throw $e;
+// }
+// }
+
+
+
+
+public function pagratReembolso($id, $valor,$prazo,$codunn,$codcus,$codgas,$item_id,$solicitante){
+
+
+    // 1. Inicia uma transação no SQL Server
+    DB::connection('sqlsrv')->beginTransaction();
+
+    try{
+
+    // 2. BUSCA O ID E BLOQUEIA A TABELA (lockForUpdate)
+    // Isso diz ao SQL: "Estou lendo este valor e ninguém mais pode ler ou gravar até eu dar commit"
+    $ultimo = DB::connection('sqlsrv')->table('BANRAZ')
+                ->lockForUpdate() 
+                ->orderBy('ID_RAZ', 'desc')
+                ->first();
+
+    $novo_id = ($ultimo ? $ultimo->ID_RAZ : 0) + 1;
+
+    
+    $id = (int) $id;
+    $valor = (float) $valor;
+    $codunn = (int) $codunn;
+    $codgas = (int) $codgas;
+    $codcus = (string) $codcus;
+
+    $saldo_anterior = DB::connection('sqlsrv')
+        ->table('BANRAZ')
+        ->orderByDesc('ID_RAZ')
+        ->value('SLDATU');  // pega somente o valor
+
+    $saldo_anterior = (float) $saldo_anterior;
+
+    $saldo_atualizado = $saldo_anterior - (float) $valor;
+
+    $filial = 5;
+
+    $conta = '39020-5';
+
+
+
+DB::connection('sqlsrv')->table('BANRAZ')->insert([
+    'ID_RAZ' => DB::raw('(SELECT MAX(ID_RAZ) + 1 FROM BANRAZ)'),
+    'NUMDOC' => $id . '-' . $item_id, // Concatenando o ID do item para garantir unicidade
+    'CODCTA' => $conta,
+    'TIPDOC' => 'LVI',
+    'CODFIL' => $filial,
+    'TIPORI' => 'LVI',
+    'CODBCO' => 1,
+    'CODHISBC' => 4,
+    'CODPAD' => 1,
+    'ORIGEM' => 'LB',
+    'DATREF' => Carbon::now()->format('m/d/Y'),
+    'DATDOC' => Carbon::now()->format('m/d/Y'),
+    'VLRDOC' => $valor,
+    'DEBCRE' => 'C',
+    'DATCOM' => NULL,
+    'SITUAC' => 'O',
+    'SLDANT' => $saldo_anterior,
+    'SLDATU' => $saldo_atualizado,
+    'OBSERV' => 'PIX Reembolso de Adiantamento, Aprovado pelo Gestor: '.$prazo,
+    'COMPEN' => 'S',
+    'CODTAR' => NULL,
+    'DATATU' => DB::raw('GETDATE()'),
+    'USUATU' => 'IMPORTACAO',
+    'USUINC' => 'IMPORTACAO',
+    'CTATRA' => NULL, 
+    'DATINC' => DB::raw('GETDATE()'),
+    'CODCLIFOR' => NULL,
+    'BLOQUE' => 'N',
+    'NUMPED' => NULL,
+    'SOLICI' => $solicitante ?? 'Desconhecido',
+    'VLRITX' => 0,
+    'VLRITX_TRA' => 0,
+    'FINALI' => NULL,
+
+]);
+
+DB::connection('sqlsrv')->table('BANRAT')->insert([
+    'ID_BANRAT' => DB::raw('(SELECT MAX(ID_BANRAT) + 1 FROM BANRAT)'),
+    'NUMDOC' => $id,
+    'CODCTA' => $conta,
+    'TIPDOC' => 'LVI',
+    'CODFIL' => $filial,
+    'CODUNN' => $codunn,
+    'CODCGA' => $codgas,
+    'CODCUS' => $codcus,
+    'SINTET' => 494,
+    'ANALIT' => 53,
+    'VALOR' => $valor,
+    'DATATU' => DB::raw('GETDATE()'),
+    'USUATU' => 'IMPORTACAO',
+    'DATINC' => DB::raw('GETDATE()'),
+    'ID_RAZ' => DB::raw('(SELECT MAX(ID_RAZ) FROM BANRAZ)'),
+
+]);
+
+
+DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
 
 } catch (\Exception $e) {
     DB::connection('sqlsrv')->rollBack();
     throw $e;
 }
 }
+
+
 
 
 }

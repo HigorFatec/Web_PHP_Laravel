@@ -55,6 +55,11 @@ use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 
+use App\Http\Controllers\AdminController2;
+
+use App\Http\Controllers\PixController;
+
+use App\Http\Controllers\ReembolsoController;
 
 
 use Illuminate\Support\Facades\DB;
@@ -123,6 +128,29 @@ Route::get('/financeiro_fr', [FinanceiroFrController::class, 'index'])->name('fi
 
 Route::post('/financeiro_fr', [FinanceiroFrController::class, 'store'])->name('financeiro_fr.store');
 
+Route::get('/financeiro/buscar-pedido/{numped}', [FinanceiroFrController::class, 'buscarDadosPedido']);
+
+// ROTAS DE REEMBOLSO
+Route::get('/reembolso_fr', [ReembolsoController::class, 'reembolso'])->name('reembolso.create');
+
+Route::post('/reembolso_fr', [ReembolsoController::class, 'store_reembolso'])->name('reembolso.store');
+
+Route::get('/despesas_fr', [ReembolsoController::class, 'despesas'])->name('despesas.create');
+
+Route::post('/despesas_fr', [ReembolsoController::class, 'despesas_store'])->name('despesas.store');
+
+// Tela que o gestor acessa pelo link do e-mail
+Route::get('/reembolso/analise/{token}', [ReembolsoController::class, 'telaAprovacao'])->name('reembolso.tela_aprovacao');
+
+// Rota para o gestor aprovar/reprovar CADA despesa (item por item)
+Route::post('/reembolso/{id}/status', [ReembolsoController::class, 'updateStatus'])->name('reembolso.status');
+
+Route::post('/reembolso/{id}/finalizar', [ReembolsoController::class, 'finalizar'])->name('reembolso.finalizar');
+
+
+
+
+
 
 Route::get('/fornecedores/buscar', [FinanceiroFrController::class, 'buscarFornecedores'])
     ->name('fornecedores.buscar');
@@ -139,6 +167,9 @@ Route::get('/financeiro_fr/saldo', [FinanceiroFrController::class, 'saldo'])->na
 Route::post('/saldo/update', [FinanceiroFrController::class, 'update'])->name('saldo.update');
 Route::post('/gestor/update', [FinanceiroFrController::class, 'update_gestor'])->name('gestor.update');
 Route::post('/conta/update', [FinanceiroFrController::class, 'update_conta'])->name('conta.update');
+
+Route::post('/novo-saldo/update', [FinanceiroFrController::class, 'update_novo_saldo'])->name('novo-saldo.update');
+
 
 
 
@@ -226,8 +257,12 @@ Route::post('/finalizar-adiantamento/{id}', [AdiantamentoController::class, 'fin
 Route::get('/reserva/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 Route::get('/reserva/sobre', [SobreController::class, 'index'])->name('reserva.sobre');
 
+Route::get('/reserva/indicadores', [DashboardController::class, 'exibirBI'])->name('reserva.bi');
+
 Route::get('/admin/financeiro/dashboard', [FinanceiroController::class, 'dashboard'])->name('admin.financeiro-dashboard');
 
+
+Route::get('/pneu/indicadores', [DashboardController::class, 'exibirBI_PNEU'])->name('pneu.bi');
 
 
 
@@ -287,6 +322,7 @@ Route::get('/produto/reprovar/{token}', [ProdutoController::class, 'reprovar'])-
 Route::get('/financeiro/aprovar/{token}', [FinanceiroFrController::class, 'aprovar'])->name('financeiro.aprovar');
 Route::get('/financeiro/reprovar/{token}', [FinanceiroFrController::class, 'reprovar'])->name('financeiro.reprovar');
 
+
 Route::get('/adiantamento/aprovar/{token}', [AdiantamentoController::class, 'aprovar'])->name('adiantamento.aprovar');
 Route::post('/adiantamento/reprovar/{token}', [AdiantamentoController::class, 'reprovar'])->name('adiantamento.reprovar');
 Route::get('/adiantamento/reprovar/{token}', [AdiantamentoController::class, 'formReprovar'])->name('adiantamento.reprovar.form');
@@ -323,7 +359,73 @@ Route::post('/despesa/{id}/status', [RdvController::class, 'updateStatus'])->nam
 // Rota para o botão final de aprovação do Relatório todo
 Route::post('/relatorio/{id}/finalizar', [RdvController::class, 'finalizar'])->name('relatorio.finalizar');
 
+Route::get('/relatorio/resumo', [RdvController::class, 'resumo'])->name('relatorio.resumo');
 
+Route::post('/cancelar-relatorio/{id}', [RdvController::class, 'cancelarRelatorio'])->name('cancelar.relatorio');
+
+Route::post('/finalizar-relatorio/{id}', [RdvController::class, 'finalizarRelatorio'])->name('finalizar.relatorio');
+
+Route::post('/cancelar-relatorio/{id}', [RdvController::class, 'cancelarRelatorio'])->name('cancelar.relatorio');
+
+Route::post('/cancelar-despesa/{id}', [RdvController::class, 'cancelarDespesa'])->name('cancelar.despesa');
+
+
+
+Route::get('/financeiro/resumo', [FinanceiroFrController::class, 'resumo'])->name('financeiro.resumo');
+
+Route::get('/financeiro/finalizados', [FinanceiroFrController::class, 'indexFinalizados'])->name('financeiro.finalizados');
+
+
+Route::post('/atualizar-nota-fiscal/{id}', [FinanceiroFrController::class, 'updateFiscalStatus'])
+     ->name('update.fiscal.status');
+
+Route::post('/financeiro/aprovar_financeiro/{id}', [FinanceiroFrController::class, 'aprovar_financeiro'])->name('financeiro.aprovar_financeiro');
+Route::post('/financeiro/reprovar_financeiro/{id}', [FinanceiroFrController::class, 'reprovar_financeiro'])->name('financeiro.reprovar_financeiro');
+
+Route::get('/financeiro/reprovar/solicitacao/{id}', [FinanceiroFrController::class, 'formReprovar'])->name('financeiro.reprovar.form');
+
+// Rota para consulta rápida de pedido via AJAX
+Route::get('/financeiro/consultar-pedido/{pedido}', [FinanceiroFrController::class, 'consultarPedido'])
+     ->name('financeiro.consultar_pedido');
+
+Route::get('/financeiro/indicadores', [FinanceiroFrController::class, 'exibirBI'])->name('financeiro.bi');
+
+
+
+Route::post('/financeiro/finalizar_reembolso/{id}', [FinanceiroFrController::class, 'finalizar_reembolso'])->name('financeiro.finalizar_reembolso');
+
+
+
+// Route::get('/processar-massa-financeiro-xyz123', [FinanceiroFrController::class, 'dispararEmailsAtrasados'])
+//     ->middleware('auth'); // Garante que só você logado consiga disparar
+
+
+Route::get('/consultar-status/{numped}', function ($numped) {
+    // Se não houver número de pedido, retorna N/A
+    if (!$numped || $numped == 'N/I') {
+        return response()->json(['situacao' => '(N/A)']);
+    }
+
+    $resultado = DB::connection('sqlsrv')->select("
+        SELECT 
+            CASE SITUAC
+                WHEN 'A' THEN 'APROVADO'
+                WHEN 'B' THEN 'BAIXADO'
+                WHEN 'C' THEN 'CANCELADO'
+                WHEN 'D' THEN 'LIBERADO'
+                WHEN 'P' THEN 'PENDENTE'
+                WHEN 'R' THEN 'REPROVADO'
+                WHEN 'X' THEN 'BAIXADO PARCIAL'
+                ELSE 'OUTRO'
+            END AS situacao
+        FROM ESTPED
+        WHERE NUMPED = ?
+    ", [$numped]);
+
+    $textoStatus = count($resultado) > 0 ? $resultado[0]->situacao : '(N/A)';
+
+    return response()->json(['situacao' => $textoStatus]);
+});
 
 
 Route::get('/notificacoes/buscar', [NotificationController::class, 'fetch'])->name('notifications.fetch');
@@ -333,29 +435,33 @@ Route::get('/notificacoes/ler/{id}', [NotificationController::class, 'markAsRead
 
 
 Route::get('/fix-permissions', function () {
-    $path = storage_path('app/public/despesas');
+    $path = storage_path('app/public/adiantamento');
     
     if (file_exists($path)) {
         // Tenta definir a permissão para 775
-        chmod($path, 0775);
+        chmod($path, 0777);
         return "Permissões de '{$path}' alteradas para 775 com sucesso!";
     }
     
     return "Diretório não encontrado.";
 });
 
-Route::get('/storage/despesas/{filename}', function ($filename) {
-    $path = 'public/despesas/' . $filename;
+Route::get('/despesa/pix/{relatorio_id}', [RdvController::class, 'createPix']);
+Route::post('/despesa/pix/store', [RdvController::class, 'storePix'])->name('despesa.store_pix');
 
-    if (!Storage::exists($path)) {
-        abort(404);
-    }
 
-    $file = Storage::get($path);
-    $type = Storage::mimeType($path);
+// Route::get('/storage/despesas/{filename}', function ($filename) {
+//     $path = 'public/despesas/' . $filename;
 
-    return Response::make($file, 200)->header("Content-Type", $type);
-});
+//     if (!Storage::exists($path)) {
+//         abort(404);
+//     }
+
+//     $file = Storage::get($path);
+//     $type = Storage::mimeType($path);
+
+//     return Response::make($file, 200)->header("Content-Type", $type);
+// });
 
 
 // ROTAS PARA CHAT
@@ -426,3 +532,88 @@ Route::middleware('auth:os')->group(function () {
     Route::post('/os/atribuir-servicos', [OSController::class, 'assignSelectedServices'])->name('site.assignSelectedServices');
 
 });
+
+
+// Somente usuários com o setor 'admin' acessam essa gestão
+Route::middleware(['auth', 'setor:admin'])->group(function () {
+    Route::get('/admin/painel', [AdminController2::class, 'painel'])->name('admin.painel');
+    Route::put('/admin/usuarios/{user}/setores', [AdminController2::class, 'atualizarPermissoes'])->name('admin.setores.update');
+    
+    Route::post('/admin/usuarios/{id}/toggle-status', [AdminController2::class, 'toggleStatus']);
+
+    // ADICIONE ESTA LINHA ABAIXO:
+    Route::post('/admin/usuarios/{id}/toggle-setor', [AdminController2::class, 'toggleSetor']);
+});
+
+
+
+// Rota para disparar o comando manualmente
+Route::get('/admin/atualizar-saldos', function () {
+    // Chama o comando que você criou via código
+    Artisan::call('tabela:atualizar');
+
+    return back()->with('success', 'Saldos do Gustavo, Ronaldo e demais gestores atualizados com sucesso!');
+})->middleware(['auth', 'setor:admin,diretoria']); // Importante: Proteja essa rota!
+
+
+// // Somente usuários com o setor 'admin' acessam essa gestão
+// Route::middleware(['auth'])->group(function () {
+// });
+
+
+Route::get('/reset-bi', function () {
+    Cache::forget('pbi_access_token');
+    Cache::forget('pbi_embed_token_' . env('POWERBI_REPORT_ID'));
+    Cache::forget('pbi_embed_token_' . env('POWERBI_REPORT_ID_PNEU'));
+    Cache::forget('pbi_embed_token_' . env('POWERBI_REPORT_ID_RESERVA'));
+
+    return redirect()->route('financeiro.bi'); // Volta para a página do BI
+});
+
+// ROTA PARA SABER STATUS DO SERVIDOR (RAM, DISCO, CPU)
+
+Route::get('/server-monitor', function () {
+    // 1. MEMÓRIA RAM (Sistema)
+    $free = shell_exec('free -m');
+    if ($free) {
+        $data = explode("\n", trim($free));
+        $mem = explode(" ", preg_replace("/\s+/", " ", $data[1]));
+        $ram_total = $mem[1] . ' MB';
+        $ram_uso = $mem[2] . ' MB';
+    } else {
+        // Fallback caso shell_exec esteja bloqueado
+        $ram_total = ini_get('memory_limit');
+        $ram_uso = round(memory_get_usage(true) / 1024 / 1024, 2) . ' MB (Script)';
+    }
+
+    // 2. DISCO (HD)
+    $disk_total = round(disk_total_space("/") / (1024 * 1024 * 1024), 2) . ' GB';
+    $disk_free = round(disk_free_space("/") / (1024 * 1024 * 1024), 2) . ' GB';
+    $disk_uso = round(floatval($disk_total) - floatval($disk_free), 2) . ' GB';
+
+    // 3. CPU / CARGA DO SISTEMA
+    $load = sys_getloadavg(); // Retorna carga em 1, 5 e 15 min
+
+    return response()->json([
+        'gerenciador_de_tarefas' => [
+            'memoria_ram' => [
+                'total_servidor' => $ram_total,
+                'uso_atual' => $ram_uso,
+                'pico_do_laravel' => round(memory_get_peak_usage(true) / 1024 / 1024, 2) . ' MB',
+            ],
+            'armazenamento_hd' => [
+                'total' => $disk_total,
+                'usado' => $disk_uso,
+                'livre' => $disk_free,
+            ],
+            'processador_cpu' => [
+                'carga_media_1min' => $load[0],
+                'uso_php' => php_uname('m'), // Arquitetura
+            ],
+            'power_bi_status' => [
+                'token_em_cache' => Cache::has('pbi_access_token') ? 'Sim' : 'Não',
+            ]
+        ],
+        'aviso' => 'Placa de Vídeo (GPU) não disponível em ambiente de hospedagem compartilhada.'
+    ]);
+})->middleware(['auth']);

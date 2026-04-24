@@ -103,7 +103,14 @@ class VeiculoController extends Controller
         {
             $veiculo = Veiculo::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['suprimentos','admin'])){
                 if ($veiculo->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para cancelar este veiculo.');
                 }
@@ -131,7 +138,14 @@ class VeiculoController extends Controller
         {
             $veiculo = Veiculo::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['suprimentos','admin'])){
                 if ($veiculo->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para cancelar este veiculo.');
                 }

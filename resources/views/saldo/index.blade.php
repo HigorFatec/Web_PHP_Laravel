@@ -2,6 +2,9 @@
 @section('title','Saldo de Combustível Rede Frota')
 @section('conteudo')
 
+@if (@auth()->user()->id != null)
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -72,5 +75,11 @@
 
 </body>
 </html>
+
+@else
+<script>
+    window.location.href = '/login';
+</script>
+@endif
 
 @endsection

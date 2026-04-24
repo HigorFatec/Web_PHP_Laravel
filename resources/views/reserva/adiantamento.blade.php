@@ -83,9 +83,10 @@
 
 
             <span class="card-title center"><b>Dados do Funcionário</b></span>
-        <center><span>Não encontrou o fornecedor? <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">Clique aqui para abrir um chamado para cadastro</a></span></center>
+            <center><span class="card-description">Obs:<b>No rodopar</b> precisa estar cadastrado como <b>funcionário</b></span></center><br>
+        <center><span>Não encontrou o funcionário? <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">Clique aqui para abrir um chamado para cadastro</a></span></center>
 
-        Fornecedor: <br>
+        Funcionário: <br>
         <input type="text" id="search_fornecedor" placeholder="Buscar fornecedor... (Razão Social, Codigo Rodopar, CPF/CNPJ RESPEITANDO A PONTUAÇÃO !!!! )">
 
         <select name="fornecedor" id="fornecedor_select" class="browser-default" required>
@@ -138,7 +139,7 @@
     <select name="gestor_aprovador" id="gestor_aprovador" class="browser-default" required>
         <option value=""></option>
         @foreach ($filiais->unique(fn($item) => $item->cod_unidade . '-' . $item->cod_custo) as $filial)
-            <option value="{{ $filial->email_gestor }}" data-unidade="{{ $filial->cod_unidade }}">
+            <option value="{{ $filial->email_gestor }}" data-unidade="{{ $filial->cod_unidade }}" data-custo="{{ $filial->cod_custo }}">
                 {{ $filial->nome_gestor }}
             </option>
         @endforeach
@@ -162,20 +163,19 @@
     Titular da Conta:
     <input type="text" id="favorecido_input" name="titular" placeholder="Titular da Conta" required>
 
-    Pix:
-    <input type="text" name="pix" placeholder="PIX" required>
+    Pix: <i> (Obs <b>se estiver em branco, peça para cadastrarem no rodopar</b>)</i> <br>
+    <input type="text" name="pix" id="pix_input" placeholder="PIX" readonly><br><br>
 
-    Tipo de Chave Pix: <br>
-    <select name="tipo_pix" id="tipo_pix" required>
+    Tipo de Chave Pix:
+    <input type="text" 
+    name="tipo_pix" 
+    id="tipo_pix_input" 
+    class="form-control" 
+    readonly 
+    placeholder="Selecione um fornecedor..." 
+    style="background-color: #f8f9fa; cursor: not-allowed;">
 
-        <option value=" "></option>
-        <option value="Celular">Celular</option>
-        <option value="CPF/CNPJ">CPF/CNPJ</option>
-        <option value="E-mail">E-mail</option>
-        <option value="Chave Aleatória">Chave Aleatória</option>
-        <option value="Pix copia e cola">Pix copia e cola</option>
-
-    </select>
+    <br><br>
 
     <br>
     
@@ -250,7 +250,10 @@ $(function () {
                             data-agencia="${f.agencia ?? ''}"
                             data-conta="${f.conta ?? ''}"
                             data-favorecido="${f.favorecido ?? ''}"
-                            data-rg="${f.rg ?? ''}">
+                            data-rg="${f.rg ?? ''}"
+                            data-pix="${f.pix ?? ''}"
+                            data-tipo_pix="${f.tipo_pix ?? ''}">
+
                             ${f.codclifor} - ${f.razsoc} - ${f.cnpj}
                         </option>
                     `);
@@ -304,7 +307,10 @@ $(function() {
 
         var rg = $opt.data('rg') || '';
         $('#rg_input').val(rg);
-
+        var pix = $opt.data('pix') || '';
+        $('#pix_input').val(pix);
+        var tipo_pix = $opt.data('tipo_pix') || '';
+        $('#tipo_pix_input').val(tipo_pix);
     
     }
 
@@ -381,28 +387,43 @@ function atualizaCustoDoSelect(el) {
 
 
 <script>
+// 1. Quando a Filial muda (Filtro Geral)
 document.getElementById('filial_select').addEventListener('change', function () {
     let unidade = this.value;
 
-    // Centro de Custo
-    document.querySelectorAll('#centro_custo_select option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
+    const seletores = ['#centro_custo_select', '#centro_gasto_select', '#gestor_aprovador'];
+    
+    seletores.forEach(id => {
+        document.querySelectorAll(`${id} option`).forEach(opt => {
+            if (opt.value === "") return;
+            let pertenceAUnidade = opt.getAttribute('data-unidade') === unidade;
+            opt.hidden = !pertenceAUnidade;
+            opt.disabled = !pertenceAUnidade;
+        });
+        document.querySelector(id).value = ""; // Limpa seleções anteriores
     });
+});
 
-    // Centro de Gasto
-    document.querySelectorAll('#centro_gasto_select option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
-    });
+// 2. Quando o Centro de Custo muda (Refina o Gestor)
+document.getElementById('centro_custo_select').addEventListener('change', function () {
+    let unidadeSelecionada = document.getElementById('filial_select').value;
+    let custoSelecionado = this.value;
 
-    // Gestor Aprovador
     document.querySelectorAll('#gestor_aprovador option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
+        if (opt.value === "") return;
+
+        // Pega os dados do gestor
+        let gestorUnidade = opt.getAttribute('data-unidade');
+        let gestorCusto = opt.getAttribute('data-custo');
+
+        // Só mostra se pertencer à unidade E ao custo selecionado
+        let deveExibir = (gestorUnidade === unidadeSelecionada && gestorCusto === custoSelecionado);
+
+        opt.hidden = !deveExibir;
+        opt.disabled = !deveExibir;
     });
 
-    // limpa seleção anterior
-    document.getElementById('centro_custo_select').value = "";
-    document.getElementById('centro_gasto_select').value = "";
-    document.getElementById('gestor_aprovador').value = "";
+    document.getElementById('gestor_aprovador').value = ""; // Reseta o gestor
 });
 </script>
 

@@ -37,4 +37,10 @@ class UnidadesNegocio extends Model
         return $this->belongsTo(GestorFinanceiro::class, 'email_regional', 'email_gestor');
     }
 
+    public function gastoMensal()
+    {
+        // A Unidade se liga ao Financeiro pelo 'cod_unidade' (ou 'email_gestor', confirme qual é o ID único da unidade no financeiro)
+        return $this->hasMany(Financeiro::class, 'gestor_aprovador', 'email_gestor');
+    }
+
 }

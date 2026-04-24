@@ -2,6 +2,7 @@
 @section('title', 'Financeiro')
 @section('conteudo')
 
+@if (@auth()->user()->id != null)
 
 
 <div class="row">
@@ -51,13 +52,13 @@
 
 <form id="form-financeiro" action="{{route('financeiro_fr.store')}}"method="POST" enctype="multipart/form-data" onsubmit="return validarEmails() && validarFormulario() && disableButtonOnClick(this.querySelector('button[type=submit]'));">
     @csrf
-    <div class="btn-group center" role="group" aria-label="Tipo de Reserva">
-        <input type="hidden" name="tipo" id="tipo" required>
-        <button type="button" class="btn" data-value="avista">Pagamento à vista/Socorro em Rota</button>
-        <button type="button" class="btn" data-value="reembolso">Reembolso/Despesa</button>
-        <button type="button" class="btn" data-value="adiantamento">Adiantamento à Fornecedor (Almox)</button>
-    </div><br>
-    <br>
+        <div class="btn-group center" role="group" aria-label="Tipo de Reserva">
+            <input type="hidden" name="tipo" id="tipo" value="">
+
+            <button type="button" class="btn" data-value="avista">Pagamento à vista/Socorro em Rota</button>
+
+            <a href="{{ route('reembolso.create') }}" class="btn">Reembolso/Despesa</a>
+        </div><br>
 
 
 
@@ -67,13 +68,19 @@
 
         <input type="text" name="solicitante" placeholder="Nome do Solicitante" required>
 
+        Adiantamento à Fornecedor ? <b>(Almox)</b><br>
+        <select name="adiantamento_fornecedor" id="adiantamento_fornecedor" required>
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+        </select>
+
         Socorro em Rota? <br>
         <select name="socorro_em_rota" id="socorro_em_rota" required>
             <option value="nao">Não</option>
             <option value="sim">Sim</option>
         </select>
 
-        Tem Nota Fiscal? <br>
+        Fornecedor Emite Nota Fiscal ? <b>(se responder errado, terá que refazer)</b> <br>
         <select name="tem_nota_fiscal" id="tem_nota_fiscal" required>
            <option value="nao">Não</option> {{-- BAN RAZ --}}
            <option value="sim">Sim</option>
@@ -81,6 +88,13 @@
 
         <input type="text" name="pedido" id = "pedido_1" placeholder="Número Pedido de Compra(rodopar)" maxlength="6">
         <input type="text" name="placa" id="placa" placeholder="Placa" maxlength="10">
+
+
+        Frota Bloqueada ? <b><i>Obs:(apenas para socorro em rota)</i></b> <br>
+        <select name="frota_bloqueada" id="frota_bloqueada" required>
+            <option value="nao">Não</option>
+            <option value="sim">Sim</option>
+        </select>
 
         <input type="text" name="referencia" placeholder="Descrição de Solicitação"><br><br>
 
@@ -95,7 +109,7 @@
         </select>
 
 
-        <input type="text" id="cnpj_input" name="cnpj" placeholder="CNPJ/CPF">
+        <input type="text" id="cnpj_input" name="cnpj" placeholder="CNPJ/CPF" readonly>
         <input type="text" id="name_input" name="name" placeholder="Nome do Fornecedor">
         <input type="text" name="pamcard" placeholder="Pamcard"><br><br>
 
@@ -106,12 +120,23 @@
         <input type="number" id ="agencia_input" name="agencia" placeholder="Agencia">
         <input type="number" id="conta_input" name="conta" placeholder="Conta">
 
-
-        <input type="text" id="favorecido_input" name="favorecido" placeholder="Nome do Favorecido">
+        Favorecido (quem irá receber):<br>
+        <input type="text" id="favorecido_input" name="favorecido" placeholder="Nome do Favorecido"><br>
         <input type="text" id="valor" name="valor" placeholder="Valor">
-        <input type="text" id="pix_input" name="pix" placeholder="Chave Pix">
+
+        Pix: <i> (Obs <b>se estiver em branco, peça para cadastrarem no rodopar</b>)</i> <br>
+        <input type="text" name="pix" placeholder="Chave Pix">
 
         Tipo de Chave Pix: <br>
+
+        {{-- <div id="tipo_pix" data-valor="{{ $pix_tipo }}">
+            @if($pix_tipo == 1)
+                <span>Opção: CPF/CNPJ</span>
+            @elseif($pix_tipo == 2)
+                <span>Opção: E-mail</span>
+            @endif
+        </div> --}}
+
         <select name="tipo_pix" id="tipo_pix" required>
     
             <option value=" "></option>
@@ -152,12 +177,20 @@
         <input type="text" name="banco" placeholder="Banco">
         <input type="number" name="agencia" placeholder="Agencia">
         <input type="number" name="conta" placeholder="Conta">
-        <input type="text" name="favorecido" placeholder="Nome do Favorecido">
+        <input type="text" name="favorecido" placeholder="Nome do Favorecido" required>
         <input type="text" name="valor" placeholder="Valor">
-        <input type="text" name="pix" placeholder="Chave Pix">
+        <input type="text" id="pix_input" name="pix" placeholder="Chave Pix"><br>
 
+        {{-- <label>Tipo de Chave Pix:</label>
+        <input type="text" 
+        name="tipo_pix" 
+        id="tipo_pix_input" 
+        class="form-control" 
+        readonly 
+        placeholder="Selecione um fornecedor..." 
+        style="background-color: #f8f9fa; cursor: not-allowed;"> --}}
         Tipo de Chave Pix: <br>
-        <select name="tipo_pix" id="tipo_pix" required>
+         <select name="tipo_pix" id="tipo_pix" required>
     
             <option value=" "></option>
             <option value="Celular">Celular</option>
@@ -194,8 +227,10 @@
 
         <input type="text" name="banco" placeholder="Banco">
         <input type="number" name="agencia" placeholder="Agencia">
-        <input type="number" name="conta" placeholder="Conta">
-        <input type="text" name="favorecido" placeholder="Nome do Favorecido">
+        <input type="number" name="conta" placeholder="Conta"><br>
+
+        Favorecido <b>(quem irá receber)</b>:<br>
+        <input type="text" name="favorecido" placeholder="Nome do Favorecido" required>
         <input type="text" name="valor" placeholder="Valor">
         <input type="text" name="pix" placeholder="Chave Pix">
 
@@ -241,11 +276,11 @@
     
     <br>
     Filial: <br>
-    <select id="filial_select" name="cod_unidade" class="browser-default" required>
-        <option value=""></option>
-        @foreach ($filiais->unique('cod_unidade') as $filial)
-            <option value="{{ $filial->cod_unidade }}">
-                {{ $filial->unidade_negocio }}
+    <select id="unidade_negocio_select" name="cod_unidade" class="browser-default" required>
+        <option value="">Selecione a Unidade</option>
+        @foreach ($unidade->unique('DESCRI') as $filial)
+            <option value="{{ $filial->CODUNN }}">
+                {{ $filial->DESCRI }}
             </option>
         @endforeach
     </select><br>
@@ -253,9 +288,9 @@
     Centro de Custo: <br>
     <select id="centro_custo_select" name="cod_custo" class="browser-default" required>
         <option value=""></option>
-        @foreach ($filiais->unique(fn($item) => $item->cod_custo . '-' . $item->cod_unidade) as $filial)
-            <option value="{{ $filial->cod_custo }}" data-unidade="{{ $filial->cod_unidade }}">
-                {{ $filial->descri_custo }}
+        @foreach ($custo->unique('DESCRI') as $filial)
+            <option value="{{ $filial->CODCUS }}">
+                {{ $filial->DESCRI }}
             </option>
         @endforeach
     </select><br>
@@ -263,18 +298,22 @@
     Centro de Gasto: <br>
     <select id="centro_gasto_select" name="cod_gasto" class="browser-default" required>
         <option value=""></option>
-        @foreach ($filiais->unique(fn($item) => $item->cod_gasto . '-' . $item->cod_unidade) as $filial)
-            <option value="{{ $filial->cod_gasto }}" data-unidade="{{ $filial->cod_unidade }}">
-                {{ $filial->descri_gasto }}
+        @foreach ($gasto->unique('DESCRI') as $filial)
+            <option value="{{ $filial->CODCGA }}">
+                {{ $filial->DESCRI }}
             </option>
         @endforeach
     </select><br>
 
     Gestor Aprovador: <br>
-    <select name="gestor_aprovador" id="gestor_aprovador" class="browser-default" required>
+       <i><span>Não encontrou o gestor? <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">Clique aqui para abrir um chamado para cadastro</a></span></i>
+    <select name="gestor_aprovador"  class="browser-default" required>
+        {{-- id="gestor_aprovador" --}}
         <option value=""></option>
-        @foreach ($filiais->unique(fn($item) => $item->cod_unidade . '-' . $item->cod_custo) as $filial)
-            <option value="{{ $filial->email_gestor }}" data-unidade="{{ $filial->cod_unidade }}">
+        @foreach ($filiais->unique('nome_gestor') as $filial)
+            <option value="{{ $filial->email_gestor }}" 
+                    data-unidade="{{ $filial->cod_unidade }}" 
+                    data-custo="{{ $filial->cod_custo }}">
                 {{ $filial->nome_gestor }}
             </option>
         @endforeach
@@ -360,7 +399,9 @@ $(function () {
                             data-banco="${f.banco ?? ''}"
                             data-agencia="${f.agencia ?? ''}"
                             data-conta="${f.conta ?? ''}"
-                            data-favorecido="${f.favorecido ?? ''}">
+                            data-favorecido="${f.favorecido ?? ''}"
+                            data-pix="${f.pix ?? ''}"
+                            data-tipo_pix="${f.tipo_pix ?? ''}">
                             ${f.codclifor} - ${f.razsoc} - ${f.cnpj}
                         </option>
                     `);
@@ -544,6 +585,10 @@ $(function() {
         $('#conta_input').val(conta);
         var favorecido = $opt.data('favorecido') || '';
         $('#favorecido_input').val(favorecido);
+        var pix = $opt.data('pix') || '';
+        $('#pix_input').val(pix);
+        var tipo_pix = $opt.data('tipo_pix') || '';
+        $('#tipo_pix_input').val(tipo_pix);
     
     }
 
@@ -590,49 +635,47 @@ $(function() {
 
 
 
-<script>
-  // PRENCHIMENTO AUTOMATICO DE INPUTS
-
-function atualizaCustoDoSelect(el) {
-    let opt = $(el).find('option:selected');
-
-    let codCusto = opt.data('cod_custo') || '';
-    $('#cod_custo_input').val(codCusto);
-
-    let descriCusto = opt.data('descri_custo') || '';
-    $('#descri_custo_input').val(descriCusto);
-}
-
-</script>
-
-
 
 
 <script>
-document.getElementById('filial_select').addEventListener('change', function () {
-    let unidade = this.value;
+document.getElementById('unidade_negocio_select').addEventListener('change', function () {
+    // 1. Pega o valor da Unidade de Negócio selecionada (CODUNN)
+    let unidadeSelecionada = this.value; 
+    
+    // 2. Referência para o select de Gestores
+    let gestorSelect = document.getElementById('gestor_aprovador');
+    let optionsGestor = gestorSelect.querySelectorAll('option');
 
-    // Centro de Custo
-    document.querySelectorAll('#centro_custo_select option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
+    // 3. Itera sobre as opções de gestores
+    optionsGestor.forEach(opt => {
+        // Ignora a opção vazia (Ex: "Selecione...")
+        if (opt.value === "") return;
+
+        // Pega o código da unidade que está no data-unidade do Gestor
+        let unidadeDoGestor = opt.getAttribute('data-unidade');
+
+        // Compara os valores. Se for igual, mostra. Se não, esconde.
+        // Usamos '==' para que '01' seja igual a 1, caso haja diferença de tipos.
+        if (unidadeDoGestor == unidadeSelecionada) {
+            opt.hidden = false;
+            opt.disabled = false;
+        } else {
+            opt.hidden = true;
+            opt.disabled = true;
+        }
     });
 
-    // Centro de Gasto
-    document.querySelectorAll('#centro_gasto_select option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
-    });
-
-    // Gestor Aprovador
-    document.querySelectorAll('#gestor_aprovador option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
-    });
-
-    // limpa seleção anterior
-    document.getElementById('centro_custo_select').value = "";
-    document.getElementById('centro_gasto_select').value = "";
-    document.getElementById('gestor_aprovador').value = "";
+    // 4. Reseta o valor do gestor para vazio toda vez que a unidade mudar
+    gestorSelect.value = ""; 
 });
 </script>
+
+
+
+
+
+
+
 
 
 
@@ -644,8 +687,125 @@ document.getElementById('pedido_1').addEventListener('input', function () {
 
 
 
+@else
+<script>
+    window.location.href = '/login';
+</script>
+@endif
+
+
+<script>
+$(document).ready(function() {
+    $('#pix_input').on('blur', function() {
+        let valor = $(this).val().trim();
+
+        // 1. Se for E-mail: Remove apenas espaços
+        if (valor.includes('@')) {
+            valor = valor.replace(/\s/g, '');
+        } 
+        // 2. Se for Telefone, CPF ou CNPJ: Mantém apenas números
+        // O Mercado Pago prefere receber apenas números nesses casos
+        else {
+            // Remove pontos, traços, parênteses, espaços e o símbolo +
+            valor = valor.replace(/\D/g, ''); 
+            
+            // Se for telefone (ex: 16991234567), você pode opcionalmente 
+            // garantir que não tenha o +55 aqui, ou deixar para o Controller
+        }
+
+        $(this).val(valor);
+    });
+});
+</script>
 
 
 
+
+<script>
+$(document).ready(function() {
+    // 1. Função para filtrar o Gestor Aprovador manualmente
+    function filtrarGestorAutomatico(unidade, custo) {
+        const selectGestor = $('#gestor_aprovador');
+        const options = selectGestor.find('option');
+        let encontrou = false;
+
+        options.each(function() {
+            const opt = $(this);
+            if (opt.val() === "") return;
+
+            const gestorUnidade = opt.attr('data-unidade');
+            const gestorCusto = opt.attr('data-custo');
+
+            if (gestorUnidade == unidade && gestorCusto == custo) {
+                opt.show().prop('disabled', false);
+                if (!encontrou) {
+                    selectGestor.val(opt.val());
+                    encontrou = true;
+                }
+            } else {
+                opt.hide().prop('disabled', true);
+            }
+        });
+
+        if (!encontrou) selectGestor.val("");
+    }
+
+    // 2. Evento ao sair do campo Pedido
+    $('#pedido_1').on('blur', function() {
+        const numPed = $(this).val();
+        const tipo = $('#tipo').val();
+        const temNota = $('#tem_nota_fiscal').val();
+
+        if (numPed.length > 0 && tipo === 'avista' && temNota === 'sim') {
+            $.ajax({
+                url: '/financeiro/buscar-pedido/' + numPed,
+                method: 'GET',
+                beforeSend: function() {
+                    console.log('Buscando pedido: ' + numPed);
+                },
+                success: function(data) {
+                    // Preenche e trava
+                    $('#unidade_negocio_select').val(data.CODUNN).addClass('select-travado');
+                    $('#centro_custo_select').val(data.CODCUS).addClass('select-travado');
+                    $('#centro_gasto_select').val(data.CODCGA).addClass('select-travado');
+
+                    // Filtra o gestor
+                    filtrarGestorAutomatico(data.CODUNN, data.CODCUS);
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    alert('Pedido não encontrado no Rodopar.');
+                    $('.browser-default').removeClass('select-travado');
+                }
+            });
+        }
+    });
+
+    // 3. Reset ao mudar "Tem Nota Fiscal" (Proteção contra burla)
+    $('#tem_nota_fiscal').on('change', function() {
+        const temNota = $(this).val();
+        const selects = $('#unidade_negocio_select, #centro_custo_select, #centro_gasto_select, #gestor_aprovador');
+        
+        if (temNota === 'nao') {
+            $('#pedido_1').val('');
+            selects.removeClass('select-travado').val('');
+            $('#gestor_aprovador option').show().prop('disabled', false);
+        } else {
+            $('#pedido_1').val('').focus();
+            selects.val('');
+            alert('Para prosseguir, informe o número do pedido.');
+        }
+    });
+});
+</script>
+
+<style>
+    .select-travado {
+        pointer-events: none;
+        background-color: #f5f5f5 !important;
+        color: #9e9e9e !important;
+        cursor: not-allowed;
+    }
+</style>
 
 @endsection

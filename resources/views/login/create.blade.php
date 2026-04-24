@@ -24,7 +24,10 @@
                             <p class="login-subtitle">Preencha os dados para solicitar acesso</p>
                         </div>
 
-                        <form action="{{ route('users.store') }}" method="POST" id="registerForm">
+                        <span class="card-title center"><b>Desabilitado temporariamente, faça login pela microsoft com e-mail @<b>grupocargopolo.com.br</b></a>.</b></span>
+
+
+                        {{-- <form action="{{ route('users.store') }}" method="POST" id="registerForm">
                             @csrf
 
                             <div class="row">
@@ -89,7 +92,7 @@
                                     </button>
                                 </div>
                             </div>
-                        </form>
+                        </form> --}}
                     </div>
                 </div>
             </div>

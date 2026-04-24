@@ -47,6 +47,13 @@ class Financeiro extends Model
         'status',
         'emails',
         'approval_token',
+        'comprovante_pagamento',
+        'motivo_reprovacao',
+        'adiantamento_fornecedor',
+        'user_id',
+        'relatorio_id',
+        'despesas_selecionadas[]',
+        'frota_bloqueada',
 
     ];
 
@@ -78,7 +85,49 @@ public function unidadeAprovadora()
     return $this->belongsTo(UnidadesNegocio::class, 'gestor_aprovador', 'email_gestor');
 }
 
+public function despesas()
+{
+    return $this->hasMany(Reembolso::class, 'relatorio_id');
+}
 
+public function user()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
+
+
+public static function unidade_de_negocio() {
+    return DB::connection ('sqlsrv')
+    ->table('RODUNN')
+    ->select(
+        'CODUNN', 'DESCRI'
+        )
+    ->where('SITUAC', 'A')
+    ->orderBy('DESCRI')
+    ->get();
+} 
+
+public static function centro_de_custo() {
+    return DB::connection ('sqlsrv')
+    ->table('RODCUS')
+    ->select(
+        'CODCUS', 'DESCRI'
+        )
+    ->where('SITUAC', 'A')
+    ->orderBy('DESCRI')
+    ->get();
+}
+
+public static function centro_de_gasto() {
+    return DB::connection ('sqlsrv')
+    ->table('RODCGA')
+    ->select(
+        'CODCGA', 'DESCRI'
+        )
+    ->where('SITUAC', 'A')
+    ->orderBy('DESCRI')
+    ->get();
+}
 
 
 public function financeiroAvista($id, $valor, $solicitante, $fornecedor, $pedido,$placa,$prazo, $filial, $conta){
@@ -146,12 +195,12 @@ DB::connection('sqlsrv')->table('BANRAZ')->insert([
     'DATDOC' => Carbon::now()->format('m/d/Y'),
     'VLRDOC' => $valor,
     'DEBCRE' => 'D',
-    'DATCOM' => NULL,
+    'DATCOM' => Carbon::now()->format('m/d/Y'),
     'SITUAC' => 'I',
     'SLDANT' => $saldo_anterior,
     'SLDATU' => $saldo_atualizado,
     'OBSERV' => 'Socorro em Rota - Formulário Financeiro - aprovado por '.$prazo,
-    'COMPEN' => 'N',
+    'COMPEN' => 'S',
     'CODTAR' => 1687,
     'DATATU' => DB::raw('GETDATE()'),
     'USUATU' => 'IMPORTACAO',
@@ -190,7 +239,7 @@ DB::connection('sqlsrv')->table('BANRAT')->insert([
 DB::connection('sqlsrv')->table('BANRAZ')
     ->where('ID_RAZ', DB::raw('(SELECT MAX(ID_RAZ) FROM BANRAZ)'))
     ->update([
-    'SITUAC' => 'I',
+    'SITUAC' => 'O',
 ]);
 
 DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
@@ -220,7 +269,7 @@ try{
     DB::connection('sqlsrv')->table('PAGDOC')->insert([
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
-        'NUMDOC' => $fornecedor . '-' . $id,
+        'NUMDOC' => $id,
         'TIPDOC' => 'RCB',
         'CODFIL' => 5,
         'CODPAD' => 1,
@@ -236,25 +285,33 @@ try{
         'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
         'REFERE' => 'IMPORTACAO FORMULARIO FINANCEIRO, Aprovado por '.$prazo,
+        'USUINC' => 'IMPORTACAO',
+        'DATINC' => DB::raw('GETDATE()'),
+
 
     ]);
 
     DB::connection('sqlsrv')->table('PAGTRI')->insert([
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
-        'NUMDOC' => $fornecedor . '-' . $id,
+        'NUMDOC' => $id,
         'CODFIL' => 5,
         'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
+        'USUINC' => 'IMPORTACAO',
+        'DATINC' => DB::raw('GETDATE()'),
     ]);
 
     DB::connection('sqlsrv')->table('PAGDOCI')->insert([
         'ID_PAGDOCI' => DB::raw('(SELECT MAX(ID_PAGDOCI) + 1 FROM PAGDOCI)'),
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
-        'NUMDOC' => $fornecedor . '-' . $id,
+        'NUMDOC' => $id,
         'NUMPAR' => 1,
         'DATVEN' => Carbon::now()->format('m/d/Y'),
+        'DATPRE' => Carbon::now()->format('m/d/Y'),
+        'DATINC' => Carbon::now()->format('m/d/Y'),
+        'DATPAG' => Carbon::now()->format('m/d/Y'),        
         'SITUAC' => 'D',
         'VLRPAR' => $valor,
         'VLRPAG' => 0,
@@ -267,7 +324,7 @@ try{
         'ID_PAGRAT' => DB::raw('(SELECT MAX(ID_PAGRAT) + 1 FROM PAGRAT)'),
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
-        'NUMDOC' => $fornecedor . '-' . $id,
+        'NUMDOC' => $id,
         'CODUNN' => $codunn,
         'CODCUS' => $codcus,
         'CODCGA' => $codgas,
@@ -276,24 +333,30 @@ try{
         'VALOR' => $valor,
         'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
+        'DATINC' => DB::raw('GETDATE()'),
     ]);
 
     DB::connection('sqlsrv')->table('PAGMEN')->insert([
         'NUMLAN' => DB::raw('(SELECT MAX(NUMLAN) + 1 FROM PAGMEN)'),
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
-        'NUMDOC' => $fornecedor . '-' . $id,
+        'NUMDOC' => $id,
         'CODFIL' => 5,
-        'CODHISPG' => 1,
+        'CODHISPG' => 2,
         'DATLAN' => DB::raw('GETDATE()'),
+        'SITUAC' => 'L',
+        'NUMPAR' => 1,
+        'TIPDOC' => 'RCB',
+        'CODTAX' => 1,
         'DEBCRE' => 'C',
         'VLRLAN' => $valor,
+        'DATINC' => DB::raw('GETDATE()'),
         'DATATU' => DB::raw('GETDATE()'),
         'USUATU' => 'IMPORTACAO',
     ]);
 
     DB::connection('sqlsrv')->table('PAGDOC')
-    ->where('NUMDOC', $fornecedor . '-' . $id)
+    ->where('NUMDOC', $id)
     ->where('SERIE', 'A')
     ->where('CODCLIFOR', $fornecedor)
     ->update([
@@ -301,7 +364,7 @@ try{
     ]);
 
     DB::connection('sqlsrv')->table('OSEONF')
-    ->where('NUMDOC', $fornecedor . '-' . $id)
+    ->where('NUMDOC', $id)
     ->where('SERIE', 'A')
     ->where('CODCLIFOR', $fornecedor)
     ->update([
@@ -315,4 +378,163 @@ DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
     throw $e;
 }
 }
+
+
+
+
+
+
+
+// PROCESSO DE REEMBOLSO
+
+public function finalizar($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo,$valorLiquido,$valorUtilizado,$situacao){
+
+
+// 1. Inicia uma transação no SQL Server
+DB::connection('sqlsrv')->beginTransaction();
+
+try{
+
+    $id = (string) $id;
+    $valor = (float) $valor;
+    $codunn = (int) $codunn;
+    $codcus = (string) $codcus;
+    $codgas = (int) $codgas;
+
+
+    DB::connection('sqlsrv')->table('PAGDOC')->insert([
+        'CODCLIFOR' => $fornecedor,
+        'SERIE' => 'A',
+        'NUMDOC' => $id,
+        'TIPDOC' => 'REE',
+        'CODFIL' => 5,
+        'CODPAD' => 1,
+        'CODTAX' => 1,
+        'CODBCO' => 237,
+        'DATEMI' => DB::raw('GETDATE()'),
+        'DATINC' => DB::raw('GETDATE()'),
+        'DATREF' => DB::raw('GETDATE()'),
+        'ORIGEM' => 'E',
+        'SITUAC' => 'I',
+        'DESADT' => $valorUtilizado,
+        'VLRDOC' => $valor,
+        'VLRIND' => $valor,
+        'VLRLIQ' => $valorLiquido,
+        'VLRPAG' => 0,
+        'USUATU' => 'IMPORTACAO',
+        'DATATU' => DB::raw('GETDATE()'),
+        'REFERE' => 'IMPORTACAO FORMULARIO REEMBOLSO, Aprovado por '.$prazo,
+        'USUINC' => 'IMPORTACAO',
+
+
+    ]);
+
+    DB::connection('sqlsrv')->table('PAGTRI')->insert([
+        'CODCLIFOR' => $fornecedor,
+        'SERIE' => 'A',
+        'NUMDOC' => $id,
+        'CODFIL' => 5,
+        'USUATU' => 'IMPORTACAO',
+        'DATATU' => DB::raw('GETDATE()'),
+    ]);
+
+    DB::connection('sqlsrv')->table('PAGDOCI')->insert([
+        'ID_PAGDOCI' => DB::raw('(SELECT MAX(ID_PAGDOCI) + 1 FROM PAGDOCI)'),
+        'CODCLIFOR' => $fornecedor,
+        'SERIE' => 'A',
+        'NUMDOC' => $id,
+        'NUMPAR' => 1,
+        'DATVEN' => Carbon::now()->format('m/d/Y'),
+        'DATPRE' => Carbon::now()->format('m/d/Y'),
+        'DATINC' => Carbon::now()->format('m/d/Y'),
+        'DATPAG' => Carbon::now()->format('m/d/Y'),
+        'SITUAC' => $situacao,
+        'VLRPAR' => $valor,
+        'VLRPAG' => 0,
+        'DESADT' => $valorUtilizado,
+        'VLRLIQ' => $valorLiquido,
+        'VLRIND' => $valor,
+        'USUATU' => 'IMPORTACAO',
+        'DATATU' => DB::raw('GETDATE()'),
+
+    ]);
+
+
+    DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
+
+} catch (\Exception $e) {
+    DB::connection('sqlsrv')->rollBack();
+    throw $e;
+}
+}
+
+
+
+
+
+
+
+
+public function finalizar_2($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo,$valorLiquido,$valorUtilizado,$situacao){
+
+
+// 1. Inicia uma transação no SQL Server
+DB::connection('sqlsrv')->beginTransaction();
+
+try{
+
+    $id = (string) $id;
+    $valor = (float) $valor;
+    $codunn = (int) $codunn;
+    $codcus = (string) $codcus;
+    $codgas = (int) $codgas;
+
+    if($situacao !== 'D'){
+
+    DB::connection('sqlsrv')->table('PAGMEN')->insert([
+        'NUMLAN' => DB::raw('(SELECT MAX(NUMLAN) + 1 FROM PAGMEN)'),
+        'CODCLIFOR' => $fornecedor,
+        'SERIE' => 'A',
+        'NUMDOC' => $id,
+        'CODFIL' => 5,
+        'CODHISPG' => 2,
+        'DATLAN' => DB::raw('GETDATE()'),
+        'SITUAC' => 'L',
+        'NUMPAR' => 1,
+        'TIPDOC' => 'ACV',
+        'CODTAX' => 1,
+        'DEBCRE' => 'C',
+        'VLRLAN' => $valor,
+        'DATINC' => DB::raw('GETDATE()'),
+        'DATATU' => DB::raw('GETDATE()'),
+        'USUATU' => 'IMPORTACAO',
+    ]);
+    }
+
+    DB::connection('sqlsrv')->table('PAGDOC')
+    ->where('NUMDOC', $id)
+    ->where('SERIE', 'A')
+    ->where('CODCLIFOR', $fornecedor)
+    ->update([
+        'SITUAC' => $situacao,
+    ]);
+
+    DB::connection('sqlsrv')->table('OSEONF')
+    ->where('NUMDOC', $id)
+    ->where('SERIE', 'A')
+    ->where('CODCLIFOR', $fornecedor)
+    ->update([
+        'VLRDOC' => $valor,
+    ]);
+
+
+
+    DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
+
+} catch (\Exception $e) {
+    DB::connection('sqlsrv')->rollBack();
+    throw $e;
+}
+}
+
 }

@@ -67,6 +67,6 @@ class Kernel extends HttpKernel
         'only.from.home' => \App\Http\Middleware\OnlyFromHome::class,
         'check.supplier.token' => \App\Http\Middleware\CheckSupplierToken::class,
 
-
+        'setor' => \App\Http\Middleware\CheckSetor::class,
     ];
 }

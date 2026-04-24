@@ -2,6 +2,8 @@
 @section('title', 'Central de Formulários')
 @section('conteudo')
 
+@if (@auth()->user()->id != null)
+
 <div class="col s12 m6 offset-m3">
 
     @if ($message = Session::get('success'))
@@ -44,6 +46,18 @@
       </ul>
   </div>
 @endif
+
+
+<div class="container" style="margin-top: 20px; margin-bottom: -60px;">
+  <div class="anniversary-banner">
+    <div class="anniversary-content">
+      <i class="fa-solid fa-cake-candles"></i>
+      <span>Comemorando <strong>16 Anos</strong> de excelência e logística (2010 - 2026)</span>
+    </div>
+  </div>
+</div>
+
+
 
 </div>
 
@@ -118,7 +132,7 @@
 
     <a href="{{ route('goto.route', ['route' => 'rdv.index']) }}" class="dashboard-card">
       <div class="icon">
-        <i class="fa-solid fa-file-invoice"></i>
+        <i class="fa-brands fa-avianex"></i>
       </div>
       <div class="card-title">Rdv</div>
       <div class="card-description">Relatorio de Despesas</div>
@@ -149,6 +163,8 @@
 
   </div>
 </div>
+
+
 
 <style>
   .dashboard-grid {
@@ -278,5 +294,51 @@
 
 
 </style>
+
+
+
+
+
+<style>
+.anniversary-banner {
+    background: linear-gradient(135deg, #003366 0%, #005bb6 100%) !important;
+    border-radius: 18px !important;
+    padding: 15px 25px !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(0,51,102,0.3) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    animation: fadeInDown 0.8s ease-out !important;
+}
+
+.anniversary-content {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+    font-size: 1.1rem !important;
+}
+
+.anniversary-content i {
+    font-size: 1.8rem !important;
+    color: #ffc107 !important; /* Destaque em dourado para a celebração */
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+
+
+
+
+
+
+@else
+<script>
+    window.location.href = '/login';
+</script>
+@endif
 
 @endsection

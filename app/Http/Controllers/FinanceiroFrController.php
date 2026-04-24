@@ -15,6 +15,12 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage; 
+use ZipArchive;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use App\Models\Rdv;
+use Illuminate\Support\Facades\Cache; // Não esqueça do import
+
 
 
 
@@ -25,18 +31,266 @@ class FinanceiroFrController extends Controller
      */
     public function index(Request $request)
     {
-
-
         $filiais = UnidadesNegocio::orderBy('unidade_negocio')->get(); //->pluck('filial');
+
+        // $filiais = DB::connection('sqlsrv')->table('RODUNN')
+        //     ->select('CODUNN', 'DESCRI')
+        //     ->orderBy('DESCRI')
+        //     ->get();
+
+        $unidade = Financeiro::unidade_de_negocio();
+        $custo = Financeiro::centro_de_custo();
+        $gasto = Financeiro::centro_de_gasto();
+
+
+
         // NÃO carregue fornecedores aqui – AJAX fará isso
         $fornecedores = []; // opcional, apenas para evitar erro no Blade
 
         //dd($fornecedores->count(), $fornecedores->first());
-
-        
-        return view('financeiro_fr.index', compact('filiais','fornecedores'));
+    
+        return view('financeiro_fr.index', compact('filiais','fornecedores','unidade','gasto','custo'));
         //
     }
+
+
+    public function formReprovar($id)
+    {
+        $r = Financeiro::findOrFail($id);
+
+        
+        return view('financeiro_fr.reprovar', compact('r'));
+    }
+
+    public function resumo(Request $request)
+    {
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['financeiro','admin','suprimentos'])){
+
+            $financeiro = Financeiro::where('status', 'aprovado_gestor')
+            ->orWhere(function ($query) {
+                $query->where('status', 'aprovado')
+                    ->where('tipo', 'reembolso');
+            })
+            ->orderBy('created_at', 'desc')->get();
+
+            $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->get();
+
+            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados'));
+
+        } else {
+            $financeiro = Financeiro::where(function($query) {
+                    // Bloco 1: Regra de Permissão (Usuário ou Gestor)
+                    $query->where('user_id', auth()->id())
+                        ->orWhere('gestor_aprovador', auth()->user()?->email);
+                })
+                ->where(function($query) {
+                    // Bloco 2: Regra de Status e Tipo
+                    $query->whereIn('status', ['aprovado_gestor', 'pendente'])
+                        ->orWhere(function($subQuery) {
+                            $subQuery->where('status', 'aprovado')
+                                    ->where('tipo', 'reembolso');
+                        });
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+            $finalizados = Financeiro::where(function($query) {
+                    $query->where('user_id', auth()->id());
+                })
+                ->where('status', 'finalizado')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados'));
+
+        }
+
+    }
+
+    
+public function exibirBI()
+{
+    $user = auth()->user();
+
+    if (!$user || !$user->temSetor(['financeiro', 'admin'])) {
+        abort(403, 'Acesso negado.');
+    }
+
+    try {
+        // 1. Tenta pegar o Access Token do Cache (evita o bloqueio que o Django sofreu)
+        $accessToken = Cache::remember('pbi_access_token', 3000, function () {
+            $response = Http::asForm()->post("https://login.microsoftonline.com/" . env('POWERBI_TENANT_ID') . "/oauth2/v2.0/token", [
+                'grant_type'    => 'password',
+                'client_id'     => env('POWERBI_CLIENT_ID'),
+                'client_secret' => env('POWERBI_CLIENT_SECRET'),
+                'username'      => env('POWERBI_USERNAME'),
+                'password'      => env('POWERBI_PASSWORD'),
+                'scope'         => 'https://analysis.windows.net/powerbi/api/.default'
+            ]);
+
+            if ($response->failed()) {
+                throw new \Exception('Falha na autenticação Master User');
+            }
+
+            return $response->json()['access_token'];
+        });
+
+        // 2. Gerar o Embed Token (Este também pode ter um cache curto se o ReportID for fixo)
+        $groupId  = env('POWERBI_GROUP_ID');
+        $reportId = env('POWERBI_REPORT_ID');
+
+        // Dica: Se o dashboard é o mesmo para todos, faça cache aqui também!
+        $embedData = Cache::remember("pbi_embed_token_{$reportId}", 3000, function () use ($accessToken, $groupId, $reportId) {
+            $response = Http::withToken($accessToken)
+                ->post("https://api.powerbi.com/v1.0/myorg/groups/$groupId/reports/$reportId/GenerateToken", [
+                    'accessLevel' => 'view'
+                ]);
+
+            if ($response->failed()) {
+                throw new \Exception('Falha ao gerar Embed Token');
+            }
+
+            return [
+                'token' => $response->json()['token'],
+                'url'   => "https://app.powerbi.com/reportEmbed?reportId=$reportId&groupId=$groupId"
+            ];
+        });
+
+        $embedToken = $embedData['token'];
+        $embedUrl   = $embedData['url'];
+
+        // Verifica se a chave existe no cache antes de retornar a view
+        $veioDoCache = Cache::has('pbi_access_token') ? 'Sim (Otimizado)' : 'Não (Primeira carga)';
+
+        return view('financeiro_fr.bi', compact('embedToken', 'embedUrl', 'reportId', 'veioDoCache'));
+
+    } catch (\Exception $e) {
+        return "Erro no BI: " . $e->getMessage();
+    }
+}
+
+
+
+    public function indexFinalizados(Request $request)
+{
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['financeiro','admin','suprimentos'])){
+
+            $financeiro = Financeiro::where('status', 'aprovado_gestor')->orderBy('created_at', 'desc')->get();
+
+            $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->get();
+
+            return view('financeiro_fr.finalizados', compact('financeiro', 'finalizados'));
+
+        } else {
+            $financeiro = Financeiro::where('status', 'aprovado_gestor')->where('user_id', auth()->id())
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+            $finalizados = Financeiro::where(function($query) {
+                    $query->where('user_id', auth()?->id())
+                        ->orWhere('gestor_aprovador', auth()->user()?->email);
+                })
+                ->where('status', 'finalizado')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+
+
+            return view('financeiro_fr.finalizados', compact('financeiro', 'finalizados'));
+
+        }
+
+        
+
+    }
+
+    public function indexPendentes(Request $request)
+    {
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['financeiro','admin'])){
+
+            $pendentes = Financeiro::where('status', 'aprovado_gestor')->orderBy('created_at', 'desc')->get();
+
+            $pendentes->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+            return view('financeiro_fr.pendentes', compact('pendentes'));
+
+        } else {
+            $pendentes = Financeiro::where('status', 'aprovado_gestor')->where('user_id', auth()->id())
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            $pendentes->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+
+
+            return view('financeiro_fr.finalizados', compact('financeiro', 'finalizados'));
+
+        }
+
+    }
+
+
+
+
+
+
+    public function updateFiscalStatus(Request $request, $id)
+    {
+        // Validação básica
+        $request->validate([
+            'tem_nota_fiscal' => 'required|in:sim,nao'
+        ]);
+
+        try {
+            // Aqui usamos o seu modelo (provavelmente Relatorio ou Reserva)
+            // Ajuste "Financeiro" para o nome correto do seu Model
+            $registro = \App\Models\Financeiro::findOrFail($id); 
+            $registro->tem_nota_fiscal = $request->tem_nota_fiscal;
+            $registro->save();
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Status atualizado com sucesso!'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Erro ao atualizar.'
+            ], 500);
+        }
+    }
+
+
 
     public function buscarFornecedores(Request $request)
     {
@@ -61,6 +315,12 @@ class FinanceiroFrController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->has('valor')) {
+            $request->merge([
+                'valor' => str_replace(',', '.', $request->valor)
+            ]);
+        }
+
         $validatedData = $request->validate([
             'tipo' => 'nullable|string',
             'pedido' => 'nullable|string',
@@ -73,7 +333,7 @@ class FinanceiroFrController extends Controller
             'conta' => 'nullable|string',
             'pix' => 'nullable|string',
             'favorecido' => 'nullable|string',
-            'valor' => 'nullable|string',
+            'valor' => 'nullable|numeric',
             'motivo' => 'nullable|string',
             'filial' => 'nullable|string',
             'email' => 'required|email',
@@ -90,8 +350,12 @@ class FinanceiroFrController extends Controller
             'tem_nota_fiscal' => 'nullable|string',
             'gestor_aprovador' => ['required', 'string', 'not_regex:/^\s*$/'],
             'emails' => 'nullable|string',
-            'anexo_path' => 'nullable|string'
+            'anexo_path' => 'nullable|string',
+            'adiantamento_fornecedor' => 'nullable|string',
+            'frota_bloqueada' => 'nullable|string',
 
+        ],[
+            'valor.numeric' => 'O campo valor deve ser um número válido (ex: 1250.50).',
         ]);
 
 
@@ -107,6 +371,61 @@ class FinanceiroFrController extends Controller
             if (is_null($situacao)) {
                 return back()->withErrors(['pedido' => 'O número do pedido informado não existe no sistema.']);
             }
+            // if ($situacao !== 'A' && $situacao !== 'X') {
+            if ($situacao !== 'A' ) {
+                return back()->withErrors(['pedido' => 'O pedido informado não está na situação aprovado.']);
+            }
+
+            $valor = DB::connection('sqlsrv')
+                ->table('ESTPED')
+                ->where('NUMPED', $validatedData['pedido'])
+                ->value('VLRTOT');
+
+            if ($valor <= 0) {
+                return back()->withErrors(['pedido' => 'O valor total do pedido é zero ou negativo, não é possível processar.']);
+            }
+
+            // $centro_de_gasto = DB::connection('sqlsrv')
+            //     ->table('PEDRAT')
+            //     ->where('NUMPED', $validatedData['pedido'])
+            //     ->value('CODCGA');
+
+            // $descricao_gasto = DB::connection('sqlsrv')
+            //     ->table('RODCGA')
+            //     ->where('CODCGA', $centro_de_gasto)
+            //     ->value('DESCRI');
+            
+            // if ($centro_de_gasto != $validatedData['cod_gasto']) {
+            //     return back()->withErrors(['cod_gasto' => 'O centro de gasto informado não corresponde ao centro de gasto do pedido: '. $descricao_gasto]);
+            // }
+
+            // $centro_de_custo = DB::connection('sqlsrv')
+            //     ->table('PEDRAT')
+            //     ->where('NUMPED', $validatedData['pedido'])
+            //     ->value('CODCUS');
+            
+            // $descricao_custo = DB::connection('sqlsrv')
+            //     ->table('RODCUS')
+            //     ->where('CODCUS', $centro_de_custo)
+            //     ->value('DESCRI');
+            
+            // if ($centro_de_custo != $validatedData['cod_custo']) {
+            //     return back()->withErrors(['cod_custo' => 'O centro de custo informado não corresponde ao centro de custo do pedido: '. $descricao_custo]);
+            // }
+
+            // $unidade_negocio = DB::connection('sqlsrv')
+            //     ->table('PEDRAT')
+            //     ->where('NUMPED', $validatedData['pedido'])
+            //     ->value('CODUNN');
+            
+            // $descricao_unidade = DB::connection('sqlsrv')
+            //     ->table('RODUNN')
+            //     ->where('CODUNN', $unidade_negocio)
+            //     ->value('DESCRI'); 
+            
+            // if ($unidade_negocio != $validatedData['cod_unidade']) {
+            //     return back()->withErrors(['cod_unidade' => 'A unidade de negócio informada não corresponde à unidade de negócio do pedido: '. $descricao_unidade]);
+            // }
             }
         }
 
@@ -116,6 +435,8 @@ class FinanceiroFrController extends Controller
                 return back()->withErrors(['placa' => 'Para socorro em rota, a placa é obrigatória!']);
             }
         }
+        //Obter usuário autenticado
+        $user = Auth::user();
 
         // dd($validatedData);
 
@@ -123,6 +444,7 @@ class FinanceiroFrController extends Controller
             $validatedData,
             [
                 'approval_token' => Str::uuid(),
+                'user_id' => $user->id,
                 // 'status' => 'pendente'
                 'status' => ($validatedData['tipo'] === 'avista') ? 'pendente' : ($validatedData['status'] ?? null),
 
@@ -341,7 +663,71 @@ class FinanceiroFrController extends Controller
         return redirect()->route('financeiro_fr.index')->with('success', 'Solicitação realizada com sucesso!');
     }
 
-        // APROVAR - gestor clicou no link -> dispara para os setores
+
+public function dispararEmailsAtrasados()
+{
+    // 1. Busca todos os registros pendentes criados após a data específica
+    $solicitacoes = Financeiro::where('created_at', '>', '2026-03-23 10:26:00')
+        ->get();
+
+    if ($solicitacoes->isEmpty()) {
+        return "Nenhum registro pendente encontrado para este período.";
+    }
+
+    $contagem = 0;
+
+    foreach ($solicitacoes as $financeiro) {
+        // 2. Lógica para capturar e validar os e-mails (igual à sua)
+        $emailsValidos = [];
+        if (!empty($financeiro->emails)) {
+            $emailsArray = array_map('trim', explode(';', $financeiro->emails));
+            $emailsValidos = array_filter($emailsArray, function ($email) {
+                return filter_var($email, FILTER_VALIDATE_EMAIL);
+            });
+        }
+
+        $destinatarios = array_filter([
+            ...$emailsValidos,
+            $financeiro->email,
+            $financeiro->email_gestor,
+            $financeiro->gestor_aprovador,
+            $financeiro->unidadeAprovadora?->gestorRegional?->email_gestor
+        ], function ($email) {
+            return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
+        });
+
+        if (empty($destinatarios)) continue;
+
+        // 3. Carrega as relações necessárias para o template do e-mail
+        $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+        // 4. Dispara o e-mail (apenas se for avista, conforme sua lógica)
+        if ($financeiro->tipo == 'avista') {
+            Mail::send('emails.financeiro_avista', ['financeiro' => $financeiro], function($message) use ($financeiro, $destinatarios) {
+                $message->to($destinatarios);
+                
+                // Define o Assunto dinamicamente
+                $assunto = "PAGAMENTO A VISTA; PROTOCOLO: {$financeiro->id}";
+                if ($financeiro->socorro_em_rota == 'sim') $assunto = "SOCORRO EM ROTA; PROTOCOLO: {$financeiro->id}";
+                
+                $message->subject($assunto . " - FORNECEDOR: " . $financeiro->name);
+
+                if (!empty($financeiro->anexo_path) && Storage::disk('public')->exists($financeiro->anexo_path)) {
+                    $message->attach(storage_path('app/public/' . $financeiro->anexo_path));
+                }
+            });
+
+            // 5. Atualiza o status para não enviar duplicado se rodar de novo
+            // $financeiro->update(['status' => 'aprovado_gestor']);
+            $contagem++;
+        }
+    }
+
+    return "Processo concluído. {$contagem} solicitações foram aprovadas e e-mails enviados.";
+}
+
+
+
     public function aprovar($token)
     {
         $financeiro = Financeiro::where('approval_token', $token)->firstOrFail();
@@ -349,9 +735,8 @@ class FinanceiroFrController extends Controller
         if ($financeiro->status !== 'pendente') {
             return 'Solicitação já foi processada.';
         }
-
-        // ENVIAR VÁRIOS E-MAILS
-
+        
+            // ENVIAR VÁRIOS E-MAILS
         $emailsString = $financeiro->emails;
 
         $emailsValidos = []; // inicializa como array vazio
@@ -383,24 +768,18 @@ class FinanceiroFrController extends Controller
         });
 
         //FIM
-
         $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
 
         
-        if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
-            $financeiro->update(['id_raz' => DB::connection('sqlsrv')->table('BANRAZ')->max('ID_RAZ') + 1]);
-        } else {
-            $financeiro->update(['id_raz' => $financeiro->fornecedor. '-A-' . $financeiro->fornecedor .'-'. $financeiro->id]);
-        }
 
         // Decide qual e-mail disparar pelo tipo
         if ($financeiro->tipo == 'avista') {
             Mail::send('emails.financeiro_avista', [
                 'financeiro' => $financeiro,
             ], function($message) use ($financeiro,$emails){
-                $message->to('contasapagar@grupocargopolo.com.br');
+                //$message->to('contasapagar@grupocargopolo.com.br');
                 //$message->to('higor.machado@grupocargopolo.com.br');
-                $message->cc($emails);
+                $message->to($emails);
 
                 if ($financeiro->tipo == 'avista' && ($financeiro->socorro_em_rota == 'nao') && ( $financeiro->pedido == '000000' || $financeiro->pedido == null )){
                     $message->subject( 'PAGAMENTO A VISTA; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
@@ -408,6 +787,8 @@ class FinanceiroFrController extends Controller
                     $message->subject( 'PAGAMENTO A VISTA; PEDIDO: '. $financeiro->pedido . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
                 } elseif($financeiro->socorro_em_rota == 'sim'){
                     $message->subject( 'SOCORRO EM ROTA; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
+                } elseif($financeiro->adiantamento_fornecedor == 'sim'){
+                    $message->subject( 'ADIANTAMENTO FORNECEDOR; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
                 }
             
             if (!empty($financeiro->anexo_path) && Storage::disk('public')->exists($financeiro->anexo_path)) {
@@ -417,19 +798,11 @@ class FinanceiroFrController extends Controller
         );
         }
 
-        if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
-            $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->unidadeAprovadora->nome_gestor, $financeiro->cod_unidade, $financeiro->unidades->conta);
-            //$financeiro->update(['id_raz' => DB::connection('sqlsrv')->table('BANRAZ')->max('ID_RAZ')]);
-        } else{
-            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora->nome_gestor);
-
-        }
-
-        $financeiro->update(['status' => 'aprovado']);
+        $financeiro->update(['status' => 'aprovado_gestor']);
 
         return 'Solicitação aprovada com sucesso!';
     }
-
+    
 
 
     public function reprovar($token)
@@ -465,21 +838,247 @@ class FinanceiroFrController extends Controller
     }
 
 
+
+
+    public function finalizar_reembolso(Request $request, $id)
+    {
+        $financeiro = Financeiro::findOrFail($id);
+        
+        if ($financeiro->status !== 'aprovado') {
+            return 'Solicitação já foi processada.';
+        }
+        // 7. ATUALIZAÇÃO FINAL
+        $financeiro->update(['status' => 'finalizado']);
+
+        return redirect()->route('financeiro.resumo')->with('success', 'Solicitação realizada com sucesso!');
+        // return 'Solicitação aprovada com sucesso! Pagamento finalizado! Link enviado por e-mail. ';
+    }
+
+
+
+
+// APROVAR - gestor clicou no link -> dispara para os setores
+    public function aprovar_financeiro(Request $request, $id)
+    {
+        $financeiro = Financeiro::findOrFail($id);
+        
+        if ($financeiro->status !== 'aprovado_gestor') {
+            return 'Solicitação já foi processada.';
+        }
+
+        $fileUrl = null;
+
+        // 1. TRATAMENTO DO ARQUIVO
+if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()) {
+    $file = $request->file('comprovante');
+    
+    // 1. Gera o nome do arquivo
+    $fileName = 'comprovante_' . $financeiro->id . '_' . now()->format('YmdHis') . '.' . $file->getClientOriginalExtension();
+    
+    // 2. Define o caminho absoluto para a pasta (storage/app/public/comprovantes)
+    $destinationPath = storage_path('app/public/comprovantes');
+
+    // 3. Move o arquivo usando o método nativo (mais robusto contra o erro "Path cannot be empty")
+    $file->move($destinationPath, $fileName);
+
+    // 4. Salva o caminho RELATIVO no banco para o asset() e Storage:: buscar depois
+    $pathParaBanco = 'comprovantes/' . $fileName;
+
+    $financeiro->comprovante_pagamento = $pathParaBanco;
+    $financeiro->status = 'finalizado'; // Já atualiza o status aqui
+    $financeiro->save();
+
+    $fileUrl = asset('storage/' . $pathParaBanco);
+} else {
+    return back()->withErrors(['comprovante' => 'Arquivo inválido ou não selecionado.']);
+}
+
+
+        // 2. VALIDAÇÃO DE USUÁRIO
+        $user = Auth::user();
+        if($user === null){
+            return redirect()->route('login.form')->with('error', 'Você precisa estar logado para aprovar uma solicitação.');
+        }
+
+        // 3. TRATAMENTO DE E-MAILS
+        $emailsString = $financeiro->emails;
+        $emailsValidos = [];
+
+        if (!empty($emailsString)) {
+            $emailsArray = array_map('trim', explode(';', $emailsString));
+            $emailsValidos = array_filter($emailsArray, function ($email) {
+                return filter_var($email, FILTER_VALIDATE_EMAIL);
+            });
+
+            if (count($emailsValidos) !== count($emailsArray)) {
+                return back()->withErrors(['emails' => 'Um ou mais e-mails são inválidos.']);
+            }
+        }
+
+        $emails = array_filter([
+            ...$emailsValidos,
+            $financeiro->email,
+            $financeiro->email_gestor,
+            $financeiro->gestor_aprovador,
+            $user->email,
+            $financeiro->unidadeAprovadora?->gestorRegional?->email_gestor
+        ], function ($email) {
+            return filter_var(trim($email), FILTER_VALIDATE_EMAIL);
+        });
+
+        $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+        // 4. LÓGICA DE INTEGRAÇÃO (RAZ / SQL)
+        if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
+            $financeiro->update(['id_raz' => DB::connection('sqlsrv')->table('BANRAZ')->max('ID_RAZ') + 1]);
+        } else {
+            $financeiro->update(['id_raz' => $financeiro->fornecedor. '-A-' . $financeiro->fornecedor .'-'. $financeiro->id]);
+        }
+
+            // CONSULTANDO SE TEM PERMISSÃO PARA ACESSAR O BI
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        if (!$user->temSetor(['admin'])){
+
+        // 5. DISPARO DE E-MAILS
+        if ($financeiro->tipo == 'avista') {
+            Mail::send('emails.financeiro_avista_financeiro', [
+                'financeiro' => $financeiro, 
+                'link_comprovante' => $fileUrl, // Enviando o link para a View
+                'user' => $user
+            ], function($message) use ($financeiro, $emails){
+                
+                //$message->to('higor.machado@grupocargopolo.com.br');
+                $message->to('contasapagar@grupocargopolo.com.br');
+                $message->cc($emails);
+
+                // Assuntos dinâmicos
+                if ($financeiro->tipo == 'avista' && ($financeiro->socorro_em_rota == 'nao') && ( $financeiro->pedido == '000000' || $financeiro->pedido == null )){
+                    $message->subject( 'COMPROVANTE DISPONÍVEL - PAGAMENTO A VISTA; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
+                } elseif ($financeiro->tipo == 'avista' && ($financeiro->socorro_em_rota == 'nao') &&  $financeiro->pedido != null) {
+                    $message->subject( 'COMPROVANTE DISPONÍVEL - PAGAMENTO A VISTA; PEDIDO: '. $financeiro->pedido . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
+                } elseif($financeiro->socorro_em_rota == 'sim'){
+                    $message->subject( 'COMPROVANTE DISPONÍVEL - SOCORRO EM ROTA; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
+                }
+            
+                // Anexo do Comprovante
+                if (Storage::disk('public')->exists($financeiro->comprovante_pagamento)) {
+                    $message->attach(storage_path('app/public/' . $financeiro->comprovante_pagamento), [
+                        'as' => 'comprovante_pagamento.' . pathinfo($financeiro->comprovante_pagamento, PATHINFO_EXTENSION)
+                    ]);
+                }
+            });
+        }
+        }
+
+        // 6. EXECUÇÃO DE PROCEDURES FINANCEIRAS
+        if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
+            $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->unidadeAprovadora?->nome_gestor, $financeiro->cod_unidade, $financeiro->unidades->conta);
+        } else{
+            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora?->nome_gestor);
+        }
+
+        // 7. ATUALIZAÇÃO FINAL
+        $financeiro->update(['status' => 'finalizado']);
+
+        return redirect()->route('financeiro.resumo')->with('success', 'Solicitação realizada com sucesso!');
+        // return 'Solicitação aprovada com sucesso! Pagamento finalizado! Link enviado por e-mail. ';
+    }
+
+
+    
+    
+    public function reprovar_financeiro(Request $request, $id)
+    {
+        $financeiro = Financeiro::findOrFail($id);
+
+        if ($financeiro->status !== 'aprovado_gestor') {
+            return 'Solicitação já foi processada.';
+        }
+
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+        if($user === null){
+            //rota login
+            return redirect()->route('login.form')->with('error', 'Você precisa estar logado para aprovar uma solicitação.');
+        }
+
+        $request->validate([
+                'motivo_reprovacao' => 'required|string|min:5'
+        ]);
+
+        $financeiro->motivo_reprovacao = $request->motivo_reprovacao;
+        $financeiro->save();
+
+
+
+
+        $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+        Mail::send('emails.financeiro_reprovado_financeiro', ['financeiro' => $financeiro,'user' => $user], function($message) use ($financeiro,$user){
+            $message->to([$financeiro->email,$user->email]);
+            $message->cc([$financeiro->email_gestor,$financeiro->gestor_aprovador]);
+            $message->subject('Solicitação Reprovada - Protocolo: ' . $financeiro->id);
+        });
+
+        $gestor = $financeiro->unidadeAprovadora?->gestorRegional;
+
+        if (!$gestor) {
+            return 'Gestor regional não encontrado para esta unidade.';
+        }
+
+        $calculo = $gestor->saldo + $financeiro->valor;
+
+        $gestor->saldo = $calculo;
+        $gestor->save();
+
+        $financeiro->update(['status' => 'reprovado']);
+
+        return redirect()->route('financeiro.resumo')->with('success', 'Solicitação realizada com sucesso!');
+    }
+
+
     /**
      * Display the specified resource.
      */
-    public function saldo()
-    {
-        $saldo = GestorFinanceiro::get();
+public function saldo()
+{
+    $user = auth()?->user();
+    if (!$user) return redirect()->route('login.form');
 
-        $saldo->load('unidade');
+    if ($user->temSetor(['financeiro', 'admin', 'diretoria'])) {
+
+    $dataInicioMes = \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d');
+
+    $saldo = GestorFinanceiro::query()
+        ->addSelect(['total_gasto' => function ($query) use ($dataInicioMes) {
+            $query->selectRaw('COALESCE(SUM(valor), 0)')
+                ->from('financeiros')
+                ->whereIn('status', ['aprovado_gestor', 'finalizado', 'aprovado', 'pago'])
+                ->where('tipo', 'avista')
+                ->where('created_at', '>=', $dataInicioMes)
+                ->whereIn('gestor_aprovador', function ($sub) {
+                    $sub->select('email_gestor')
+                        ->from('unidades_negocio')
+                        // Faz a ligação: O regional da unidade deve ser o gestor desta linha
+                        ->whereRaw('unidades_negocio.email_regional COLLATE utf8mb4_unicode_ci = gestores_financeiro.email_gestor COLLATE utf8mb4_unicode_ci');
+                });
+        }])
+        ->with(['unidadeNegocio'])
+        ->get();
 
         $unidades = UnidadesNegocio::orderBy('unidade_negocio')->get();
 
-        return view('financeiro_fr.saldos', compact('saldo','unidades'));
-        //
+        return view('financeiro_fr.saldos', compact('saldo', 'unidades'));
     }
-
+    
+    abort(403);
+}
     public function update(Request $request)
     {
         $saldo = GestorFinanceiro::find($request->id);
@@ -497,6 +1096,25 @@ class FinanceiroFrController extends Controller
             'atualizado' => $saldo->updated_at->format('d/m/Y H:i:s')
         ]);
     }
+
+    public function update_novo_saldo(Request $request)
+    {
+        $saldo = GestorFinanceiro::find($request->id);
+
+        if (!$saldo) {
+            return response()->json(['success' => false, 'message' => 'Registro não encontrado']);
+        }
+
+        $saldo->novo_saldo = $request->saldo;
+        $saldo->save();
+
+        return response()->json([
+            'success' => true,
+            'novo_saldo' => $saldo->saldo,
+            'atualizado' => $saldo->updated_at->format('d/m/Y H:i:s')
+        ]);
+    }
+
 
     public function update_gestor(Request $request)
 {
@@ -592,6 +1210,69 @@ class FinanceiroFrController extends Controller
     }
 
 
+public function buscarDadosPedido($numped)
+{
+    try {
+        // Busca os dados do rateio no Rodopar
+        $dados = DB::connection('sqlsrv')
+            ->table('PEDRAT')
+            ->where('NUMPED', $numped)
+            ->select('CODUNN', 'CODCUS', 'CODCGA')
+            ->first();
+
+        if (!$dados) {
+            return response()->json(['erro' => 'Pedido não encontrado'], 404);
+        }
+
+        return response()->json($dados);
+
+    } catch (\Exception $e) {
+        // Se der erro, ele retorna a mensagem real para você ver no console do navegador
+        return response()->json(['erro' => $e->getMessage()], 500);
+    }
+}
+
+
+public function consultarPedido($pedido)
+{
+    // CONSULTANDO SE TEM PERMISSÃO PARA ACESSAR O BI
+    $user = auth()?->user();
+
+    if (!$user) {
+        return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+    }
+
+    if ($user->temSetor(['financeiro','admin','diretoria','suprimentos'])){
+
+    // Realiza a busca exata pelo número do pedido
+    $registro = \App\Models\Financeiro::where('pedido', $pedido)->first();
+
+    $registro->load('unidadeAprovadora');
+
+    if ($registro) {
+        return response()->json([
+            'sucesso' => true,
+            'id'      => $registro->id,
+            'favorecido' => $registro->favorecido,
+            'status'  => $registro->status,
+            'valor'   => number_format($registro->valor, 2, ',', '.'),
+            'socorro_em_rota' => $registro->socorro_em_rota,
+            'tipo'    => $registro->tipo,
+            'frota_bloqueada' => $registro->frota_bloqueada,
+            'gestor_aprovador' => $registro->unidadeAprovadora?->nome_gestor ?? 'N/A',
+        ]);
+    }
+
+    return response()->json([
+        'sucesso' => false,
+        'message' => 'Pedido não encontrado.'
+    ], 404);
+    }
+
+    else {
+        abort(403, 'Acesso negado para o seu setor.');
+    }
+}
 
 
     /**
@@ -615,190 +1296,13 @@ class FinanceiroFrController extends Controller
         //
     }
 
-public function dashboard(Request $request)
-    {
-        // --- 1. Filtro de Data ---
-        $startDate = $request->input('startDate') ? Carbon::parse($request->input('startDate'))->startOfDay() : Carbon::now()->startOfYear();
-        $endDate = $request->input('endDate') ? Carbon::parse($request->input('endDate'))->endOfDay() : Carbon::now()->endOfYear();
-
-        // --- NOVO: Captura o filtro de Tipo ---
-        $selectedTipo = $request->input('tipo');
-
-        $query = Financeiro::query()->whereBetween('created_at', [$startDate, $endDate]);
-
-        // --- NOVO: Aplica o filtro de Tipo se estiver presente ---
-        if ($selectedTipo) {
-            $query->where('tipo', $selectedTipo);
-        }
-
-        // 🚨 CHAME AGORA USANDO $this->cleanMoneyValue() 🚨
-        $cleanSql = $this->cleanMoneyValue('valor');
-
-        // O valor a ser comparado (500 mil)
-        $limite = 500000;
-
-        // APLICAÇÃO DO FILTRO DE VALOR (menor que 500k)
-        $query->whereRaw("{$cleanSql} < ?", [$limite]);
-
-        // -----------------------------------------------------------------
-
-        // --- 2. Métricas Principais (KPIs) ---
-        
-        // CALCULA O VALOR TOTAL USANDO A LIMPEZA
-        $valorTotal = (clone $query)
-            ->select(DB::raw("SUM({$cleanSql}) as total_sum"))
-            ->first()
-            ->total_sum ?? 0;
 
 
-        $totalPedidos = (clone $query)->count('id');
-        $valorMedio = $totalPedidos > 0 ? $valorTotal / $totalPedidos : 0;
-
-        $valorTotalFormatado = $this->formatBigNumber($valorTotal);
-        $valorMedioFormatado = $this->formatBigNumber($valorMedio);
-
-        // --- 3. Análise de Prazo --- (REMOVIDO CONFORME SOLICITADO)
-        // Removendo $atrasados e $noPrazo daqui.
-        
-        
-        // --- 4. Dados para Gráficos ---
-        // A. Movimentação Mensal
-        $movimentacaoMensal = (clone $query)
-            ->select(
-                DB::raw('MONTH(created_at) as mes'),
-                DB::raw("SUM({$cleanSql}) as total_mes") 
-            )
-            ->groupBy('mes')
-            ->orderBy('mes')
-            ->get();
-            
-        $meses = $movimentacaoMensal->pluck('mes')->map(fn($m) => Carbon::create(null, $m, 1)->translatedFormat('M'))->toArray();
-        // APLICAR number_format AQUI:
-        $totaisMensais = $movimentacaoMensal->pluck('total_mes')->map(fn($v) => number_format($v, 2, '.', ''))->toArray(); 
 
 
-        // B. Top 5 Filiais por Valor
-        $topFiliais = (clone $query)
-            ->select('filial', DB::raw("SUM({$cleanSql}) as total_filial")) 
-            ->groupBy('filial')
-            ->orderByDesc('total_filial')
-            ->take(5)
-            ->get();
-            
-        $filiaisLabels = $topFiliais->pluck('filial')->toArray();
-        // APLICAR number_format AQUI:
-        $filiaisTotais = $topFiliais->pluck('total_filial')->map(fn($v) => number_format($v, 2, '.', ''))->toArray();
-
-        // C. Distribuição por Tipo (Não usa 'valor', está OK)
-        $distribuicaoTipo = (clone $query)
-            ->select('tipo', DB::raw('COUNT(*) as contagem'))
-            ->groupBy('tipo')
-            ->get();
-            
-        $tiposLabels = $distribuicaoTipo->pluck('tipo')->toArray();
-        $tiposContagem = $distribuicaoTipo->pluck('contagem')->toArray();
-
-        // --- D. NOVO GRÁFICO: Tendência do Valor Médio Mensal ---
-        $valorMedioMensalData = (clone $query)
-            ->select(
-                DB::raw('MONTH(created_at) as mes'),
-                DB::raw("COUNT(*) as total_pedidos"),
-                DB::raw("SUM({$cleanSql}) as total_valor") // Usa o valor limpo
-            )
-            ->groupBy('mes')
-            ->orderBy('mes')
-            ->get();
-
-        $valorMedioMensal = $valorMedioMensalData->map(function ($item) {
-            $valorMedioBruto = $item->total_pedidos > 0 ? $item->total_valor / $item->total_pedidos : 0;
-            // APLICAR number_format AQUI:
-            return number_format($valorMedioBruto, 2, '.', '');
-        })->toArray();
-        
-        // --- E. NOVO GRÁFICO: Distribuição de Pedidos por Ano ---
-        $contagemAnualData = (clone $query)
-            ->select(
-                DB::raw('YEAR(created_at) as ano'),
-                DB::raw('COUNT(*) as contagem')
-            )
-            ->groupBy('ano')
-            ->orderBy('ano')
-            ->get();
-            
-        $anos = $contagemAnualData->pluck('ano')->toArray();
-        $contagemAnual = $contagemAnualData->pluck('contagem')->toArray();
 
 
-        // --- 5. Retorno para a View ---
-        return view('admin.financeiro-dashboard', compact(
-            'valorTotal', 
-            'totalPedidos', 
-            'valorMedio',
-            // 'atrasados', // REMOVIDO
-            // 'noPrazo',   // REMOVIDO
-            'meses', 
-            'totaisMensais',
-            'filiaisLabels',
-            'filiaisTotais',
-            'tiposLabels',
-            'tiposContagem',
-            'startDate', 
-            'endDate',
-            'valorTotalFormatado',
-            'valorMedioFormatado',
-            'selectedTipo',
-            'valorMedioMensal', // NOVO DADO
-            'anos',             // NOVO DADO
-            'contagemAnual'     // NOVO DADO
-        ));
-    }
 
-    // Dentro da classe FinanceiroController, adicione este método privado:
-private function formatBigNumber(float $number): string
-{
-    // Array com os sufixos e seus respectivos valores
-    $units = [
-        1000000000000 => 'T', // Trilhão
-        1000000000 => 'B',  // Bilhão
-        1000000 => 'M',     // Milhão
-        1000 => 'K',        // Mil
-    ];
 
-    // Verifica se o número é zero
-    if ($number == 0) {
-        return '0';
-    }
-
-    // Garante que o número seja positivo para o cálculo
-    $absNumber = abs($number);
-
-    // Itera sobre as unidades de maior para menor
-    foreach ($units as $unit => $suffix) {
-        if ($absNumber >= $unit) {
-            // Calcula o valor formatado com 2 casas decimais
-            $formattedValue = number_format($number / $unit, 2, ',', '.');
-            
-            // Retorna o valor com o sufixo
-            return 'R$ ' . $formattedValue . $suffix;
-        }
-    }
-
-    // Se for menor que mil, retorna o número normal formatado
-    return 'R$ ' . number_format($number, 2, ',', '.');
-}
-
-// Você pode criar um Helper ou colocar esta função dentro do seu Model ou Controller temporariamente
-
-private function cleanMoneyValue(string $columnName): string
-{
-    // Regex: [^0-9,] significa "qualquer caractere que NÃO seja (^) um número (0-9) OU uma vírgula (,)".
-    // Substituímos tudo o que for diferente de número ou vírgula por uma string vazia ('').
-    $removeSymbols = "REGEXP_REPLACE({$columnName}, '[^0-9,]', '')";
-
-    // Em seguida, substituímos a vírgula restante pelo ponto decimal, preparando para a soma.
-    $cleanedValue = "REPLACE({$removeSymbols}, ',', '.')";
-    
-    return $cleanedValue;
-}
 
 }

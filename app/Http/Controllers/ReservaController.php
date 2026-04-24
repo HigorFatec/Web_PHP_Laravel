@@ -40,17 +40,17 @@ class ReservaController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function minhasPassagens()
+    public function minhasPassagens(Request $request)
     {
+        $user = auth()?->user();
 
-        if (auth()->user()->admin == 1){
-            $passagens = Reserva::where('status','=','ok')->orderBy('created_at')->paginate(3);
-            $veiculos = Veiculo::where('status','=','ok')->orderBy('created_at')->paginate(3);
-            $hospedagem = Hospedagem::where('status','=','ok')->orderBy('created_at')->paginate(3);
-            $adiantamento = Adiantamento::where('status','=','ok')->orderBy('created_at')->paginate(3);
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
 
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['suprimentos','admin'])){
 
-        } elseif (auth()->user()->admin == 100) {
 
             $passagens = Reserva::where('status','=','ok')->orderBy('created_at')->paginate(3);
             $veiculos = Veiculo::where('status','=','ok')->orderBy('created_at')->paginate(3);
@@ -88,36 +88,108 @@ class ReservaController extends Controller
         return view('reserva.reservas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento'));
     }
 
-    public function reservas_pendentes()
+    public function reservas_pendentes(Request $request)
     {
-        if (auth()->user()->admin == 1 || auth()->user()->admin == 100){
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['suprimentos','admin'])){
+
             $pendentes = Reserva::where('status','=','pendente')->orderBy('created_at')->paginate(3);
             $pendente_hospedagem = Hospedagem::where('status','=','pendente')->orderBy('created_at')->paginate(3);
+            
+        } else {
+            $pendentes = Reserva::where('user_id', auth()->id())
+                                ->where('status', 'pendente')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
+            $pendente_hospedagem = Hospedagem::where('user_id', auth()->id())
+                                ->where('status', 'pendente')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
         }
 
         return view('reserva.reservas_pendentes', compact('pendentes', 'pendente_hospedagem'));
     }
 
 
-    public function canceladas()
+    public function canceladas(Request $request)
     {
-        if (auth()->user()->admin == 1 || auth()->user()->admin == 100){
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['suprimentos','admin'])){
             $passagens = Reserva::where('status','=','cancelada')->orderBy('created_at')->paginate(3);
             $veiculos = Veiculo::where('status','=','cancelada')->orderBy('created_at')->paginate(3);
             $hospedagem = Hospedagem::where('status','=','cancelada')->orderBy('created_at')->paginate(3);
             $adiantamento = Adiantamento::where('status','=','cancelada')->orderBy('created_at')->paginate(3);
+        } else {
+            $passagens = Reserva::where('user_id', auth()->id())
+                                ->where('status', 'cancelada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
+            $veiculos = Veiculo::where('user_id', auth()->id())
+                                ->where('status', 'cancelada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
+            $hospedagem = Hospedagem::where('user_id', auth()->id())
+                                ->where('status', 'cancelada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+            $adiantamento = Adiantamento::where('user_id', auth()->id())
+                                ->where('status', 'cancelada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
         }
 
         return view('admin.canceladas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento'));
     }
 
-    public function finalizadas()
+    public function finalizadas(Request $request)
     {
-        if (auth()->user()->admin == 1 || auth()->user()->admin == 100){
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+        if ($user->temSetor(['suprimentos','admin'])){
+
             $passagens = Reserva::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
             $veiculos = Veiculo::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
             $hospedagem = Hospedagem::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
             $adiantamento = Adiantamento::where('status','=','finalizada')->orderBy('created_at')->paginate(3);
+        } else {
+            $passagens = Reserva::where('user_id', auth()->id())
+                                ->where('status', 'finalizada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
+            $veiculos = Veiculo::where('user_id', auth()->id())
+                                ->where('status', 'finalizada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+
+            $hospedagem = Hospedagem::where('user_id', auth()->id())
+                                ->where('status', 'finalizada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
+            $adiantamento = Adiantamento::where('user_id', auth()->id())
+                                ->where('status', 'finalizada')
+                                ->orderBy('created_at', 'desc')
+                                ->paginate(3);
         }
 
         return view('admin.finalizadas', compact('passagens', 'veiculos', 'hospedagem', 'adiantamento'));
@@ -239,7 +311,14 @@ class ReservaController extends Controller
         {
             $reserva = Reserva::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if ($user->temSetor(['suprimentos','admin'])){
                 if ($reserva->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para cancelar este veiculo.');
                 }
@@ -267,7 +346,14 @@ class ReservaController extends Controller
         {
             $reserva = Reserva::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if ($user->temSetor(['suprimentos','admin'])){
                 if ($reserva->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para finalizar esta reserva.');
                 }
@@ -375,7 +461,14 @@ public function reenviar_pendencia($id)
             $reserva = Reserva::findOrFail($id);
 
     
-            if (auth()->user()->admin !== 1 || auth()->user()->admin !== 100) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['suprimentos','admin'])){
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');
                 if ($reserva->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');

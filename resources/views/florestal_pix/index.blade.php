@@ -41,7 +41,7 @@
     <br>
     E-mail: <br> <input type="email" name="email" id="email" required><br>
     E-mail do Gestor: <br> <input type="email" name="email_gestor" id="email_gestor" required>
-    Data/Hora: <br> <input type="text" name="data" id="data" required> <br>
+    Data/Hora: <br> <input type="datetime-local" name="data" id="data" required> <br>
     Número do Cupom: <br> <input type="text" name="cupom" id="cupom" required> <br>
     Placa:  <br> <input type="text" name="placa"  maxlength="7" id="placa" required> <br>
     KM do veiculo: <br> <input type="number" name="km" id="km" required> <br>

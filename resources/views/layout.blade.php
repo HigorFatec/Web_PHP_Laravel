@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
         <!-- jQuery -->
@@ -16,6 +18,8 @@
 
     <!-- JS Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -515,6 +519,107 @@ nav .nav-wrapper i {
 }
 /* Fim dos Estilos do Mini Chat */
 
+/* admin */
+
+/* Container do botão para dar espaçamento */
+    .admin-premium-wrapper {
+        padding: 15px 20px !important;
+        margin-top: 10px;
+    }
+
+    /* O Botão em si */
+    .admin-premium-btn {
+        background: linear-gradient(45deg, #184693, #1e88e5, #1565c0) !important;
+        background-size: 200% 200% !important;
+        animation: gradientAnimation 5s ease infinite !important;
+        border-radius: 12px !important;
+        height: auto !important;
+        line-height: normal !important;
+        padding: 12px 15px !important;
+        box-shadow: 0 4px 15px rgba(24, 70, 147, 0.4) !important;
+        display: block !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        transition: all 0.3s ease-in-out !important;
+    }
+
+    .admin-premium-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(24, 70, 147, 0.6) !important;
+        background-position: right center !important;
+    }
+
+    /* Alinhamento Interno */
+    .admin-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+
+    /* Círculo do Ícone */
+    .admin-icon-ring {
+        background: rgba(255, 255, 255, 0.2);
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+    }
+
+    .admin-icon-ring i {
+        color: #fff !important;
+        margin: 0 !important;
+        font-size: 20px !important;
+    }
+
+    /* Textos Stacked */
+    .admin-text-stack {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .admin-title {
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        font-size: 13px !important;
+        letter-spacing: 1px;
+    }
+
+    .admin-subtitle {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 10px !important;
+        font-weight: 400;
+    }
+
+    /* Badge Brilhante */
+    .admin-badge {
+        position: absolute;
+        right: -5px;
+        top: -5px;
+        background: #ffeb3b;
+        color: #000;
+        font-size: 9px;
+        font-weight: 900;
+        padding: 2px 6px;
+        border-radius: 20px;
+        box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+        text-transform: uppercase;
+    }
+
+    /* Animação do Gradiente */
+    @keyframes gradientAnimation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* Ajuste para não bugar o Materialize */
+    .sidenav li > a.admin-premium-btn > i {
+        display: contents !important;
+    }
+
     </style>
 
 
@@ -631,6 +736,23 @@ nav .nav-wrapper i {
 
     <li><a class="waves-effect" href="{{route('index')}}"><i class="material-icons blue-text text-darken-4">home</i>Início</a></li>
 
+    {{-- @if(auth()->user()->temSetor(['admin'])) --}}
+    <li class="admin-premium-wrapper">
+        <a class="waves-effect admin-premium-btn" href="{{route('admin.painel')}}">
+            <div class="admin-content">
+                <div class="admin-icon-ring">
+                    <i class="material-icons">security</i>
+                </div>
+                <div class="admin-text-stack">
+                    <span class="admin-title">PAINEL ADMIN</span>
+                    <span class="admin-subtitle">Gestão do Sistema</span>
+                </div>
+                <span class="admin-badge">PRO</span>
+            </div>
+        </a>
+    </li>
+    {{-- @endif --}}
+
     <li><div class="divider"></div></li>
     <li><a class="subheader">Suprimentos</a></li>
     
@@ -650,7 +772,7 @@ nav .nav-wrapper i {
                 </div>
             </li>
 
-            @if(in_array(auth()->user()->admin, [1, 100]))
+            @if(auth()->user()->temSetor(['admin', 'suprimentos']))
             <li>
                 <a class="collapsible-header waves-effect">
                     <i class="material-icons blue-text">assessment</i>Gestão Viagens
@@ -668,11 +790,11 @@ nav .nav-wrapper i {
         </ul>
     </li>
 
-    @if(in_array(auth()->user()->admin, [3, 4, 100]))
+    @if(auth()->user()->temSetor(['admin', 'suprimentos']))
     <li><a class="waves-effect" href="{{route('empresa.aprovacao')}}"><i class="material-icons teal-text">storefront</i>Fornecedores</a></li>
     @endif
 
-    @if(in_array(auth()->user()->admin, [3, 4, 100]))
+    @if(auth()->user()->temSetor(['admin', 'fiscal','aux_fiscal']))
     <li><div class="divider"></div></li>
     <li><a class="subheader">Fiscal</a></li>
     <li><a class="waves-effect" href="{{route('fiscal.aprovacao')}}"><i class="material-icons teal-text">fact_check</i>Pedidos Fiscais</a></li>
@@ -684,11 +806,11 @@ nav .nav-wrapper i {
     </li>
     @endif
 
-    @if(in_array(auth()->user()->admin, [5, 100]))
+    @if(auth()->user()->temSetor(['admin', 'financeiro']))
     <li><div class="divider"></div></li>
     <li><a class="subheader">Financeiro</a></li>
     <li><a class="waves-effect" href="{{route('financeiro_fr.saldo')}}"><i class="material-icons amber-text text-darken-3">account_balance_wallet</i>Ajustar Saldos e Gestores</a></li>
-    <li><a class="waves-effect" href="{{route('admin.financeiro-dashboard')}}"><i class="material-icons amber-text text-darken-3">insert_chart</i>Gestão Financeira</a></li>
+    <li><a class="waves-effect" href="{{route('financeiro.bi')}}"><i class="material-icons amber-text text-darken-3">insert_chart</i>Gestão Financeira</a></li>
     @endif
 
     <li><div class="divider"></div></li>

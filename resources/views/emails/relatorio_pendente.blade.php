@@ -21,7 +21,7 @@
     </style>
 </head>
 <body class="container">
-    <h2>Olá, {{ $relatorio->unidades->nome_gestor }}</h2>
+    <h2>Olá, {{ $relatorio->unidadeAprovadora?->nome_gestor }}</h2>
     <p>Uma nova solicitação de reembolso de viagem foi criada e aguarda sua análise detalhada.</p>
 
     <div class="card">

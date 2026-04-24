@@ -90,35 +90,62 @@ class Adiantamento extends Model
 
         public static function fornecedoresQuery($search = null)
         {
-            $query = DB::connection('sqlsrv')
-                ->table('RODCLI')
-                ->select(
-                    'CODCLIFOR as codclifor', 
-                    'RAZSOC as razsoc',
-                    DB::raw('ISNULL(CODCGC, CODCPF) as cnpj'),
-                    DB::raw('ISNULL(BANDEP, \'\') as banco'),
-                    DB::raw('ISNULL(NUMAGE, \'\') as agencia'),
-                    DB::raw('ISNULL(CONTAC, \'\') as conta'),
-                    DB::raw('ISNULL(NOMFAV, \'\') as favorecido'),
-                    DB::raw('ISNULL(INSCRI, \'\') as rg'),
-                );
+            try {
+                $conn = DB::connection('sqlsrv');
+                
+                // 1. Evita que a consulta fique esperando travas de outras tabelas
+                $query = $conn->table('RODCLI as r')
+                    ->lock('WITH (NOLOCK)') 
+                    ->select([
+                        'CODCLIFOR as codclifor', 
+                        'RAZSOC as razsoc',
+                        $conn->raw('ISNULL(CODCGC, CODCPF) as cnpj'),
+                        $conn->raw('ISNULL(BANDEP, \'\') as banco'),
+                        $conn->raw('ISNULL(NUMAGE, \'\') as agencia'),
+                        $conn->raw('ISNULL(CONTAC, \'\') as conta'),
+                        $conn->raw('ISNULL(NOMFAV, \'\') as favorecido'),
+                        $conn->raw('ISNULL(INSCRI, \'\') as rg'),
+                        $conn->raw("
+                            (CASE 
+                            WHEN CHVPRE = 1 THEN CHVCPF 
+                            WHEN CHVPRE = 2 THEN CHVEMA 
+                            WHEN CHVPRE = 3 THEN CHVCEL 
+                            WHEN CHVPRE = 4 THEN CHVALE
+                            ELSE '' 
+                            END) as pix
+                        "),
+                        $conn->raw("
+                        (CASE 
+                            WHEN CHVPRE = 1 THEN 'CPF/CNPJ' 
+                            WHEN CHVPRE = 2 THEN 'E-mail' 
+                            WHEN CHVPRE = 3 THEN 'Celular' 
+                            WHEN CHVPRE = 4 THEN 'Chave Aleatória'
+                            ELSE '' 
+                        END) as tipo_pix
+                        ")
 
-            if ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('RAZSOC', 'LIKE', "%{$search}%")
-                    ->where('CLASSI','5')
-                    ->orWhere('CODCPF', 'LIKE', "%{$search}%")
-                    ->where('CLASSI','5')
-                    ->orWhere('CODCGC', 'LIKE', "%{$search}%")
-                    ->where('CLASSI','5')
-                    ->orWhere('CODCLIFOR', 'LIKE', "%{$search}%")
-                    ->where('CLASSI','5');
-                });
+                    ])
+                    ->where('CLASSI', '5');
+
+                if ($search) {
+                    $query->where(function ($q) use ($search) {
+                        // Se possível, remova o primeiro '%' para ganhar performance
+                        $term = "%{$search}%"; 
+                        $q->where('RAZSOC', 'LIKE', $term)
+                        ->orWhere('CODCPF', 'LIKE', $term)
+                        ->orWhere('CODCGC', 'LIKE', $term)
+                        ->orWhere('CODCLIFOR', 'LIKE', $term);
+                    });
+                }
+
+                return $query->orderBy('CODCLIFOR', 'desc')
+                            ->limit(50)
+                            ->get();
+
+            } catch (\Exception $e) {
+                // Logar o erro se necessário: Log::error($e->getMessage());
+                return collect([]); // Retorna uma coleção vazia para não quebrar o front-end
             }
-
-            return $query->orderBy('CODCLIFOR', 'desc')
-                        ->limit(50) // deixar leve
-                        ->get();
         }
 
 
@@ -154,7 +181,7 @@ class Adiantamento extends Model
             'CODFIL' => $filial,
             'TIPORI' => 'ADV',
             'CODBCO' => 341,
-            'CODHISBC' => 124,
+            'CODHISBC' => 3,
             'CODPAD' => 1,
             'ORIGEM' => 'LB',
             'DATREF' => Carbon::now()->format('m/d/Y'),

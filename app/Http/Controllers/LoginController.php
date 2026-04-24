@@ -11,36 +11,39 @@ class LoginController extends Controller
 {
     
 
-    public function auth(Request $request){
+    public function auth(Request $request) {
         $credenciais = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => [
+                'required', 
+                'email', 
+                'regex:/^.+@grupocargopolo\.com\.br$/i' // Valida o domínio
+            ],
             'password' => ['required'],
-        ],[
+        ], [
             'email.required' => 'O campo email é obrigatório',
             'email.email' => 'O campo email deve ser um email válido',
+            'email.regex' => 'Apenas e-mails do @grupocargopolo.com.br são permitidos',
             'password.required' => 'O campo senha é obrigatório',
-            'password.min' => 'O campo senha deve ter no mínimo 8 caracteres',
-            'password.confirmed' => 'As senhas não coincidem',
-
         ]);
 
-        if(Auth::attempt($credenciais, $request->remember)){
+        if (Auth::attempt($credenciais, $request->remember)) {
             $request->session()->regenerate();
-            if(auth()->user()->admin == 2){
+            
+            // Dica: Você pode usar um 'switch' ou simplificar os ifs aqui
+            $user = auth()->user();
+            
+            if ($user->admin == 2) {
                 return redirect()->intended('/pagamento/aprovacoes');
-            } elseif (auth()->user()->admin == 3){
+            } elseif ($user->admin == 3 || $user->admin == 4) {
                 return redirect()->intended('/fiscal/aprovacoes');
-            } elseif (auth()->user()->admin == 4){
-                return redirect()->intended('/fiscal/aprovacoes');
-            }
-            else {
+            } else {
                 return redirect()->intended('/');
             }
-        } else{
+        } else {
             return redirect()->back()->with('erro', 'Usuário ou senha incorretos');
         }
-
     }
+
 
     public function logout(Request $request){
         Auth::logout();

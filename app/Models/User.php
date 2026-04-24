@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'email_gestor',
         'microsoft_id',
+        'ativo'
     ];
 
     /**
@@ -49,4 +50,23 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+public function setores()
+{
+    return $this->belongsToMany(Setor::class);
+}
+
+// Função auxiliar para facilitar a checagem no código
+public function temSetor($nomes)
+{
+    // 1. Garante que $nomes seja um array
+    $nomes = is_array($nomes) ? $nomes : [$nomes];
+
+    // 2. Faz uma consulta direta na tabela de ligação (pivô)
+    // Isso ignora qualquer cache e verifica a realidade do banco de dados agora.
+    return $this->setores()
+                ->whereIn('nome', $nomes)
+                ->exists();
+}
+
 }

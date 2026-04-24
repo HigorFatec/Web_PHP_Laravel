@@ -4,7 +4,7 @@
     <title>Novo Pagamento Pix Florestal solicitado</title>
 </head>
 <body>
-    <p>Data/Hora {{ $dados['data'] }}</p>
+    <p>Data/Hora: {{ \Carbon\Carbon::parse($dados['data'])->format('d/m/Y H:i') }}</p>
     <p>Número do Cupom: {{ $dados['cupom'] }}</p>
     <p>Placa: {{ $dados['placa'] }}</p>
     <p>KM do veiculo: {{$dados['km']}}</p>

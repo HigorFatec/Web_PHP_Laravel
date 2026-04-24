@@ -20,6 +20,7 @@ return [
         'redirect' => env('MICROSOFT_REDIRECT_URI'),
         'tenant' => env('MICROSOFT_TENANT_ID'),
     ],
+    
 
 
     'mailgun' => [

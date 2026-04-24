@@ -3,8 +3,6 @@
 @section('conteudo')
 
 
-
-
 @php $user = auth()->user(); @endphp
 
 @if (@auth()->user()->id != null)
@@ -49,7 +47,7 @@
         <input type="text" name='titulo' required>
 
         Motivo: 
-        <input type="text" name="motivo">
+        <input type="text" name="motivo" required>
 
 
 
@@ -88,7 +86,7 @@
         <select name="gestor_aprovador" id="gestor_aprovador" class="browser-default" required>
             <option value=""></option>
             @foreach ($filiais->unique(fn($item) => $item->cod_unidade . '-' . $item->cod_custo) as $filial)
-                <option value="{{ $filial->email_gestor }}" data-unidade="{{ $filial->cod_unidade }}">
+                <option value="{{ $filial->email_gestor }}" data-unidade="{{ $filial->cod_unidade }}" data-custo="{{ $filial->cod_custo }}">
                     {{ $filial->nome_gestor }}
                 </option>
             @endforeach
@@ -111,19 +109,30 @@
         <table class="striped highlight responsive-table">
             <thead>
                 <tr>
-                    <th>Incluir</th>
+                    <th>
+                        <label>
+                            <input type="checkbox" id="select-all" />
+                            <span>Incluir</span>
+                        </label>
+                    </th>
                     <th>Data</th>
                     <th>Funcionário</th>
                     <th>Despesa</th>
                     <th>Valor</th>
+                    <th>Anexo</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse ($despesas as $despesa)
+
+                @php
+                    $url = asset('storage/' . $despesa->anexo);
+                @endphp
+                
                     <tr>
                         <td>
                             <label>
-                                <input type="checkbox" name="despesas_selecionadas[]" value="{{ $despesa->id }}" />
+                                <input type="checkbox" name="despesas_selecionadas[]" class="checkbox-despesa" value="{{ $despesa->id }}" />
                                 <span></span>
                             </label>
                         </td>
@@ -131,10 +140,11 @@
                         <td>{{ substr($despesa->descricao_fornecedor,0,10) }}</td>
                         <td>{{ $despesa->descricao_despesa }}</td>
                         <td>R$ {{ number_format($despesa->valor, 2, ',', '.') }}</td>
+                        <td><a href="{{ $url }}" target="_blank">Visualizar</a></td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="center-align" style="padding: 20px;">
+                        <td colspan="6" class="center-align" style="padding: 20px;">
                             <i>Nenhuma despesa pendente para adicionar ao relatório.</i>
                         </td>
                     </tr>
@@ -187,29 +197,94 @@ function atualizaCustoDoSelect(el) {
 
 
 <script>
+// 1. Quando a Filial muda (Filtro Geral)
 document.getElementById('filial_select').addEventListener('change', function () {
     let unidade = this.value;
 
-    // Centro de Custo
-    document.querySelectorAll('#centro_custo_select option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
+    const seletores = ['#centro_custo_select', '#centro_gasto_select', '#gestor_aprovador'];
+    
+    seletores.forEach(id => {
+        document.querySelectorAll(`${id} option`).forEach(opt => {
+            if (opt.value === "") return;
+            let pertenceAUnidade = opt.getAttribute('data-unidade') === unidade;
+            opt.hidden = !pertenceAUnidade;
+            opt.disabled = !pertenceAUnidade;
+        });
+        document.querySelector(id).value = ""; // Limpa seleções anteriores
     });
-
-    // Centro de Gasto
-    document.querySelectorAll('#centro_gasto_select option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
-    });
-
-    // Gestor Aprovador
-    document.querySelectorAll('#gestor_aprovador option').forEach(opt => {
-        opt.hidden = opt.getAttribute('data-unidade') !== unidade && opt.value !== "";
-    });
-
-    // limpa seleção anterior
-    document.getElementById('centro_custo_select').value = "";
-    document.getElementById('centro_gasto_select').value = "";
-    document.getElementById('gestor_aprovador').value = "";
 });
+
+// 2. Quando o Centro de Custo muda (Refina o Gestor)
+document.getElementById('centro_custo_select').addEventListener('change', function () {
+    let unidadeSelecionada = document.getElementById('filial_select').value;
+    let custoSelecionado = this.value;
+
+    document.querySelectorAll('#gestor_aprovador option').forEach(opt => {
+        if (opt.value === "") return;
+
+        // Pega os dados do gestor
+        let gestorUnidade = opt.getAttribute('data-unidade');
+        let gestorCusto = opt.getAttribute('data-custo');
+
+        // Só mostra se pertencer à unidade E ao custo selecionado
+        let deveExibir = (gestorUnidade === unidadeSelecionada && gestorCusto === custoSelecionado);
+
+        opt.hidden = !deveExibir;
+        opt.disabled = !deveExibir;
+    });
+
+    document.getElementById('gestor_aprovador').value = ""; // Reseta o gestor
+});
+</script>
+
+
+<script>
+    $(document).ready(function() {
+    // Evento para o checkbox "Selecionar Todos"
+    $('#select-all').click(function() {
+        // Define o estado de todos os checkboxes baseados no "select-all"
+        $('.checkbox-despesa').prop('checked', this.checked);
+        
+        // Opcional: Adiciona uma cor de destaque na linha (tr) se estiver marcado
+        atualizarDestaqueLinhas();
+    });
+
+    // Evento para checkboxes individuais
+    $(document).on('change', '.checkbox-despesa', function() {
+        // Se algum for desmarcado, o "Selecionar Todos" também desmarca
+        if (!this.checked) {
+            $('#select-all').prop('checked', false);
+        }
+        
+        // Se todos forem marcados manualmente, o "Selecionar Todos" marca sozinho
+        if ($('.checkbox-despesa:checked').length == $('.checkbox-despesa').length) {
+            $('#select-all').prop('checked', true);
+        }
+        
+        atualizarDestaqueLinhas();
+    });
+
+    function atualizarDestaqueLinhas() {
+        $('.checkbox-despesa').each(function() {
+            if ($(this).is(':checked')) {
+                $(this).closest('tr').css('background-color', '#e3f2fd'); // Azul claro
+            } else {
+                $(this).closest('tr').css('background-color', '');
+            }
+        });
+    }
+});
+
+
+// Exemplo de verificação antes de enviar
+$('form').on('submit', function(e) {
+    if ($('.checkbox-despesa:checked').length === 0) {
+        e.preventDefault();
+        swal("Atenção!", "Selecione pelo menos uma despesa para criar o relatório.", "warning");
+        return false;
+    }
+});
+
 </script>
 
 @endsection

@@ -220,7 +220,14 @@ public function reenviar_pendencia($id)
             $hospedagem = Hospedagem::findOrFail($id);
 
     
-            if (auth()->user()->admin !== 1 || auth()->user()->admin !== 100) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['suprimentos','admin'])){
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');
                 if ($hospedagem->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para reenviar a solicitação.');
@@ -272,7 +279,14 @@ public function reenviar_pendencia($id)
         {
             $hospedagem = Hospedagem::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['suprimentos','admin',])){
                 if ($hospedagem->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para cancelar esta hospedagem.');
                 }
@@ -300,7 +314,14 @@ public function reenviar_pendencia($id)
         {
             $hospedagem = Hospedagem::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['suprimentos','admin'])){
                 if ($hospedagem->user_id !== auth()->id()) {
                     return redirect()->route('reserva.reservas')->with('error', 'Você não tem permissão para cancelar esta hospedagem.');
                 }

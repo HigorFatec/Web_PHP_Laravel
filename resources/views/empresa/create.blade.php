@@ -49,8 +49,8 @@
 
         <div class="btn-group center" role="group" aria-label="Tipo de Fornecedor">
             <input type="hidden" name="tipo" id="tipo" required>
-            <button type="button" class="btn" data-value="juridico">Fornecedor Juridico</button>
-            <button type="button" class="btn" data-value="fisico">Fornecedor Fisico</button>
+            <button type="button" class="btn" data-value="juridico">Pessoa Jurídica</button>
+            <button type="button" class="btn" data-value="fisico">Pessoa Física</button>
         </div><br>
         <br>
 

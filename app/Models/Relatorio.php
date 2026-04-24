@@ -35,7 +35,8 @@ class Relatorio extends Model
         'status',
         'approval_token',
         'valor',
-        'id_rodopar'
+        'id_rodopar',
+        'pix_reembolso'
     ];
 
     public function despesas()
@@ -346,6 +347,7 @@ try{
         'CODTAX' => 1,
         'CODBCO' => 237,
         'DATEMI' => DB::raw('GETDATE()'),
+        'DATINC' => DB::raw('GETDATE()'),
         'DATREF' => DB::raw('GETDATE()'),
         'ORIGEM' => 'E',
         'SITUAC' => 'I',
@@ -357,6 +359,8 @@ try{
         'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
         'REFERE' => 'IMPORTACAO FORMULARIO DESPESAS, Aprovado por '.$prazo,
+        'USUINC' => 'IMPORTACAO',
+
 
     ]);
 
@@ -376,6 +380,9 @@ try{
         'NUMDOC' => $id,
         'NUMPAR' => 1,
         'DATVEN' => Carbon::now()->format('m/d/Y'),
+        'DATPRE' => Carbon::now()->format('m/d/Y'),
+        'DATINC' => Carbon::now()->format('m/d/Y'),
+        'DATPAG' => Carbon::now()->format('m/d/Y'),
         'SITUAC' => $situacao,
         'VLRPAR' => $valor,
         'VLRPAG' => 0,
@@ -384,6 +391,7 @@ try{
         'VLRIND' => $valor,
         'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
+
     ]);
 
 
@@ -416,6 +424,7 @@ try{
     $codcus = (string) $codcus;
     $codgas = (int) $codgas;
 
+    if($situacao !== 'D'){
 
     DB::connection('sqlsrv')->table('PAGMEN')->insert([
         'NUMLAN' => DB::raw('(SELECT MAX(NUMLAN) + 1 FROM PAGMEN)'),
@@ -423,13 +432,19 @@ try{
         'SERIE' => 'A',
         'NUMDOC' => $id,
         'CODFIL' => 5,
-        'CODHISPG' => 1,
+        'CODHISPG' => 2,
         'DATLAN' => DB::raw('GETDATE()'),
+        'SITUAC' => 'L',
+        'NUMPAR' => 1,
+        'TIPDOC' => 'ACV',
+        'CODTAX' => 1,
         'DEBCRE' => 'C',
         'VLRLAN' => $valor,
+        'DATINC' => DB::raw('GETDATE()'),
         'DATATU' => DB::raw('GETDATE()'),
         'USUATU' => 'IMPORTACAO',
     ]);
+    }
 
     DB::connection('sqlsrv')->table('PAGDOC')
     ->where('NUMDOC', $id)
@@ -456,6 +471,8 @@ try{
     throw $e;
 }
 }
+
+
 
 
 

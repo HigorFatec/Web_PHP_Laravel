@@ -27,12 +27,12 @@ class AtualizarMinhaTabela extends Command
      */
     public function handle()
     {
-        DB::table('gestores_financeiro')
-            ->update([
-                'saldo' => '100000',
-                'updated_at' => now()
-            ]);
+        // O DB::raw('novo_saldo') garante que o valor seja copiado individualmente por linha
+        DB::table('gestores_financeiro')->update([
+            'saldo'      => DB::raw('saldo + novo_saldo'),
+            'updated_at' => now() // Para atualizar a data na sua tabela Blade
+        ]);
 
-        $this->info('Tabela atualizada com sucesso!');
+        $this->info('Saldos incrementados com sucesso!');
     }
 }

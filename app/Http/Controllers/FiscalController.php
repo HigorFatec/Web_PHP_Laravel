@@ -365,7 +365,15 @@ class FiscalController extends Controller
         {
             $fiscal = Fiscal::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+                    //
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['fiscal','admin','aux_fiscal'])){
                 if ($fiscal->user_id !== auth()->id()) {
                     return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
                 }
@@ -393,10 +401,17 @@ class FiscalController extends Controller
     {
         $fiscal = Fiscal::findOrFail($id);
 
-        if (auth()->user()->admin == 0) {
-            if ($fiscal->user_id !== auth()->id()) {
-                return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
             }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['fiscal','admin','aux_fiscal'])){
+                if ($fiscal->user_id !== auth()->id()) {
+                    return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
+                }
         }
 
         //$reserva->delete();
@@ -421,7 +436,14 @@ class FiscalController extends Controller
         {
             $fiscal = Fiscal::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['fiscal','admin','aux_fiscal'])){
                 if ($fiscal->user_id !== auth()->id()) {
                     return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
                 }
@@ -450,7 +472,14 @@ class FiscalController extends Controller
         {
             $fiscal = Fiscal::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['fiscal','admin','aux_fiscal'])){
                 if ($fiscal->user_id !== auth()->id()) {
                     return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
                 }
@@ -478,7 +507,14 @@ class FiscalController extends Controller
         {
             $fiscal = Fiscal::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['fiscal','admin','aux_fiscal'])){
                 if ($fiscal->user_id !== auth()->id()) {
                     return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
                 }
@@ -507,7 +543,14 @@ class FiscalController extends Controller
         {
             $fiscal = Fiscal::findOrFail($id);
     
-            if (auth()->user()->admin == 0) {
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['fiscal','admin','aux_fiscal'])){
                 if ($fiscal->user_id !== auth()->id()) {
                     return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
                 }
