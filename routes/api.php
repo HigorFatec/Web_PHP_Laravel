@@ -3,6 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\KmController;
+use App\Http\Controllers\Api\PagamentoPix;
+use App\Http\Controllers\Api\Fiscals;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -31,3 +35,12 @@ Route::middleware([
 
 });
 
+
+
+
+
+Route::get('/pagamento_pix/gerar', [PagamentoPix::class, 'index']);
+
+Route::get('/florestal_pix/gerar', [PagamentoPix::class, 'florestal']);
+
+Route::get('/fiscal/gerar', [Fiscals::class, 'index']);

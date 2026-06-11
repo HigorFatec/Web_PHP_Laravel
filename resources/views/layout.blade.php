@@ -623,6 +623,120 @@ nav .nav-wrapper i {
     </style>
 
 
+
+
+
+{{-- LAYOUT PREMIUM --}}
+<style>
+    :root {
+        --deep-blue: #0a192f;
+        --electric-blue: #007bff;
+        --neon-cyan: #00f2ff;
+        --soft-gray: #f8f9fa;
+    }
+
+    .dashboard-header-zone { margin-bottom: 50px; }
+    .brand-title { font-weight: 900; color: var(--deep-blue); font-size: 2.2rem; letter-spacing: -1px; }
+    .brand-title .accent-text { color: var(--electric-blue); }
+    .brand-tagline { font-size: 0.7rem; font-weight: 700; color: #86868b; letter-spacing: 4px; }
+
+    .balanced-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        padding-bottom: 50px;
+    }
+
+    .premium-card {
+        background: #ffffff;
+        border-radius: 30px;
+        padding: 40px;
+        text-decoration: none !important;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 320px;
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+    }
+
+    .master-card { background: var(--deep-blue) !important; color: white; }
+    .request-card { background: white !important; border: 1px solid rgba(0,0,0,0.08); }
+
+    .main-icon {
+        width: 60px; height: 60px;
+        background: linear-gradient(135deg, var(--electric-blue), var(--neon-cyan));
+        border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem; color: white;
+        box-shadow: 0 10px 20px rgba(0, 123, 255, 0.3);
+    }
+
+    .request-icon {
+        background: var(--soft-gray);
+        color: var(--deep-blue);
+        box-shadow: none;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .shimmer {
+        position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+        background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+        transform: skewX(-20deg);
+        animation: swipe 7s infinite linear;
+    }
+
+    @keyframes swipe {
+        0% { left: -120%; }
+        15% { left: 150%; }
+        100% { left: 150%; }
+    }
+
+    .live-indicator, .status-badge {
+        position: absolute; top: 40px; right: 40px;
+        font-size: 10px; font-weight: 800; padding: 7px 14px; border-radius: 50px;
+    }
+    .live-indicator { color: var(--neon-cyan); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; }
+    .status-badge { color: #5f6368; background: #f1f3f4; }
+
+    .dot { width: 7px; height: 7px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 10px var(--neon-cyan); animation: blink 2s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .item-title { font-size: 1.6rem; font-weight: 800; margin: 25px 0 10px 0; letter-spacing: -0.5px; }
+    .request-card .item-title { color: var(--deep-blue); }
+    .item-desc { font-size: 1rem; line-height: 1.5; opacity: 0.8; font-weight: 400; }
+    .request-card .item-desc { color: #4b5563; }
+
+    .card-action {
+        margin-top: 30px; display: flex; align-items: center; gap: 12px;
+        font-weight: 700; font-size: 0.95rem; color: var(--neon-cyan);
+        transition: 0.3s ease;
+    }
+    .request-card .card-action { color: var(--electric-blue); }
+
+    .premium-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+    }
+    .master-card:hover { border-color: var(--neon-cyan); }
+    .request-card:hover { border-color: var(--electric-blue); }
+    .premium-card:hover .card-action { gap: 18px; }
+
+    @media (max-width: 850px) {
+        .balanced-grid { grid-template-columns: 1fr; }
+        .premium-card { min-height: auto; padding: 30px; }
+    }
+</style>
+
+
+
+
+
+
+
 </head>
 <body>
 
@@ -792,6 +906,7 @@ nav .nav-wrapper i {
 
     @if(auth()->user()->temSetor(['admin', 'suprimentos']))
     <li><a class="waves-effect" href="{{route('empresa.aprovacao')}}"><i class="material-icons teal-text">storefront</i>Fornecedores</a></li>
+    <li><a class="waves-effect" href="{{route('produtos.aprovacao')}}"><i class="material-icons teal-text">inventory</i>Produtos</a></li>
     @endif
 
     @if(auth()->user()->temSetor(['admin', 'fiscal','aux_fiscal']))

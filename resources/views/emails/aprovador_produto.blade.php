@@ -8,6 +8,9 @@
 <p>Nome do Produto: {{ $produto->nome }}</p>
 <p>Ncm do Produto: {{ $produto->ncm }}</p>
 <p>CA do Produto: {{ $produto->ca }}</p>
+<p>Descrição Curta do Produto: {{ $produto->descricao_curta }}</p>
+<p>Filial: {{$produto->filial}} </p>
+
 
 
 

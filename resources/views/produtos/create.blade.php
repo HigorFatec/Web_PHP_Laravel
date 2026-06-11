@@ -57,9 +57,15 @@
         <div class="card-title center"> Informações do Produto </div>
 
         <p class="preenchimento">
-        <label class="form-label" for="nome">Nome do Produto (obrigatório):</label>
+
+        Descrição Curta do Produto (obrigatório): <br>
+        <input type="text" name="descricao_curta" id="descricao_curta" placeholder="Descrição Curta do Produto (obrigatório)" required>
+
+        <label class="form-label" for="nome">Descrição Completa(obrigatório):</label>
         <input type="text" id="nome" name="nome" required>
         <br>
+
+
 
         <label class="form-label" for="ncm">Ncm do Produto (obrigatório):</label>
         <input type="text" id="ncm" name="ncm" required>

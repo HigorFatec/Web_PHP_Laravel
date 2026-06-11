@@ -1,0 +1,32 @@
+@extends('layout')
+@section('title', 'Reprovar Solicitação')
+@section('conteudo')
+
+<div class="row">
+    <div class="col s12 m6 offset-m3">
+
+
+    <span class="card-title center">Cancelar Cadastro de Produto</span>
+
+    <p><strong>Produto:</strong> {{ $produto->nome }}</p>
+
+    <form method="POST" action="{{ route('produto.cancelar', $produto->approval_token) }}">
+        @csrf
+
+        <label>Motivo:</label><br>
+        <textarea name="motivo" rows="5" style="width:100%" required></textarea>
+
+        <br><br>
+
+        <center><button class="btn" type="submit" name="action">Confirmar cancelamento
+            <i class="material-icons right">send</i>
+          </button></center><br>
+
+    </form>
+
+    </div>
+</div>
+
+
+
+@endsection

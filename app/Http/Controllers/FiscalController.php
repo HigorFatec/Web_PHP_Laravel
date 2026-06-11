@@ -11,6 +11,8 @@ use App\Models\FiscalAprovador;
 use Illuminate\Support\Facades\Storage; 
 use Illuminate\Support\Facades\Auth;
 
+use App\Models\ImplantacaoSaldo;
+
 
 class FiscalController extends Controller
 {
@@ -22,7 +24,9 @@ class FiscalController extends Controller
         $filiais = Filial::orderBy('filial')->pluck('filial');
         $aprovadores = FiscalAprovador::orderBy('filial')->get(['id','nome','email','filial']);
 
-        return view('fiscal.index', compact('filiais', 'aprovadores'));
+        $estoque = ImplantacaoSaldo::filial();
+
+        return view('fiscal.index', compact('filiais', 'aprovadores','estoque'));
         //
     }
 
@@ -65,6 +69,9 @@ class FiscalController extends Controller
 
             'finalidade_da_compra' => 'nullable|string',
             'tipo_de_venda' => 'nullable|string',
+
+            'cod_localizacao_saida' => 'nullable|string',
+            'cod_localizacao_entrada' => 'nullable|string',
 
         ]);
 
@@ -285,7 +292,7 @@ class FiscalController extends Controller
         $aprovado_devolucao = Fiscal::whereIn('status',['aprovado','emitido','credito_pendente'])->where('tipo', 'devolucao')->orderBy('created_at', 'desc')->paginate(3);
 
         //Remessas
-        $aprovado_remessa = Fiscal::whereIn('status',['aprovado','aguardando confirmacao de entrega','emitido','pendente_entrada_estoque_filial','retorno_pendente'])->where('tipo', 'remessa')->orderBy('created_at', 'desc')->paginate(3);
+        $aprovado_remessa = Fiscal::whereIn('status',['aprovado','aguardando confirmacao de entrega','emitido','pendente_entrada_estoque_filial','retorno_pendente','confirmacao_entrega'])->where('tipo', 'remessa')->orderBy('created_at', 'desc')->paginate(3);
  
         //Vendas
         $aprovado_venda = Fiscal::whereIn('status',['aprovado','emitido'])->where('tipo', 'venda')->orderBy('created_at', 'desc')->paginate(3);
@@ -581,5 +588,43 @@ class FiscalController extends Controller
             return redirect()->route('fiscal.aprovacao')->with('success5', 'E-mail reenviado com sucesso.')->with('email_gestor', $fiscal->email_gestor);;
 
         }
+
+
+
+            public function confirmacao_entrega($id)
+    {
+        $fiscal = Fiscal::findOrFail($id);
+
+            $user = auth()?->user();
+
+            if (!$user) {
+                return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+            }
+
+            //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+            if (!$user->temSetor(['fiscal','admin','aux_fiscal'])){
+                if ($fiscal->user_id !== auth()->id()) {
+                    return redirect()->route('fiscal.aprovacao')->with('error', 'Você não tem permissão para emitir NF.');
+                }
+        }
+
+        //$reserva->delete();
+        // Altera o status da coluna "Ok" para "Cancelada"
+        $fiscal->status = 'confirmacao_entrega';
+        $fiscal->save();
+
+        // Obtém o usuário autenticado
+        $user = Auth::user();
+
+    // Envia o e-mail de emitida
+    // Mail::send('emails.fiscal_filial_pendente', ['fiscal' => $fiscal], function($message) use ($fiscal,$user){
+    //     $message->to([$fiscal->email,$user->email,'emissaonf@grupocargopolo.com.br']);
+    //     $message->subject('Nota Fiscal - Entrada de Estoque Filial Pendente - Protocolo: ' . $fiscal->id);
+    // });
+
+        return redirect()->route('fiscal.aprovacao')->with('success8', 'Veiculo finalizado com sucesso.');
+
+    }
+
 
 }

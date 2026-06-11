@@ -17,6 +17,8 @@
 <p><b>Filial:</b> {{ $fiscal->filial }}</p>
 <p><b>Data de Solicitação:</b> {{$fiscal->created_at}}</p>
 <p><b>Data de Aprovação:</b> {{$fiscal->updated_at}}</p>
+<p><b>Estoque de Entrada: </b> {{$fiscal->cod_localizacao_entrada}} </p>
+<p><b>Estoque de Saída: </b> {{$fiscal->cod_localizacao_saida}} </p>
 
 @if(isset($produtos) && count($produtos))
     <h4>Itens</h4>

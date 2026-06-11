@@ -34,6 +34,8 @@
                         <div class="card-content">
                             <div class="center-align mb-2">
                                 <h4 class="login-title">HISTÓRICO DE PAGAMENTOS FINALIZADOS</h4>
+                                <div >{{ $finalizados->links('custom.pagination') }}</div>
+
                             </div>
 
                             {{-- Navegação Responsiva --}}

@@ -2,6 +2,8 @@
 @section('title','Análise Detalhada de Despesas')
 @section('conteudo')
 
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 @php
     $existePendente = $despesas->contains('status', 'pendente');
     $existeReprovado = $despesas->contains('status', 'reprovado');
@@ -156,7 +158,7 @@
                             </div>
                         </div>
 
-                        <form action="{{ route('despesa.status', $despesa->id) }}" method="POST">
+                        <form action="{{ route('despesa.status', $despesa->id) }}" method="POST" class="form-aprovacao">
                             @csrf
                             <div class="row" style="margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
                                 <div class="input-field col s12 m7">
@@ -243,5 +245,76 @@
     .card-title { font-size: 1.1rem !important; margin-bottom: 5px !important; }
     body { background-color: #f0f2f5; }
 </style>
+
+
+<script>
+document.querySelectorAll('.form-aprovacao').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+
+        const formData = new FormData(this);
+        const statusClicado = e.submitter.value; 
+        formData.append('status', statusClicado);
+
+        const url = this.action;
+        const card = this.closest('.card'); 
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 1. Atualiza o Badge de Status
+                const badge = card.querySelector('.badge');
+                badge.innerText = data.novo_status.toUpperCase();
+                
+                // 2. Atualiza as cores do Card e botões
+                if (data.novo_status === 'aprovado') {
+                    card.style.borderLeft = "10px solid #4caf50";
+                    badge.className = "badge white-text green";
+                } else {
+                    card.style.borderLeft = "10px solid #f44336";
+                    badge.className = "badge white-text red";
+                }
+
+                M.toast({html: data.message, classes: 'rounded green'});
+
+                // --- O PONTO CHAVE: Chama a função para verificar o rodapé ---
+                atualizarEstadoDoRodape();
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            M.toast({html: 'Erro ao processar', classes: 'rounded red'});
+        });
+    });
+});
+
+function atualizarEstadoDoRodape() {
+    // 1. Pega todos os status atuais da tela
+    const todosStatus = Array.from(document.querySelectorAll('.card-stacked .badge'))
+                             .map(b => b.innerText.toLowerCase().trim());
+
+    const temPendente = todosStatus.includes('pendente');
+
+    // 2. Se não houver mais nenhum pendente, precisamos dar o refresh
+    // para que o Laravel reconstrua o rodapé (exibindo o botão verde ou vermelho de finalização)
+    // e atualize o cálculo do Valor Total Aprovado no topo.
+    if (!temPendente) {
+        M.toast({html: 'Análise concluída! Atualizando opções finalização...', classes: 'rounded blue'});
+        
+        // Pequeno delay para o usuário ver que o último item mudou de cor antes de atualizar
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    }
+}
+</script>
 
 @endsection

@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use App\Models\Rdv;
 use Illuminate\Support\Facades\Cache; // Não esqueça do import
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -78,13 +79,17 @@ class FinanceiroFrController extends Controller
                 $query->where('status', 'aprovado')
                     ->where('tipo', 'reembolso');
             })
-            ->orderBy('created_at', 'desc')->get();
+            ->orderBy('created_at', 'desc')->paginate(500);
 
             $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
 
-            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->get();
+            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->paginate(500);
 
-            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados'));
+            $status_pix_fr = \Illuminate\Support\Facades\DB::table('configuracoes_sistema')
+                    ->where('chave', 'status_pix_fr')
+                    ->value('valor') ?? 0;
+
+            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados', 'status_pix_fr'));
 
         } else {
             $financeiro = Financeiro::where(function($query) {
@@ -101,7 +106,7 @@ class FinanceiroFrController extends Controller
                         });
                 })
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(500);
 
             $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
 
@@ -110,7 +115,7 @@ class FinanceiroFrController extends Controller
                 })
                 ->where('status', 'finalizado')
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(500);
 
             return view('financeiro_fr.resumo', compact('financeiro', 'finalizados'));
 
@@ -193,18 +198,18 @@ public function exibirBI()
         //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
         if ($user->temSetor(['financeiro','admin','suprimentos'])){
 
-            $financeiro = Financeiro::where('status', 'aprovado_gestor')->orderBy('created_at', 'desc')->get();
+            $financeiro = Financeiro::where('status', 'aprovado_gestor')->orderBy('created_at', 'desc')->paginate(500);
 
             $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
 
-            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->get();
+            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->paginate(500);
 
             return view('financeiro_fr.finalizados', compact('financeiro', 'finalizados'));
 
         } else {
             $financeiro = Financeiro::where('status', 'aprovado_gestor')->where('user_id', auth()->id())
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(500);
 
             $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
 
@@ -214,7 +219,7 @@ public function exibirBI()
                 })
                 ->where('status', 'finalizado')
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->paginate(500);
 
 
 
@@ -625,7 +630,7 @@ public function exibirBI()
                             $message->to(['contasapagar@grupocargopolo.com.br']);
                             // $message->to('higor.05@hotmail.com');
                             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
-                            $message->cc($emails);
+                            //$message->cc($emails);
                             $message->subject( 'DESPESAS/REEMBOLSO; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $validatedData['name'] . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $validatedData['placa'] );
 
                             if ($nota_fiscal) {
@@ -798,11 +803,45 @@ public function dispararEmailsAtrasados()
         );
         }
 
-        $financeiro->update(['status' => 'aprovado_gestor']);
 
-        return 'Solicitação aprovada com sucesso!';
+// 2. Verifica se o switch do Pix Flow está ligado no banco
+        $status_pix_fr = \Illuminate\Support\Facades\DB::table('configuracoes_sistema')
+                ->where('chave', 'status_pix_fr')
+                ->value('valor') ?? 0;
+
+        if ($status_pix_fr == 1) {
+            try {
+                // Captura o array de retorno produzido pelo PixFlowService
+                $retornoPix = $this->processarPix(
+                    $financeiro->id,
+                    $financeiro->tipo_pix, 
+                    $financeiro->pix,  
+                    $financeiro->valor,      
+                    $financeiro->cnpj        
+                );
+
+                // Se a API aceitou e processou o pagamento
+                if (isset($retornoPix['sucesso']) && $retornoPix['sucesso']) {
+                    $sufixoIdempotente = ($retornoPix['idempotent'] ?? false) ? ' (Idempotência Ativa)' : '';
+                    return "Solicitação aprovada e Pix enviado com sucesso! Status na FR: {$retornoPix['pix_status']}{$sufixoIdempotente}.";
+                }
+
+                // Se a API barrou por regras de negócio (DICT divergente, saldo insuficiente, etc.)
+                return "Solicitação aprovada localmente, mas o PIX foi RECUSADO pela API. Motivo: {$retornoPix['mensagem']}";
+
+            } catch (\Exception $e) {
+                // Registra no arquivo de logs do Laravel para auditoria técnica
+                Log::error("Falha técnica ao processar Pix automático para o ID: {$financeiro->id}. Erro: " . $e->getMessage());
+                
+                return "Solicitação aprovada localmente, mas ocorreu uma falha na comunicação com o servidor Pix Flow.";
+            }
+        } else {
+            $financeiro->update(['status' => 'aprovado_gestor']);
+        }
+
+        // Se o switch estiver em OFF (0), segue o fluxo tradicional padrão
+        return 'Solicitação aprovada com sucesso! (Módulo Pix Flow em OFF)';
     }
-    
 
 
     public function reprovar($token)
@@ -847,6 +886,77 @@ public function dispararEmailsAtrasados()
         if ($financeiro->status !== 'aprovado') {
             return 'Solicitação já foi processada.';
         }
+
+        $fileUrl = null;
+
+        // 1. TRATAMENTO DO ARQUIVO
+if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()) {
+    $file = $request->file('comprovante');
+    
+    // 1. Gera o nome do arquivo
+    $fileName = 'comprovante_' . $financeiro->id . '_' . now()->format('YmdHis') . '.' . $file->getClientOriginalExtension();
+    
+    // 2. Define o caminho absoluto para a pasta (storage/app/public/comprovantes)
+    $destinationPath = storage_path('app/public/comprovantes');
+
+    // 3. Move o arquivo usando o método nativo (mais robusto contra o erro "Path cannot be empty")
+    $file->move($destinationPath, $fileName);
+
+    // 4. Salva o caminho RELATIVO no banco para o asset() e Storage:: buscar depois
+    $pathParaBanco = 'comprovantes/' . $fileName;
+
+    $financeiro->comprovante_pagamento = $pathParaBanco;
+    $financeiro->status = 'finalizado'; // Já atualiza o status aqui
+    $financeiro->save();
+
+    $fileUrl = asset('storage/' . $pathParaBanco);
+} else {
+    return back()->withErrors(['comprovante' => 'Arquivo inválido ou não selecionado.']);
+}
+
+        // 2. VALIDAÇÃO DE USUÁRIO
+        $user = Auth::user();
+        if($user === null){
+            return redirect()->route('login.form')->with('error', 'Você precisa estar logado para aprovar uma solicitação.');
+        }
+
+
+            // CONSULTANDO SE TEM PERMISSÃO PARA ACESSAR O BI
+        $user = auth()?->user();
+
+        if (!$user) {
+            return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+        }
+
+        if (!$user->temSetor(['admin'])){
+
+        // 5. DISPARO DE E-MAILS
+        if ($financeiro->tipo == 'reembolso') {
+            Mail::send('emails.financeiro_reembolso_financeiro', [
+                'financeiro' => $financeiro, 
+                'link_comprovante' => $fileUrl, // Enviando o link para a View
+                'user' => $user
+            ], function($message) use ($financeiro, $emails){
+                
+                //$message->to('higor.machado@grupocargopolo.com.br');
+                $message->to('contasapagar@grupocargopolo.com.br');
+                $message->cc($emails);
+
+                // Assuntos dinâmicos
+                $message->subject( 'COMPROVANTE DISPONÍVEL - REEMBOLSO; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades?->unidade_negocio );
+
+            
+                // Anexo do Comprovante
+                if (Storage::disk('public')->exists($financeiro->comprovante_pagamento)) {
+                    $message->attach(storage_path('app/public/' . $financeiro->comprovante_pagamento), [
+                        'as' => 'comprovante_pagamento.' . pathinfo($financeiro->comprovante_pagamento, PATHINFO_EXTENSION)
+                    ]);
+                }
+            });
+        }
+        }
+        
+
         // 7. ATUALIZAÇÃO FINAL
         $financeiro->update(['status' => 'finalizado']);
 
@@ -945,7 +1055,7 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
         if (!$user->temSetor(['admin'])){
 
         // 5. DISPARO DE E-MAILS
-        if ($financeiro->tipo == 'avista') {
+        if ($financeiro->tipo == 'avista' || $financeiro->tipo == 'ajuda_de_custo') {
             Mail::send('emails.financeiro_avista_financeiro', [
                 'financeiro' => $financeiro, 
                 'link_comprovante' => $fileUrl, // Enviando o link para a View
@@ -963,6 +1073,10 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
                     $message->subject( 'COMPROVANTE DISPONÍVEL - PAGAMENTO A VISTA; PEDIDO: '. $financeiro->pedido . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
                 } elseif($financeiro->socorro_em_rota == 'sim'){
                     $message->subject( 'COMPROVANTE DISPONÍVEL - SOCORRO EM ROTA; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio . ' PLACA: ' . $financeiro->placa );
+                } elseif($financeiro->adiantamento_fornecedor == 'sim'){
+                    $message->subject( 'COMPROVANTE DISPONÍVEL - ADIANTAMENTO FORNECEDOR; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
+                } elseif($financeiro->tipo == 'ajuda_de_custo'){
+                    $message->subject( 'COMPROVANTE DISPONÍVEL - AJUDA DE CUSTO; PROTOCOLO: '. $financeiro->id . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades->unidade_negocio );
                 }
             
                 // Anexo do Comprovante
@@ -978,8 +1092,10 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
         // 6. EXECUÇÃO DE PROCEDURES FINANCEIRAS
         if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
             $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->unidadeAprovadora?->nome_gestor, $financeiro->cod_unidade, $financeiro->unidades->conta);
+        } elseif ($financeiro->tipo == 'ajuda_de_custo') {
+            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,'LETICIA CARVALHO', 60, 52);
         } else{
-            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora?->nome_gestor);
+            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora?->nome_gestor, 376 , 83 );
         }
 
         // 7. ATUALIZAÇÃO FINAL
@@ -1233,45 +1349,29 @@ public function buscarDadosPedido($numped)
 }
 
 
-public function consultarPedido($pedido)
+public function consultarPedido(Request $request, $valor)
 {
-    // CONSULTANDO SE TEM PERMISSÃO PARA ACESSAR O BI
-    $user = auth()?->user();
+    // Verifica se o usuário escolheu ID, caso contrário usa PEDIDO por padrão
+    $campo = $request->query('tipo') === 'id' ? 'id' : 'pedido';
 
-    if (!$user) {
-        return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
-    }
-
-    if ($user->temSetor(['financeiro','admin','diretoria','suprimentos'])){
-
-    // Realiza a busca exata pelo número do pedido
-    $registro = \App\Models\Financeiro::where('pedido', $pedido)->first();
-
-    $registro->load('unidadeAprovadora');
+    // Faz a busca dinâmica baseada na escolha
+    $registro = Financeiro::where($campo, $valor)->first();
 
     if ($registro) {
         return response()->json([
             'sucesso' => true,
-            'id'      => $registro->id,
+            'id' => $registro->id,
             'favorecido' => $registro->favorecido,
-            'status'  => $registro->status,
-            'valor'   => number_format($registro->valor, 2, ',', '.'),
+            'status' => $registro->status,
+            'valor' => number_format((float)$registro->valor, 2, ',', '.'),
+            'tipo' => $registro->tipo,
             'socorro_em_rota' => $registro->socorro_em_rota,
-            'tipo'    => $registro->tipo,
             'frota_bloqueada' => $registro->frota_bloqueada,
-            'gestor_aprovador' => $registro->unidadeAprovadora?->nome_gestor ?? 'N/A',
+            'gestor_aprovador' => $registro->gestor_aprovador
         ]);
     }
 
-    return response()->json([
-        'sucesso' => false,
-        'message' => 'Pedido não encontrado.'
-    ], 404);
-    }
-
-    else {
-        abort(403, 'Acesso negado para o seu setor.');
-    }
+    return response()->json(['sucesso' => false]);
 }
 
 
@@ -1298,9 +1398,120 @@ public function consultarPedido($pedido)
 
 
 
+    public function atualizarStatusPix(Request $request)
+{
+    $user = auth()?->user();
+
+    if (!$user) {
+        return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+    }
+
+    //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
+    if ($user->temSetor(['admin', 'diretoria'])) {
+        // Permissão concedida
+    } else {
+        return response()->json(['sucesso' => false, 'message' => 'Acesso negado.'], 403);
+    }
 
 
 
+    // Valida se o valor recebido é estritamente 0 ou 1
+    $request->validate([
+        'status_pix_fr' => 'required|in:0,1'
+    ]);
+
+    try {
+        $novoStatus = $request->status_pix_fr;
+
+        // Opção A: Se você usa uma tabela de parâmetros/configurações globais do sistema:
+        DB::table('configuracoes_sistema') // Substitua pelo nome real da sua tabela
+            ->where('chave', 'status_pix_fr') // Ajuste o filtro conforme sua estrutura
+            ->update(['valor' => $novoStatus]);
+
+        // Retorna a resposta positiva para o JavaScript redesenhar a tela
+        return response()->json(['sucesso' => true]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'sucesso' => false, 
+            'erro' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
+
+
+
+protected function processarPix($id, $tipoPixBanco, $chavePix, $valor, $cnpj)
+{
+    $pixFlowService = app(\App\Services\PixFlowService::class);
+
+    // Limpa pontuações do documento para enviar puro para o DICT
+    $documentoTratado = preg_replace('/[^0-9]/', '', $cnpj); 
+    $chaveTratada = trim($chavePix);
+
+    // --- CONVERSOR DE-PARA DE TIPOS DE CHAVE ---
+    $tipoChaveAPI = 'aleatoria'; // Valor padrão caso não encontre correspondência
+
+    // Padroniza a string removendo espaços e jogando para minúsculo
+    $tipoPixFormatado = mb_strtolower(trim($tipoPixBanco));
+
+    switch ($tipoPixFormatado) {
+        case 'cpf/cnpj':
+            // Limpa a chave pix para contar os dígitos e descobrir se é CPF ou CNPJ
+            $chaveNumerica = preg_replace('/[^0-9]/', '', $chaveTratada);
+            $tipoChaveAPI = (strlen($chaveNumerica) > 11) ? 'cnpj' : 'cpf';
+            break;
+
+        case 'e-mail':
+        case 'email':
+            $tipoChaveAPI = 'email';
+            break;
+
+        case 'celular':
+        case 'telefone':
+            $tipoChaveAPI = 'telefone';
+            break;
+
+        case 'chave aleatória':
+        case 'chave aleatoria':
+        case 'aleatoria':
+            $tipoChaveAPI = 'aleatoria';
+            break;
+    }
+    // -------------------------------------------
+
+    // Monta o payload definitivo com o tipo traduzido
+    $payload = [
+        "external_id"            => "pedido-" . $id,
+        "valor_centavos"         => (int) round($valor * 100),
+        "chave_pix"              => $chaveTratada,
+        "tipo_chave"             => $tipoChaveAPI, // Envia 'cpf', 'cnpj', 'email', 'telefone' ou 'aleatoria'
+        "beneficiario_documento" => $documentoTratado
+    ];
+
+    // Dispara a integração contra o Service
+    $retorno = $pixFlowService->criarSolicitacao($payload);
+
+    if ($retorno['sucesso']) {
+        \Illuminate\Support\Facades\DB::table('financeiros')
+            ->where('id', $id)
+            ->update([
+                'pix_flow_id' => $retorno['id'],
+                'status'      => 'processando' // Atualiza o status para acompanhar o banco da FR
+            ]);
+    } else {
+        \Illuminate\Support\Facades\DB::table('financeiros')
+            ->where('id', $id)
+            ->update([
+                'status' => 'falha_integracao_pix',
+                'motivo_rejeicao_interno' => $retorno['mensagem']
+            ]);
+    }
+
+    return $retorno;
+}
 
 
 

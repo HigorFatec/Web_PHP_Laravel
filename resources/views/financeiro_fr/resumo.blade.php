@@ -29,21 +29,85 @@
                     @endif
 
 
+{{-- CARD DE AURA - INTEGRAÇÃO PIX FLOW REAL TIME --}}
+<div class="card pix-flow-premium-card shadow-btn" style="border-radius: 15px; margin-bottom: 20px; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); overflow: hidden; position: relative;">
+    {{-- Detalhe brilhante no fundo --}}
+    <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(99, 102, 241, 0.15); filter: blur(40px); border-radius: 50%; pointer-events: none;"></div>
+    
+    <div class="card-content" style="padding: 20px 25px;">
+        <div class="row" style="margin-bottom: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
+            
+            {{-- Ícone e Título --}}
+            <div class="col s12 m7 l8" style="display: flex; align-items: center; gap: 15px;">
+                <div class="pix-icon-pulse-wrapper">
+                    <i class="fa-brands fa-pix" style="color: #4ade80; font-size: 2rem;"></i>
+                </div>
+                <div>
+                    <h5 style="margin: 0; color: #ffffff; font-weight: 800; font-size: 1.25rem; letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px;">
+                        Pix Flow F&R Real Time 
+                        <span class="badge-premium-tech">PRO</span>
+                    </h5>
+                    <p style="margin: 4px 0 0 0; color: #94a3b8; font-size: 0.85rem; line-height: 1.4;">
+                        Validação automática e conciliação bancária via DICT do Banco Central.
+                    </p>
+                </div>
+            </div>
 
-                    {{-- BARRA DE BUSCA RÁPIDA --}}
+{{-- O Switch Conectado ao Banco de Dados --}}
+<div class="col s12 m5 l4 pix-switch-mobile-align" style="display: flex; justify-content: flex-end; align-items: center;">
+    {{-- Passamos o status atual vindo do banco na rota/data-attribute se necessário --}}
+    <div class="switch-premium-container tooltipped" 
+         id="pix-flow-switch"
+         data-status="{{ $status_pix_fr }}"
+         data-tooltip="{{ $status_pix_fr == 1 ? 'Módulo ativo em homologação' : 'Módulo desativado' }}" 
+         style="cursor: pointer;" 
+         onclick="alternarStatusPixFR()">
+        
+        {{-- Texto OFF fica opaco se estiver ON --}}
+        <span class="status-text-pix text-off" style="{{ $status_pix_fr == 1 ? 'color: #475569;' : 'color: #f1f5f9;' }}">OFF</span>
+        
+        {{-- Se estiver ON (1), mudamos o alinhamento para flex-end e o background para verde --}}
+        <div class="custom-premium-switch" style="{{ $status_pix_fr == 1 ? 'justify-content: flex-end; background: #16a34a;' : 'justify-content: flex-start; background: #334155;' }}">
+            <div class="custom-switch-handle">
+                {{-- Cadeado trancado no OFF, ícone de check ou raio no ON --}}
+                <i class="fa-solid {{ $status_pix_fr == 1 ? 'fa-bolt text-green' : 'fa-lock' }}" style="font-size: 10px; color: {{ $status_pix_fr == 1 ? '#16a34a' : '#94a3b8' }};"></i>
+            </div>
+        </div>
+        
+        {{-- Texto ON fica brilhante se estiver ON --}}
+        <span class="status-text-pix text-on" style="{{ $status_pix_fr == 1 ? 'color: #4ade80; text-shadow: 0 0 10px rgba(74,222,128,0.4);' : 'color: #475569;' }}">ON</span>
+    </div>
+</div>
+
+
+
+        </div>
+    </div>
+</div>
+
+
+
+
+                    {{-- BARRA DE BUSCA RÁPIDA ATUALIZADA --}}
                     <div class="card shadow-btn" style="border-radius: 15px; margin-bottom: 20px; background: #f8f9fa;">
                         <div class="card-content" style="padding: 15px 20px;">
                             <div class="row" style="margin-bottom: 0; display: flex; align-items: center; flex-wrap: wrap;">
-                                <div class="col s12 m6">
+                                <div class="col s12 m4">
                                     <span style="font-weight: bold; color: #1a237e;">
-                                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Consultar Pedido na Base
+                                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Consultar na Base
                                     </span>
                                 </div>
-                                <div class="col s12 m6">
+                                <div class="col s12 m8">
                                     <div style="display: flex; gap: 10px;">
-                                        <input type="number" id="input-busca-pedido" placeholder="Digite o nº do pedido (Ex: 319040)" 
-                                            style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 0 15px; height: 40px; margin: 0;">
-                                        <button type="button" onclick="consultarPedidoBase()" class="btn blue darken-4 shadow-btn" style="border-radius: 8px; height: 40px;">
+                                        <select id="tipo-busca" class="browser-default" style="width: 120px; border-radius: 8px; border: 1px solid #ccc; height: 40px;">
+                                            <option value="pedido">PEDIDO</option>
+                                            <option value="id">ID (Sistema)</option>
+                                        </select>
+
+                                        <input type="number" id="input-busca-valor" placeholder="Digite o número..." 
+                                            style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 0 15px; height: 40px; margin: 0; flex-grow: 1;">
+                                        
+                                        <button type="button" onclick="consultarBase()" class="btn blue darken-4 shadow-btn" style="border-radius: 8px; height: 40px;">
                                             CONSULTAR
                                         </button>
                                     </div>
@@ -62,6 +126,9 @@
                             <div class="center-align mb-2">
                                 <h4 class="login-title">PAGAMENTOS APROVADOS PELO GESTOR</h4>
                                 <p class="login-subtitle">Anexe os comprovantes para finalizar e disparar os e-mails</p>
+
+                                <div >{{ $financeiro->links('custom.pagination') }}</div>
+                                
                             </div>
 
                             {{-- Navegação Responsiva --}}
@@ -118,6 +185,12 @@
                                                         @if(strtolower($r->tipo) == 'reembolso')
                                                             <div class="badge-reembolso">
                                                                 <i class="fa-solid fa-wallet"></i> Reembolso
+                                                            </div>
+                                                        @endif
+                                                        {{-- ADICIONE ESTE BLOCO PARA AJUDA DE CUSTO --}}
+                                                        @if(strtolower($r->tipo) == 'ajuda_de_custo')
+                                                            <div class="badge-ajuda-custo">
+                                                                <i class="fa-solid fa-handshake-angle"></i> Ajuda de Custo
                                                             </div>
                                                         @endif
 
@@ -480,10 +553,117 @@
     border: 1px solid #ffe0b2;
     text-transform: uppercase;
 }
+.badge-ajuda-custo {
+    background: #e8eaf6; /* Azul bem clarinho */
+    color: #1a237e;     /* Azul escuro */
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+    border: 1px solid #c5cae9;
+    text-transform: uppercase;
+}
 </style>
 
 
+<style>
+/* Custom Styles para o Card de Aura Pix Flow */
+.pix-flow-premium-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease !important;
+}
 
+.pix-flow-premium-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3), 0 4px 8px rgba(99, 102, 241, 0.05) !important;
+}
+
+/* Badge Neon */
+.badge-premium-tech {
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Animação Pulso no Ícone Pix */
+.pix-icon-pulse-wrapper {
+    background: rgba(74, 222, 128, 0.1);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(74, 222, 128, 0.1);
+}
+
+/* Estrutura do Switch customizado Fake */
+.switch-premium-container {
+    background: #020617;
+    border: 1px solid #334155;
+    padding: 6px 12px;
+    border-radius: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.switch-premium-container:hover {
+    background: #0f172a;
+    border-color: #475569;
+}
+
+.status-text-pix {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.status-text-pix.text-off {
+    color: #f1f5f9; /* Destacado pois está desligado */
+}
+
+.status-text-pix.text-on {
+    color: #475569; /* Apagado */
+}
+
+.custom-premium-switch {
+    width: 46px;
+    height: 24px;
+    background: #334155;
+    border-radius: 15px;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Força o botão a ficar na esquerda (Desativado) */
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.custom-switch-handle {
+    width: 20px;
+    height: 20px;
+    background: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+</style>
 
 
 
@@ -578,49 +758,96 @@ function updateFiscalStatus(id, value) {
 
 
 <script>
-function consultarPedidoBase() {
-    const pedido = document.getElementById('input-busca-pedido').value;
+function consultarBase() {
+    const valor = document.getElementById('input-busca-valor').value;
+    const tipo = document.getElementById('tipo-busca').value; // 'pedido' ou 'id'
 
-    if (!pedido) {
-        M.toast({html: 'Digite um número de pedido', classes: 'rounded orange'});
+    if (!valor) {
+        M.toast({html: 'Digite um valor para busca', classes: 'rounded orange'});
         return;
     }
 
-    M.toast({html: 'Consultando base de dados...', classes: 'rounded blue'});
+    M.toast({html: `Consultando por ${tipo.toUpperCase()}...`, classes: 'rounded blue'});
 
-    fetch(`/financeiro/consultar-pedido/${pedido}`)
+    // Enviamos o tipo via query string (?tipo=id ou ?tipo=pedido)
+    fetch(`/financeiro/consultar-pedido/${valor}?tipo=${tipo}`)
         .then(response => response.json())
         .then(data => {
             if (data.sucesso) {
-                const infoText = `ID: ${data.id}\nFavorecido: ${data.favorecido}\nStatus: ${data.status}\nValor: R$ ${data.valor}\nTipo: ${data.tipo}\nSocorro: ${data.socorro_em_rota}\nFrota Bloqueada: ${data.frota_bloqueada}\nGestor Aprovador: ${data.gestor_aprovador || 'N/I'}`;
+                const infoText = `ID: ${data.id}\nFavorecido: ${data.favorecido}\nStatus: ${data.status}\nValor: R$ ${data.valor}\nTipo: ${data.tipo}\nSocorro: ${data.socorro_em_rota}\nFrota Bloqueada: ${data.frota_bloqueada}\nGestor: ${data.gestor_aprovador || 'N/I'}`;
 
-                // Verifica se o swal existe antes de chamar para evitar o erro de ReferenceError
                 if (typeof swal !== 'undefined') {
                     swal({
-                        title: `Pedido #${pedido}`,
+                        title: `Resultado Encontrado (${tipo.toUpperCase()} #${valor})`,
                         text: infoText,
                         icon: (data.socorro_em_rota === 'sim' || data.frota_bloqueada === 'sim') ? 'warning' : 'info',
                     });
                 } else {
-                    // Fallback caso o SweetAlert falhe: usa um alert padrão organizado
-                    alert(`--- DADOS DO PEDIDO ${pedido} ---\n${infoText}`);
+                    alert(`--- DADOS ENCONTRADOS ---\n${infoText}`);
                 }
 
                 if (data.socorro_em_rota === 'sim') {
                     M.toast({html: '⚠️ URGÊNCIA: Socorro em Rota!', classes: 'rounded red'});
                 }
             } else {
-                M.toast({html: 'Pedido não encontrado', classes: 'rounded red'});
+                M.toast({html: `Nenhum registro com ${tipo.toUpperCase()} ${valor}`, classes: 'rounded red'});
             }
         })
         .catch(error => {
             console.error('Erro:', error);
-            M.toast({html: 'Erro na consulta. Verifique o console.', classes: 'rounded red'});
+            M.toast({html: 'Erro na consulta.', classes: 'rounded red'});
         });
 }
 </script>
 
+<script>
+function exibirAvisoHype() {
+    M.toast({
+        html: '<div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-code-branch text-blue"></i> <span>Módulo Pix Flow em fase final de homologação técnica.</span></div>',
+        classes: 'rounded blue-grey darken-4 white-text font-weight-bold'
+    });
+}
+</script>
 
+
+<script>
+function alternarStatusPixFR() {
+    const switchElement = document.getElementById('pix-flow-switch');
+    // Pega o status atual do elemento (0 ou 1)
+    const statusAtual = parseInt(switchElement.getAttribute('data-status'));
+    // Inverte o status para o novo valor que queremos salvar
+    const novoStatus = statusAtual === 1 ? 0 : 1;
+
+    // Avisa o usuário que a alteração está sendo processada
+    M.toast({html: 'Atualizando parâmetros do sistema...', classes: 'blue-grey darken-3'});
+
+    fetch('{{ route("financeiro.atualizarStatusPix") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ status_pix_fr: novoStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.sucesso) {
+            M.toast({
+                html: '🚀 Configuração atualizada com sucesso!', 
+                classes: 'green darken-2'
+            });
+            
+            // Recarrega a página rapidamente para atualizar os estados visuais perfeitamente
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            M.toast({html: '❌ Erro ao atualizar: ' + data.erro, classes: 'red darken-2'});
+        }
+    })
+    .catch(error => {
+        M.toast({html: '❌ Falha de comunicação com o servidor.', classes: 'red darken-2'});
+    });
+}
+</script>
 
 @else
     <script>

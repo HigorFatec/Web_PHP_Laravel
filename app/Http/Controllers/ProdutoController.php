@@ -17,9 +17,23 @@ class ProdutoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function aprovacao()
     {
+
+        $user = auth()?->user();
+
+        if ($user->temSetor(['admin','suprimentos'])){
+
         //
+        $pendente = Produto::whereIn('status',['pendente','aprovado'])
+                            ->orderBy('created_at', 'desc')
+                            ->paginate(25);
+        
+        return view('produtos.aprovacao', compact('pendente'));
+
+        } else {
+            abort(403, 'Acesso negado.');
+        }
     }
 
     /**
@@ -44,9 +58,12 @@ class ProdutoController extends Controller
             'ncm' => 'nullable|string',
             'ca' => 'nullable|string',
             'tipo' => ['required', 'string', 'not_regex:/^\s*$/'],
+            'descricao_curta' => 'required|string',
+             // Adicione outras validações conforme necessário
 
         ]);
 
+        $user = Auth::user();
         // Adiciona o IP e o endereço da máquina aos dados da empresa
         $data = $request->all();
 
@@ -79,7 +96,9 @@ class ProdutoController extends Controller
             [
                 'approval_token' => Str::uuid(),
                 'status' => 'pendente',
-                
+                'user_id' => $user->id,
+                'filial' => $user->filial ?? 'N/A',
+                 // Adicione aqui quaisquer campos adicionais que você queira definir
             // Adicione aqui quaisquer campos adicionais que você queira definir
         ]));
 
@@ -191,4 +210,58 @@ class ProdutoController extends Controller
     {
         //
     }
+
+
+    public function finalizar($token){
+
+        $user = auth()?->user();
+
+        if ($user->temSetor(['admin','suprimentos'])){
+
+            $produto = Produto::where('approval_token', $token)->firstOrFail();
+
+            $produto->update(['status' => 'finalizado']);
+
+            return redirect()->route('produtos.aprovacao')->with('success','Solicitação aprovada com sucesso!');
+        } else {
+            abort(403, 'Acesso negado.');
+        }
+    }
+
+    public function formCancelar($token)
+    {
+        $produto = Produto::where('approval_token', $token)->firstOrFail();
+
+        return view('produtos.cancelar', compact('produto'));
+    }
+
+
+    public function cancelar(Request $request, $token)
+    {
+
+        $user = auth()?->user();
+
+        if ($user->temSetor(['admin','suprimentos'])){
+
+            $produto = Produto::where('approval_token', $token)->firstOrFail();
+
+            $request->validate([
+                'motivo' => 'required|string|min:5'
+            ]);
+
+            $produto->motivo_cancelamento = $request->motivo;
+            $produto->save();
+
+
+            $produto->update(['status' => 'cancelado']);
+
+            return redirect()->route('produtos.aprovacao')->with('success2','Solicitação aprovada com sucesso!');
+        } else {
+            abort(403, 'Acesso negado.');
+        }
+    }
+
+
+
+
 }

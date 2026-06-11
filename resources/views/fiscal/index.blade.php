@@ -164,7 +164,7 @@
         <p class="center">(Remessa de bem para conserto ou reparo,transferência de mercadoria, garantia, envio e/ou retorno de bem por conta de contrato de comodato)</p> <br><br>
         
       Tipo de Remessa: <br>
-      <select name="tipo_de_venda" id="tipo_de_venda" required>
+      <select name="tipo_de_venda" id="tipo_de_remessa" required>
 
         <option value=" "></option>
             <option value="conserto">Bem para Conserto ou Reparo</option>
@@ -174,15 +174,35 @@
 
       </select> <br>
 
+
         <span class="card-title center"><b>Dados da Solicitação</b></span>
 
         <input type="text" name="empresa_solicitante" placeholder="Remetente(Emissor, Filial solicitante)" required>
-        <input type="text" name="cnpj" placeholder="CNPJ" required>
+        <input type="text" name="cnpj" placeholder="CNPJ" required><br>
+
+        Estoque de Saida:
+        <select name="cod_localizacao_saida" id="cod_localizacao_saida" class="browser-default" required>
+
+            <option value="">Selecione a Unidade</option>
+            @foreach($estoque->unique('DESCRI') as $filial)
+                <option value="{{ $filial->CODIGO }}">{{ $filial->CODIGO }} - {{ $filial->DESCRI }}</option>
+            @endforeach
+        </select><br>
 
         <input type="text" name="fornecedor" placeholder="Destinatário (Recebedor, Filial de envio da mercadoria)" required>
         <input type="text" name="codigo_fornecedor_rodopar" placeholder="Codigo Filial de Recebimento do Rodopar" required> {{-- Não obrigatorio  --}}
         <input type="text" name="cnpj_fornecedor" placeholder="CNPJ do Filial de Recebimento" required>
-        
+                <br>
+        Estoque de Entrada:
+        <select name="cod_localizacao_entrada" id="cod_localizacao_entrada" class="browser-default" required>
+
+            <option value="">Selecione a Unidade</option>
+            @foreach($estoque->unique('DESCRI') as $filial)
+                <option value="{{ $filial->CODIGO }}">{{ $filial->CODIGO }} - {{ $filial->DESCRI }}</option>
+            @endforeach
+        </select><br>
+
+
         <span class="card-title center"><b>Itens</b></span>
 
         <div class="produtos">
@@ -283,11 +303,16 @@
 
 </div>
 
+
+
+
+
+
 <script>
   let index = 1;
 
+  // Função para adicionar produtos dinamicamente
   function adicionarProduto() {
-      // Seleciona apenas o container visível
       const container = document.querySelector('.tipo-campos[style*="block"] .produtos');
       if (!container) return;
 
@@ -302,124 +327,107 @@
       container.appendChild(novo);
       index++;
   }
-</script>
 
-<script>
-  document.querySelectorAll('.btn-group .btn').forEach(button => {
-      button.addEventListener('click', function() {
-          // Remove a classe active de todos os botões
-          document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
-          
-          // Adiciona a classe active ao botão clicado
-          this.classList.add('active');
-          
-          // Atualiza o valor do campo hidden
-          document.getElementById('tipo').value = this.getAttribute('data-value');
-      });
-  });
-  </script>
-  
-<script>
-function validarFormulario() {
-  const tipo = document.getElementById('tipo').value;
+  // Função Unificada para Esconder Campos
+  function esconderTodosCampos() {
+    document.querySelectorAll('.tipo-campos').forEach(div => {
+        div.style.display = 'none';
+        div.querySelectorAll('input, select, textarea').forEach(el => {
+            el.disabled = true;
+            el.required = false;
+        });
+    });
 
-  // 1️⃣  Primeiro, desativa o required de todos os blocos escondidos
-  document.querySelectorAll('.tipo-campos').forEach(div => {
-    if (div.style.display === 'none') {
-      div.querySelectorAll('[required]').forEach(el => {
-        el.dataset.tmpRequired = "1";     // guarda info p/ restaurar se precisar
-        el.removeAttribute('required');
-      });
-    }
-  });
-
-  // 2️⃣  Validação extra que você já tem (exemplo do campo foto)
-  const foto = document.getElementById('foto');
-  if (tipo === 'devolucao' && (!foto || foto.files.length === 0)) {
-    alert('O campo "Nota Fiscal da operação de compra" é obrigatório para o tipo "' + tipo + '".');
-    foto.focus();
-    return false;
+    // Esconde especificamente os estoques e seus respectivos títulos (labels)
+    const sSaida = document.getElementById('cod_localizacao_saida');
+    const sEntrada = document.getElementById('cod_localizacao_entrada');
+    
+    [sSaida, sEntrada].forEach(el => {
+        if(el) {
+            el.style.display = 'none';
+            el.disabled = true;
+            // Esconde o texto "Estoque de..." que está antes do select
+            if(el.previousElementSibling) el.previousElementSibling.style.display = 'none';
+        }
+    });
   }
 
-  // 3️⃣  Se chegou aqui, deixa o navegador validar normalmente os visíveis
-  return true;
-}
+  function habilitarCampos(div) {
+    div.style.display = 'block';
+    div.querySelectorAll('input, select, textarea').forEach(el => {
+        // Não habilitamos os estoques aqui, eles têm regra própria abaixo
+        if (el.id !== 'cod_localizacao_saida' && el.id !== 'cod_localizacao_entrada') {
+            el.disabled = false;
+        }
+    });
+  }
+
+  // Listener para os botões principais (Devolução, Venda, Remessa...)
+  document.querySelectorAll('.btn-group .btn').forEach(button => {
+    button.addEventListener('click', function() {
+        document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        const valor = this.getAttribute('data-value');
+        document.getElementById('tipo').value = valor;
+
+        esconderTodosCampos();
+
+        const targetDiv = document.getElementById('campos-' + valor);
+        if(targetDiv) habilitarCampos(targetDiv);
+    });
+  });
+
+  // Listener específico para o Tipo de Remessa (Transferência)
+  document.addEventListener('change', function(e) {
+    if (e.target && e.target.id === 'tipo_de_remessa') {
+        const selectSaida = document.getElementById('cod_localizacao_saida');
+        const selectEntrada = document.getElementById('cod_localizacao_entrada');
+        const mostrar = (e.target.value === 'transferencia');
+
+        [selectSaida, selectEntrada].forEach(el => {
+            if(el) {
+                const display = mostrar ? 'block' : 'none';
+                el.style.display = display;
+                el.disabled = !mostrar;
+                el.required = mostrar;
+                if(el.previousElementSibling) el.previousElementSibling.style.display = display;
+            }
+        });
+    }
+  });
+
+  // Validações de e-mail e formulário
+  function validarEmails() {
+      const campo = document.getElementById('emails');
+      const valor = campo.value.trim();
+      if (valor === '') return true;
+      const emails = valor.split(';').map(email => email.trim());
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalidos = emails.filter(email => !regex.test(email));
+      if (invalidos.length > 0) {
+          alert('E-mails inválidos:\n' + invalidos.join('\n'));
+          return false;
+      }
+      return true;
+  }
+
+  function validarFormulario() {
+    // Garante que campos desabilitados não barrem o envio por serem 'required'
+    document.querySelectorAll('[required]').forEach(el => {
+        if (el.disabled || el.offsetParent === null) {
+            el.removeAttribute('required');
+        }
+    });
+    return true;
+  }
+
+  window.addEventListener('load', esconderTodosCampos);
 </script>
 
-    
-  
-<script>
-    const buttons = document.querySelectorAll('.btn-group .btn');
-    const tipoInput = document.getElementById('tipo');
-  
-    const camposDevolucao = document.getElementById('campos-devolucao');
-    const camposVenda = document.getElementById('campos-venda');
-    const camposRemessa = document.getElementById('campos-remessa');
-    const camposDescarte = document.getElementById('campos-descarte');
 
-  
-    function esconderTodosCampos() {
-      document.querySelectorAll('.tipo-campos').forEach(div => {
-        div.style.display = 'none';
-  
-        // Desabilita todos inputs, selects e textareas dentro da div
-        div.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
-      });
-    }
-  
-    function habilitarCampos(div) {
-      div.style.display = 'block';
-  
-      // Habilita inputs, selects e textareas da div visível
-      div.querySelectorAll('input, select, textarea').forEach(el => el.disabled = false);
-    }
-  
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        const valor = button.getAttribute('data-value');
-        tipoInput.value = valor;
-  
-        esconderTodosCampos();
-  
-        if (valor === 'devolucao') {
-          habilitarCampos(camposDevolucao);
-        } else if (valor === 'venda') {
-          habilitarCampos(camposVenda);
-        } else if (valor === 'remessa') {
-          habilitarCampos(camposRemessa);
-        } else if (valor === 'descarte') {
-          habilitarCampos(camposDescarte);
-        }
-      });
-    });
-  
-    // Opcional: ao carregar a página, esconder e desabilitar tudo
-    window.addEventListener('load', () => {
-      esconderTodosCampos();
-    });
-  </script>
-  
 
-  <script>
-    function validarEmails() {
-        const campo = document.getElementById('emails');
-        const valor = campo.value.trim();
-    
-        if (valor === '') return true; // Campo vazio é permitido
-    
-        const emails = valor.split(';').map(email => email.trim());
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-        const emailsInvalidos = emails.filter(email => !regex.test(email));
-    
-        if (emailsInvalidos.length > 0) {
-            alert('Os seguintes e-mails são inválidos:\n' + emailsInvalidos.join('\n'));
-            return false;
-        }
-    
-        return true; // Tudo certo, envia o formulário
-    }
-    </script>
+
 
 
 @endsection

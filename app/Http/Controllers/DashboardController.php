@@ -399,6 +399,12 @@ class DashboardController extends Controller
 
     public function exibirBI_PNEU()
 {
+    $user = auth()->user();
+
+    if (!$user || !$user->temSetor(['frotas', 'admin'])) {
+        abort(403, 'Acesso negado.');
+    }
+
     try {
         // 1. Tenta pegar o Access Token do Cache (evita o bloqueio que o Django sofreu)
         $accessToken = Cache::remember('pbi_access_token', 3000, function () {
@@ -451,6 +457,70 @@ class DashboardController extends Controller
         return "Erro no BI: " . $e->getMessage();
     }
 }
+
+
+
+public function exibirBI_MANUTENCAO()
+{
+    $user = auth()->user();
+
+    if (!$user || !$user->temSetor(['frotas', 'admin'])) {
+        return redirect()->route('login.form')->withErrors('Usuário não autenticado. Por favor, faça login para acessar o resumo financeiro.');
+    }
+
+    try {
+        // 1. Tenta pegar o Access Token do Cache (evita o bloqueio que o Django sofreu)
+        $accessToken = Cache::remember('pbi_access_token', 3000, function () {
+            $response = Http::asForm()->post("https://login.microsoftonline.com/" . env('POWERBI_TENANT_ID') . "/oauth2/v2.0/token", [
+                'grant_type'    => 'password',
+                'client_id'     => env('POWERBI_CLIENT_ID'),
+                'client_secret' => env('POWERBI_CLIENT_SECRET'),
+                'username'      => env('POWERBI_USERNAME'),
+                'password'      => env('POWERBI_PASSWORD'),
+                'scope'         => 'https://analysis.windows.net/powerbi/api/.default'
+            ]);
+
+            if ($response->failed()) {
+                throw new \Exception('Falha na autenticação Master User');
+            }
+
+            return $response->json()['access_token'];
+        });
+
+        // 2. Gerar o Embed Token (Este também pode ter um cache curto se o ReportID for fixo)
+        $groupId  = env('POWERBI_GROUP_ID');
+        $reportId = env('POWERBI_REPORT_ID_MANUTENCAO');
+
+        // Dica: Se o dashboard é o mesmo para todos, faça cache aqui também!
+        $embedData = Cache::remember("pbi_embed_token_{$reportId}", 3000, function () use ($accessToken, $groupId, $reportId) {
+            $response = Http::withToken($accessToken)
+                ->post("https://api.powerbi.com/v1.0/myorg/groups/$groupId/reports/$reportId/GenerateToken", [
+                    'accessLevel' => 'view'
+                ]);
+
+            if ($response->failed()) {
+                throw new \Exception('Falha ao gerar Embed Token');
+            }
+
+            return [
+                'token' => $response->json()['token'],
+                'url'   => "https://app.powerbi.com/reportEmbed?reportId=$reportId&groupId=$groupId"
+            ];
+        });
+
+        $embedToken = $embedData['token'];
+        $embedUrl   = $embedData['url'];
+
+        // Verifica se a chave existe no cache antes de retornar a view
+        $veioDoCache = Cache::has('pbi_access_token') ? 'Sim (Otimizado)' : 'Não (Primeira carga)';
+
+        return view('manutencao.manutencao_bi', compact('embedToken', 'embedUrl', 'reportId', 'veioDoCache'));
+
+    } catch (\Exception $e) {
+        return "Erro no BI: " . $e->getMessage();
+    }
+}
+
 
 
 

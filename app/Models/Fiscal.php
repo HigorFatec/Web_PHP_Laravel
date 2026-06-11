@@ -41,6 +41,8 @@ class Fiscal extends Model
         'status',
         'emails',
         'anexo_path',
+        'cod_localizacao_saida',
+        'cod_localizacao_entrada',
 
     ];
 

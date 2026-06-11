@@ -54,6 +54,8 @@ class Financeiro extends Model
         'relatorio_id',
         'despesas_selecionadas[]',
         'frota_bloqueada',
+        'motivo_rejeicao_interno',
+        'pix_flow_id'
 
     ];
 
@@ -251,7 +253,7 @@ DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
 }
 
 
-public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo){
+public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo,$analitica,$sintetica){
 
 // 1. Inicia uma transação no SQL Server
 DB::connection('sqlsrv')->beginTransaction();
@@ -263,6 +265,9 @@ try{
     $codunn = (int) $codunn;
     $codcus = (string) $codcus;
     $codgas = (int) $codgas;
+
+    $analitica = (int) $analitica;
+    $sintetica = (int) $sintetica;
 
 
 
@@ -328,8 +333,8 @@ try{
         'CODUNN' => $codunn,
         'CODCUS' => $codcus,
         'CODCGA' => $codgas,
-        'SINTET' => 83,
-        'ANALIT' => 376,
+        'SINTET' => $sintetica,
+        'ANALIT' => $analitica,
         'VALOR' => $valor,
         'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
@@ -414,7 +419,7 @@ try{
         'DATEMI' => DB::raw('GETDATE()'),
         'DATINC' => DB::raw('GETDATE()'),
         'DATREF' => DB::raw('GETDATE()'),
-        'ORIGEM' => 'E',
+        'ORIGEM' => 'N',
         'SITUAC' => 'I',
         'DESADT' => $valorUtilizado,
         'VLRDOC' => $valor,

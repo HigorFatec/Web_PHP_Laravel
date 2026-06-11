@@ -14,6 +14,14 @@ return [
     |
     */
 
+    
+    // API PIX FLOW
+    'pixflow' => [
+        'base_url' => env('PIXFLOW_BASE_URL', 'https://pixflow.fr.com.br'),
+        'api_key' => env('PIXFLOW_API_KEY'),
+    ],
+
+    
     'microsoft' => [
         'client_id' => env('MICROSOFT_CLIENT_ID'),
         'client_secret' => env('MICROSOFT_CLIENT_SECRET'),

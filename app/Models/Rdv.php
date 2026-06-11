@@ -398,7 +398,7 @@ DB::connection('sqlsrv')->table('BANRAZ')->insert([
     'VLRDOC' => $valor,
     'DEBCRE' => 'C',
     'DATCOM' => NULL,
-    'SITUAC' => 'O',
+    'SITUAC' => 'I',
     'SLDANT' => $saldo_anterior,
     'SLDATU' => $saldo_atualizado,
     'OBSERV' => 'PIX Reembolso de Adiantamento, Aprovado pelo Gestor: '.$prazo,

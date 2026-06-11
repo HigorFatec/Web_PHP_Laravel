@@ -48,20 +48,26 @@
 @endif
 
 
-<div class="container" style="margin-top: 20px; margin-bottom: -60px;">
-  <div class="anniversary-banner">
+
+{{-- <div class="container" style="margin-top: 30px; margin-bottom: 20px;">
+  <div class="anniversary-banner" style="border: 2px solid rgba(255,193,7,0.3);">
     <div class="anniversary-content">
-      <i class="fa-solid fa-cake-candles"></i>
-      <span>Comemorando <strong>16 Anos</strong> de excelência e logística (2010 - 2026)</span>
+      <div class="icon-box" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 50%;">
+        <i class="fa-solid fa-cake-candles" style="font-size: 2rem;"></i>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+          <span style="font-size: 1.2rem;">Comemorando <strong class="highlight-years">16 Anos</strong> de excelência</span>
+        <small style="opacity: 0.8; font-style: italic;">Grupo Cargo Polo: Conectando caminhos desde 2010</small>
+      </div>
     </div>
   </div>
-</div>
+</div> --}}
 
 
 
 </div>
 
-<div class="container my-5" style="padding-top: 80px;">
+<div class="container my-5" style="padding-top: 90px;">
   
   <div class="dashboard-grid">
 
@@ -87,34 +93,14 @@
       <div class="card-title">Fiscal - Emissão NF</div>
     </a>
 
-    <a href="{{ route('goto.route', ['route' => 'pagamento_pix.index']) }}" class="dashboard-card">
-      <div class="icon">
-        <i class="fa-brands fa-pix"></i> </div>
-      <div class="card-title">Combustivel - Pagamento Pix</div>
-    </a>
-
-    <a href="{{ route('goto.route', ['route' => 'florestal_pix.index']) }}" class="dashboard-card">
-      <div class="icon">
-        <i class="fa-solid fa-tree"></i>
-      </div>
-      <div class="card-title">Combustivel - Florestal Pix</div>
-    </a>
-
-    <a href="{{ route('goto.route', ['route' => 'saldo.index']) }}" class="dashboard-card">
+    <a href="{{ route('goto.route', ['route' => 'saldo.combustivel']) }}" class="dashboard-card">
       <div class="icon">
         <i class="fa-solid fa-gas-pump"></i>
       </div>
-      <div class="card-title">Combustível - Saldo </div>
-      <div class="card-description">Rede Frotas</div>
+      <div class="card-title">Combustível </div>
+      <div class="card-description">Pix e Saldo</div>
     </a>
 
-    <a href="{{ route('goto.route', ['route' => 'saldo.valecard']) }}" class="dashboard-card">
-      <div class="icon">
-        <i class="fa-solid fa-wallet"></i>
-      </div>
-      <div class="card-title">Combustível - Saldo </div>
-      <div class="card-description">ValeCard</div>
-    </a>
 
     <a href="{{ route('goto.route', ['route' => 'produtos.create']) }}" class="dashboard-card">
       <div class="icon">
@@ -160,6 +146,42 @@
       </div>
       <div class="card-title">Portal Reservas</div>
     </a>
+
+    <a href="{{route('implantacao_saldo.menu')}}" class="dashboard-card">
+      <div class="icon">
+        <i class="fa-solid fa-cubes"></i>
+      </div>
+      <div class="card-title">Estoque Almoxarifado</div>
+      <div class="card-description">Ajuste de Estoque</div>
+    </a>
+
+    <a href="{{route('ajuda_de_custo.index')}}" class="dashboard-card">
+      <div class="icon">
+        <i class="fa-brands fa-pix"></i>
+      </div>
+      <div class="card-title">Ajuda de Custo</div>
+      <div class="card-description">Solicitar Ajuda de Custo</div>
+    </a>
+
+
+        {{-- <a href="javascript:void(0)" class="dashboard-card disabled-card" title="Funcionalidade em desenvolvimento">
+      <span class="badge-construction">Em breve</span>
+      
+      <div class="icon">
+        <i class="fa-solid fa-screwdriver-wrench"></i> </div>
+      <div class="card-title">Ajuste de Estoque</div>
+      <div class="card-description">Implantação de Saldo</div>
+    </a> --}}
+    
+        {{-- <a href="javascript:void(0)" class="dashboard-card disabled-card" title="Funcionalidade em desenvolvimento">
+      <span class="badge-construction">Em breve</span>
+      
+      <div class="icon">
+        <i class="fa-solid fa-screwdriver-wrench"></i> </div>
+      <div class="card-title">Ajuda de Custo</div>
+      <div class="card-description">Solicitar Ajuda de Custo Proporcional</div>
+    </a> --}}
+
 
   </div>
 </div>
@@ -328,8 +350,38 @@
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
 }
+.highlight-years {
+    background: linear-gradient(to bottom, #fff 20%, #ffc107 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.4rem;
+    font-weight: 800;
+    filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.3));
+}
 </style>
+<style>
+/* Adicione isso ao seu bloco de style */
+.anniversary-banner {
+    position: relative;
+    overflow: hidden;
+}
 
+.anniversary-banner::before, .anniversary-banner::after {
+    content: "✨";
+    position: absolute;
+    font-size: 1.5rem;
+    opacity: 0.6;
+    animation: float 3s ease-in-out infinite;
+}
+
+.anniversary-banner::before { left: 10px; top: 10px; }
+.anniversary-banner::after { right: 10px; bottom: 10px; animation-delay: 1.5s; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(20deg); }
+}
+</style>
 
 
 

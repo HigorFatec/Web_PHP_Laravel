@@ -76,7 +76,9 @@ class AdiantamentoController extends Controller
                 'cod_gasto' => ['required', 'string', 'not_regex:/^\s*$/'],
                 'gestor_aprovador' => ['required', 'string', 'not_regex:/^\s*$/'],
                 'anexo_path' => 'nullable|string',
-                'valor' => 'required|string'
+                'valor' => 'nullable|numeric',
+            ],[
+                'valor.numeric' => 'O campo valor deve ser um número válido (ex: 1250.50).',
             ]);
 
             // $ida = Carbon::parse($validatedData['ida']);

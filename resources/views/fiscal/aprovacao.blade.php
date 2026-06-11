@@ -16,7 +16,9 @@
                     'success4' => ['color' => 'green darken-2', 'title' => 'Concluído', 'msg' => 'A solicitação foi <b>Concluída</b> com sucesso.'],
                     'success5' => ['color' => 'blue', 'title' => 'E-mail enviado', 'msg' => 'Solicitação reenviada para <b>' . Session::get('email_gestor') . '</b>.'],
                     'success6' => ['color' => 'red darken-1', 'title' => 'Reprovado', 'msg' => 'A solicitação foi <b>reprovada</b>.'],
-                ];
+                    'success8' => ['color' => 'green darken-2', 'title' => 'Entrega Confirmada', 'msg' => 'A entrega foi <b>confirmada</b> com sucesso.'],
+
+                    ];
             @endphp
 
             @foreach($alerts as $key => $data)
@@ -45,6 +47,7 @@
                     <div class="legenda-item"><i class="material-icons orange-text">remove</i> Estoque/Crédito Pendente</div>
                     <div class="legenda-item"><i class="material-icons pink-text">replay</i> Retorno Pendente</div>
                     <div class="legenda-item"><i class="material-icons green-text text-darken-2">email</i> Reenviar E-mail</div>
+                    <div class="legenda-item"><i class="material-icons green-text text-darken-2">check_circle</i> Confirmar Entrega</div>
                 </div>
             </div>
         </div>
@@ -88,7 +91,7 @@
                                 <td>{{ \Carbon\Carbon::parse($aprovado->created_at)->format('d/m/Y H:i') }}</td>
                                 <td>{{ $aprovado->filial }}</td>
                                 <td>{{ $aprovado->gestor->nome }}</td>
-                                @if(auth()->user()->temSetor(['admin', 'aux_fiscal', 'fiscal']))
+                                @if(auth()->user()->temSetor(['admin', 'fiscal']))
                                 <td style="display: flex; gap: 4px; justify-content: center;">
                                     <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST">@csrf
                                         <button class="btn-floating btn-small red darken-1" title="Reprovar"><i class="material-icons">close</i></button>
@@ -147,7 +150,7 @@
                                 <td>{{ $aprovado->gestor->nome }}</td>
                                 <td style="display: flex; gap: 4px; justify-content: center;">
                                     {{-- Ações exclusivas de Admin e Auxiliar Fiscal --}}
-                                    @if(auth()->user()->temSetor(['admin', 'aux_fiscal', 'fiscal']))
+                                    @if(auth()->user()->temSetor(['admin', 'fiscal']))
                                         <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST">@csrf
                                             <button class="btn-floating btn-small red darken-1"><i class="material-icons">close</i></button>
                                         </form>
@@ -166,6 +169,10 @@
                                         </form>
                                         <form action="{{ route('filial.retorno', $aprovado->id) }}" method="POST">@csrf
                                             <button class="btn-floating btn-small pink" title="Retorno Pendente"><i class="material-icons">replay</i></button>
+                                        </form>
+
+                                        <form action="{{ route('filial.confirmacao_entrega', $aprovado->id )}}" method="POST">@csrf
+                                            <button class="btn-floating btn-small green darken-2" title="Confirmar Entrega"><i class="material-icons">check_circle</i></button>
                                         </form>
                                     @endif
                                 </td>
@@ -206,7 +213,7 @@
                                 <td>{{ \Carbon\Carbon::parse($aprovado->created_at)->format('d/m/Y H:i') }}</td>
                                 <td>{{ $aprovado->filial }}</td>
                                 <td>{{ $aprovado->gestor->nome }}</td>
-                                @if(auth()->user()->temSetor(['admin', 'aux_fiscal', 'fiscal']))
+                                @if(auth()->user()->temSetor(['admin', 'fiscal']))
                                 <td style="display: flex; gap: 4px; justify-content: center;">
                                     <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST">@csrf
                                         <button class="btn-floating btn-small red darken-1"><i class="material-icons">close</i></button>
@@ -254,7 +261,7 @@
                                 <td>{{ \Carbon\Carbon::parse($aprovado->created_at)->format('d/m/Y H:i') }}</td>
                                 <td>{{ $aprovado->filial }}</td>
                                 <td>{{ $aprovado->gestor->nome }}</td>
-                                @if(auth()->user()->temSetor(['admin', 'aux_fiscal', 'fiscal']))
+                                @if(auth()->user()->temSetor(['admin',  'fiscal']))
                                 <td style="display: flex; gap: 4px; justify-content: center;">
                                     <form action="{{ route('fiscal.reprovado', $aprovado->id) }}" method="POST">@csrf
                                         <button class="btn-floating btn-small red darken-1"><i class="material-icons">close</i></button>

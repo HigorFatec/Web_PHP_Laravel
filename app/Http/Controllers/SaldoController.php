@@ -9,6 +9,11 @@ use App\Models\ValeCard;
 
 class SaldoController extends Controller
 {
+    public function combustivel()
+    {
+        return view('saldo.combustivel');
+    }
+
         public function index()
     {
         $user = auth()?->user();

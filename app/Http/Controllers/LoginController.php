@@ -29,16 +29,9 @@ class LoginController extends Controller
         if (Auth::attempt($credenciais, $request->remember)) {
             $request->session()->regenerate();
             
-            // Dica: Você pode usar um 'switch' ou simplificar os ifs aqui
-            $user = auth()->user();
-            
-            if ($user->admin == 2) {
-                return redirect()->intended('/pagamento/aprovacoes');
-            } elseif ($user->admin == 3 || $user->admin == 4) {
-                return redirect()->intended('/fiscal/aprovacoes');
-            } else {
-                return redirect()->intended('/');
-            }
+            // Se houver uma página interceptada na sessão, vai para ela.
+            // Se o usuário entrou direto pelo login, vai para a Home '/'.
+            return redirect()->intended('/');
         } else {
             return redirect()->back()->with('erro', 'Usuário ou senha incorretos');
         }

@@ -32,8 +32,11 @@
     @if ($financeiro->tipo == 'avista')
 
         <p><b><center><h4>Pagamento À Vista</h4></center></b></p><br>
-        
-    @else 
+    @elseif ($financeiro->tipo == 'ajuda_de_custo')
+
+        <p><b><center><h4>Ajuda de Custo</h4></center></b></p><br>
+    
+    @else
 
         <p><b><center><h4>Adiantamento à fornecedor</h4></center></b></p>
         

@@ -20,5 +20,13 @@ class Produto extends Model
         'tipo',
         'approval_token',
         'status',
+        'user_id',
+        'descricao_curta',
+        'filial',
+        'motivo_cancelamento'
+         // Adicione outros campos conforme necessário
     ];
+
+
+
 }

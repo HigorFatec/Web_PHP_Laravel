@@ -363,7 +363,6 @@ class RdvController extends Controller
         return view('rdv.aprovacao_gestor', compact('relatorio', 'despesas', 'valorAprovado', 'existePendente'));
     }
 
-    // No Controller de Despesas
     public function updateStatus(Request $request, $id)
     {
         $despesa = Rdv::findOrFail($id);
@@ -372,7 +371,12 @@ class RdvController extends Controller
             'observacao'=> $request->observacao
         ]);
 
-        return redirect()->back()->with('success', 'Status da despesa atualizado!');
+        // Retorna JSON em vez de Redirect
+        return response()->json([
+            'success' => true,
+            'message' => 'Status da despesa atualizado!',
+            'novo_status' => $despesa->status
+        ]);
     }
 
 public function finalizar(Request $request, $id)
@@ -459,7 +463,7 @@ public function finalizar(Request $request, $id)
                         'adiantamentoTotal' => $adiantamentoModel->valor
                     ], function ($message) use ($relatorio) {
                         $message->to($relatorio->user_email); // Destinatário principal: Solicitante
-                        $message->cc([$relatorio->unidades?->email_gestor]);
+                        $message->cc([$relatorio->gestor_aprovador]);
                         $message->subject('AÇÃO NECESSÁRIA: Devolução de Saldo PIX - Protocolo: ' . $relatorio->id);
                     });
 
@@ -602,7 +606,7 @@ public function finalizar(Request $request, $id)
             ], function ($message) use ($relatorio) {
                 $message->to('contasapagar@grupocargopolo.com.br');
                 //$message->to('higor.machado@grupocargopolo.com.br');
-                $message->cc([$relatorio->unidades?->email_gestor ?? null,$relatorio->user_email]);
+                $message->cc([$relatorio->gestor_aprovador ?? null,$relatorio->user_email]);
                 $message->subject('Relatório de Despesa Aprovado - Protocolo: ' . $relatorio->id);
             });
         } catch (\Exception $e) { }
