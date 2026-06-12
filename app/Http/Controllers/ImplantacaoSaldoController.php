@@ -324,7 +324,7 @@ class ImplantacaoSaldoController extends Controller
         }
 
         if($user->temSetor(['admin','fiscal','diretoria','suprimentos'])) {
-            $solicitacoes = ImplantacaoSaldo::orderBy('created_at', 'desc')->get();
+            $solicitacoes = ImplantacaoSaldo::where('status','<>','finalizado_fiscal')->orderBy('created_at', 'desc')->get();
         } else {
             $solicitacoes = ImplantacaoSaldo::where(function($query) use ($user) {
                 $query->where('gestor_filial', $user->email)
@@ -372,4 +372,21 @@ class ImplantacaoSaldoController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function finalizar($id){
+
+        $user = auth()?->user();
+
+        if ($user->temSetor(['admin','suprimentos','fiscal'])){
+
+            $implantacao = ImplantacaoSaldo::where('id', $id)->firstOrFail();
+
+            $implantacao->update(['status' => 'finalizado_fiscal']);
+
+            return redirect()->route('implantacao_saldo.monitoramento')->with('success','Solicitação aprovada com sucesso!');
+        } else {
+            abort(403, 'Acesso negado.');
+        }
+    }
+
 }

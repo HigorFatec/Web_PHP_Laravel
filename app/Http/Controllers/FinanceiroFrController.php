@@ -202,7 +202,7 @@ public function exibirBI()
 
             $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
 
-            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->paginate(500);
+            $finalizados = Financeiro::where('status', 'finalizado')->orderBy('updated_at', 'desc')->paginate(500);
 
             return view('financeiro_fr.finalizados', compact('financeiro', 'finalizados'));
 
@@ -218,7 +218,7 @@ public function exibirBI()
                         ->orWhere('gestor_aprovador', auth()->user()?->email);
                 })
                 ->where('status', 'finalizado')
-                ->orderBy('created_at', 'desc')
+                ->orderBy('updated_at', 'desc')
                 ->paginate(500);
 
 
@@ -860,16 +860,18 @@ public function dispararEmailsAtrasados()
             $message->subject('Solicitação Reprovada - Protocolo: ' . $financeiro->id);
         });
 
-        $gestor = $financeiro->unidadeAprovadora?->gestorRegional;
+        if ($financeiro->tipo == 'avista') {
+            $gestor = $financeiro->unidadeAprovadora?->gestorRegional;
 
-        if (!$gestor) {
-            return 'Gestor regional não encontrado para esta unidade.';
+            if (!$gestor) {
+                return 'Gestor regional não encontrado para esta unidade.';
+            }
+
+            $calculo = $gestor->saldo + $financeiro->valor;
+
+            $gestor->saldo = $calculo;
+            $gestor->save();
         }
-
-        $calculo = $gestor->saldo + $financeiro->valor;
-
-        $gestor->saldo = $calculo;
-        $gestor->save();
 
         $financeiro->update(['status' => 'reprovado']);
 
@@ -1092,8 +1094,8 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
         // 6. EXECUÇÃO DE PROCEDURES FINANCEIRAS
         if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
             $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->unidadeAprovadora?->nome_gestor, $financeiro->cod_unidade, $financeiro->unidades->conta);
-        } elseif ($financeiro->tipo == 'ajuda_de_custo') {
-            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,'LETICIA CARVALHO', 60, 52);
+        // } elseif ($financeiro->tipo == 'ajuda_de_custo') {
+        //     $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,'LETICIA CARVALHO', 60, 52);
         } else{
             $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora?->nome_gestor, 376 , 83 );
         }
@@ -1142,16 +1144,19 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
             $message->subject('Solicitação Reprovada - Protocolo: ' . $financeiro->id);
         });
 
-        $gestor = $financeiro->unidadeAprovadora?->gestorRegional;
+        if ($financeiro->tipo == 'avista') {
 
-        if (!$gestor) {
-            return 'Gestor regional não encontrado para esta unidade.';
+            $gestor = $financeiro->unidadeAprovadora?->gestorRegional;
+
+            if (!$gestor) {
+                return 'Gestor regional não encontrado para esta unidade.';
+            }
+
+            $calculo = $gestor->saldo + $financeiro->valor;
+
+            $gestor->saldo = $calculo;
+            $gestor->save();
         }
-
-        $calculo = $gestor->saldo + $financeiro->valor;
-
-        $gestor->saldo = $calculo;
-        $gestor->save();
 
         $financeiro->update(['status' => 'reprovado']);
 

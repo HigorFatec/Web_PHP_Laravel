@@ -106,9 +106,18 @@
                             <td>
                                 @if($s->status != 'finalizado' && $s->status != 'reprovado')
                                     <a href="{{ route('implantacao_saldo.reenviar_email', $s->id) }}" 
-                                       class="btn-floating btn-small waves-effect waves-light blue tooltipped" 
-                                       data-position="top" data-tooltip="Reenviar e-mail de cobrança">
+                                    class="btn-floating btn-small waves-effect waves-light blue tooltipped" 
+                                    data-position="top" data-tooltip="Reenviar e-mail de cobrança">
                                         <i class="material-icons">email</i>
+                                    </a>
+
+
+                                @elseif($s->status == 'finalizado')
+                                    <a href="{{ route('implantacao_saldo.finalizar', $s->id) }}" 
+                                    class="btn-floating btn-small waves-effect waves-light green tooltipped" 
+                                    data-position="top" data-tooltip="Finalizar Solicitação"
+                                    onclick="return confirm('Tem certeza que deseja finalizar esta solicitação?')">
+                                        <i class="material-icons">check</i>
                                     </a>
                                 @else
                                     <i class="material-icons grey-text">lock</i>

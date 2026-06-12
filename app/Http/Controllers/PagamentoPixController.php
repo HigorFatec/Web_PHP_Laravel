@@ -25,7 +25,11 @@ class PagamentoPixController extends Controller
         $filiais = Filial::orderBy('filial')->pluck('filial');
         $produtos = Produto_Arla::orderBy('nome')->pluck('nome');
 
-        return view('pagamento_pix.index', compact('filiais','produtos'));
+        $veiculos = Pagamento_Pix::veiculos();
+
+        $postos = Pagamento_Pix::postos();
+
+        return view('pagamento_pix.index', compact('filiais','produtos','veiculos','postos'));
         //
     }
 
@@ -41,6 +45,7 @@ class PagamentoPixController extends Controller
     public function aprovacao()
     {
         $aprovar = Pagamento_Pix::where('status','pendente')->orderBy('created_at', 'desc')->paginate(3);
+
 
         return view('pagamento_pix.aprovacao', compact('aprovar'));
     }

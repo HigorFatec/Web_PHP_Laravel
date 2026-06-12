@@ -8,6 +8,7 @@ use App\Models\UnidadesNegocio;
 use App\Models\Financeiro;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 
 class AjudaDeCustoController extends Controller
@@ -120,7 +121,7 @@ class AjudaDeCustoController extends Controller
 
 
         // 2. Insere na tabela Financeiro para o setor de pagamentos ver
-        Financeiro::create([
+        $financeiro = Financeiro::create([
             'tipo'             => 'ajuda_de_custo', // Identificador para a tela de resumo
             'referencia'       => 'Ajuda de Custo #' . $ajudaCusto->id,
             'cnpj'             => $ajudaCusto->cnpj,
@@ -137,6 +138,7 @@ class AjudaDeCustoController extends Controller
             'cod_gasto'        => $ajudaCusto->cod_gasto,
             'status'           => 'aprovado_gestor', // Status que sua tela de resumo busca
             'gestor_aprovador' => 'leticia.carvalho@grupocargopolo.com.br',
+            'email_gestor'     => 'leticia.carvalho@grupocargopolo.com.br',
             // 'gestor_aprovador' => 'higor.machado@grupocargopolo.com.br',
 
             'user_id'          => $ajudaCusto->user_id,
@@ -145,14 +147,29 @@ class AjudaDeCustoController extends Controller
             'email'            => $ajudaCusto->user?->email
         ]);
 
+        try {
+            // Chama o método pagdoc para processar o pagamento
+            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,'LETICIA CARVALHO', 60, 52);
+        } catch (\Exception $e) {
+            // Log do erro para análise posterior
+            \Log::error('Erro ao processar pagamento via pagdoc: ' . $e->getMessage(), [
+                'financeiro_id' => $financeiro->id,
+                'fornecedor' => $financeiro->fornecedor,
+                'valor' => $financeiro->valor,
+                'cod_unidade' => $financeiro->cod_unidade,
+                'cod_custo' => $financeiro->cod_custo,
+                'cod_gasto' => $financeiro->cod_gasto,
+            ]);
+        }
+
 
 
         // Opcional: Você pode disparar um e-mail aqui notificando o usuário que foi aprovado.
         // Envia e-mail de notificação de APROVAÇÃO para o solicitante
         if ($ajudaCusto->user?->email) {
             Mail::send('emails.ajuda_custo_aprovado', ['ajuda_custo' => $ajudaCusto], function ($message) use ($ajudaCusto) {
-                $message->to($ajudaCusto->user->email);
-                $message->cc('higor.machado@grupocargopolo.com.br'); // Cópia para o gestor
+                $message->to('contasapagar@grupocargopolo.com.br');
+                $message->cc([$ajudaCusto->user->email,'leticia.carvalho@grupocargopolo.com.br']); // Cópia para o gestor
                 $message->subject('Solicitação de Ajuda de Custo APROVADA - Protocolo: ' . $ajudaCusto->id);
             });
         }

@@ -212,7 +212,7 @@
                                                         <div class="sub-info">{{ $r->unidades->unidade_negocio ?? 'N/I' }}</div>
                                                     </td>
 
-                                                    @if(strtolower($r->tipo) != 'reembolso')
+                                                    @if(strtolower($r->tipo) != 'reembolso' || strtolower($r->tipo) != 'ajuda_de_custo')
 
                                                     <td class="flex-actions">
                                                         <button class="btn-action-detail modal-trigger tooltipped" data-target="modal-detalhes-{{ $r->id }}" data-tooltip="Ver Dados Bancários" onclick="buscarStatusPedido('{{ $r->pedido }}', '{{ $r->id }}')">

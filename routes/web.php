@@ -622,6 +622,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/implantacao-saldo/item-temporario', [ImplantacaoSaldoController::class, 'adicionarItemTemporario'])->name('implantacao_saldo.add_temp');
     Route::post('/implantacao-saldo/item-temporario/remover', [ImplantacaoSaldoController::class, 'removerItemTemporario'])->name('implantacao_saldo.remove_temp');
 
+    Route::get('/implantacao-saldo/finalizar/{id}', [ImplantacaoSaldoController::class, 'finalizar'])->name('implantacao_saldo.finalizar');
+
+
+
     Route::get('/ajuda_de_custo', [AjudaDeCustoController::class, 'index'])->name('ajuda_de_custo.index');
     Route::post('/ajuda_de_custo', [AjudaDeCustoController::class, 'store'])->name('ajuda_custo.store');
 
@@ -629,6 +633,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ajuda-custo/aprovar/{token}', [AjudaDeCustoController::class, 'aprovar'])->name('ajuda_custo.aprovar');
     Route::get('/ajuda-custo/reprovar/{token}', [AjudaDeCustoController::class, 'exibirFormReprovar'])->name('ajuda_custo.form_reprovar');
     Route::post('/ajuda-custo/reprovar/{token}', [AjudaDeCustoController::class, 'reprovar'])->name('ajuda_custo.post_reprovar');
+
 
 
 
