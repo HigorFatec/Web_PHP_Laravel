@@ -26,6 +26,7 @@
             <p>Olá, uma nova solicitação de ajuda de custo foi registrada e aguarda sua aprovação.</p>
             
             <table>
+                <tr><td class="label">Solicitante:</td><td>{{ $ajuda_custo->user?->name ?? 'N/A' }}</td></tr>
                 <tr><td class="label">Colaborador:</td><td>{{ $ajuda_custo->name }}</td></tr>
                 <tr><td class="label">Fornecedor ID:</td><td>{{ $ajuda_custo->fornecedor }}</td></tr>
                 <tr><td class="label">CNPJ:</td><td>{{ $ajuda_custo->cnpj }}</td></tr>

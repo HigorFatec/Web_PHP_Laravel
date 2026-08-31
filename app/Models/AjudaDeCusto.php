@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\UnidadesNegocio;
+use App\Models\Financeiro;
 
 
 class AjudaDeCusto extends Model
@@ -54,5 +55,16 @@ public function user()
 {
     return $this->belongsTo(User::class, 'user_id');
 }
+
+// Relacionamento com o financeiro
+public function financeiro()
+{
+    return $this->belongsTo(Financeiro::class, 'id', 'relatorio_id'); 
+    // 'email_gestor' é a coluna em fiscais
+    // 'email' é a coluna correspondente em fiscais_aprovadores
+}
+
+
+
     
 }

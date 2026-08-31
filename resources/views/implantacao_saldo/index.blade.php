@@ -1,5 +1,5 @@
 @extends('layout')
-@section('title', 'Implantação de Saldo')
+@section('title', 'Importação Abastecimentos')
 @section('conteudo')
 
 <div class="row">
@@ -9,7 +9,6 @@
 <div class="col s12 m6 offset-m3">
 <div class="card">
     <div class="card-content">
-    {{-- for de 1 a 5 --}}
     @for ($i = 1; $i <= 5; $i++)
         @if ($message = Session::get('success'.$i))
             <div class="card green darken-1">
@@ -49,8 +48,7 @@
             @csrf
 
             <div class="row">
-                <div class="input-field col s12 m6">
-                    <select name="cod_localizacao" id="unidade" required>
+                <div class="input-field col s12 m12"> <select name="cod_localizacao" id="unidade" required>
                         <option value="" disabled selected>Escolha a Filial</option>
                         @foreach ($filiais as $f)
                             <option value="{{ $f->CODIGO }}">{{ $f->DESCRI }}</option>
@@ -58,21 +56,43 @@
                     </select>
                     <label>Unidade Filial</label>
                 </div>
+                </div>
 
-                <div class="input-field col s12 m6">
-                    <select name="movimentacao" required>
-                        <option value="" disabled selected>Escolha a Movimentação</option>
-                        <option value="Entrada">Entrada (Ajuste Positivo)</option>
-                        <option value="Saída">Saída (Ajuste Negativo)</option>
-                    </select>
-                    <label>Tipo de Movimentação</label>
+            {{-- BLOCO: IMPORTAR VIA CSV PARA A TABELA TEMPORÁRIA --}}
+            <div class="row border-box" style="background: #f8fafc; padding: 15px; border: 1px dashed #0284c7; border-radius: 8px; margin-bottom: 20px;">
+                <h6 style="margin-top: 0; font-weight: bold; color: #0284c7;"><i class="material-icons left" style="margin-right: 5px;">file_upload</i> Importar Itens em Massa via CSV</h6>
+                <p style="font-size: 0.85rem; color: #64748b; margin-top: -5px; margin-bottom: 10px;">
+                    O arquivo deve conter os cabeçalhos exatos: <code style="font-family: monospace; font-weight: bold;">CODPROD;MOVIMENTACAO;QUANTIDADE</code>
+                </p>
+                
+                {{-- LINK DE DOWNLOAD DO EXEMPLO --}}
+                <div style="margin-bottom: 15px;">
+                    <a href="{{ route('implantacao_saldo.exemplo_csv') }}" class="waves-effect waves-teal btn-flat" style="color: #0284c7; padding: 0; height: auto; line-height: normal; text-transform: none; font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="material-icons" style="font-size: 1.1rem;">cloud_download</i> Descarregar modelo de exemplo (.CSV)
+                    </a>
+                </div>
+                
+                <div class="file-field input-field col s12 m9" style="margin: 0;">
+                    <div class="btn blue-grey darken-2 btn-small" style="border-radius: 4px; text-transform: none;">
+                        <span>Procurar CSV</span>
+                        <input type="file" id="csv_itens_input" accept=".csv">
+                    </div>
+                    <div class="file-path-wrapper">
+                        <input class="file-path validate" type="text" placeholder="Selecione uma listagem em lote para processar">
+                    </div>
+                </div>
+                <div class="col s12 m3">
+                    <button type="button" id="btn-importar-csv-itens" class="btn cyan darken-2 waves-effect waves-light style-flex" style="width: 100%; height: 36px; border-radius: 4px; text-transform: none; font-weight: 600;">
+                        Processar Lista
+                    </button>
                 </div>
             </div>
 
+            {{-- BLOCO ORIGINAL: BUSCAR E ADICIONAR ITENS MANUALMENTE --}}
             <div class="row border-box" style="background: #fcfcfc; padding: 15px; border: 1px dashed #ccc; border-radius: 8px; margin-bottom: 20px;">
-                <h6 style="margin-top: 0; font-weight: bold; color: #333;">Buscar e Adicionar Itens ao Lote</h6>
+                <h6 style="margin-top: 0; font-weight: bold; color: #333;">Buscar e Adicionar Itens Manualmente</h6>
                 
-                <div class="input-field col s12 m6">
+                <div class="input-field col s12 m5"> 
                     <select id="produto_select" class="browser-default select2" style="width: 100%; height: 45px; border: 1px solid #9e9e9e; border-radius: 4px;">
                         <option value="" disabled selected>Digite o código ou nome do produto...</option>
                         @foreach ($produtos as $p)
@@ -86,8 +106,15 @@
                     </select>
                 </div>
 
-                <div class="input-field col s12 m4">
-                    <input type="number" id="quantidade_input" min="1" placeholder="Quantidade">
+                <div class="input-field col s12 m3">
+                    <select id="movimentacao_input" class="browser-default" style="width: 100%; height: 45px; border: 1px solid #9e9e9e; border-radius: 4px; padding: 5px;">
+                        <option value="Entrada">Entrada (Ajuste Positivo)</option>
+                        <option value="Saída">Saída (Ajuste Negativo)</option>
+                    </select>
+                </div>
+
+                <div class="input-field col s12 m2"> 
+                    <input type="number" id="quantidade_input" min="1" placeholder="Qtd">
                 </div>
 
                 <div class="col s12 m2" style="margin-top: 15px;">
@@ -96,6 +123,7 @@
                     </button>
                 </div>
             </div>
+
 
             <div class="row">
                 <div class="col s12">
@@ -106,7 +134,7 @@
                                 <th width="60" style="text-align: center;">Item</th>
                                 <th width="140">Código</th>
                                 <th>Descrição do Produto</th>
-                                <th width="120">Quantidade</th>
+                                <th width="160">Movimentação</th> <th width="120">Quantidade</th>
                                 <th width="80">Ações</th>
                             </tr>
                         </thead>
@@ -122,6 +150,12 @@
                                             <input type="hidden" name="produtos[{{ $item->codprod }}][codprod]" value="{{ $item->codprod }}">
                                         </td>
                                         <td style="font-size: 14px; color: #212121;">{{ $item->descricao }}</td>
+                                        <td>
+                                            <select name="produtos[{{ $item->codprod }}][movimentacao]" class="browser-default" style="border: 1px solid #ccc; border-radius: 4px; padding: 5px; height: auto;">
+                                                <option value="Entrada" {{ ($item->movimentacao ?? '') == 'Entrada' ? 'selected' : '' }}>Entrada</option>
+                                                <option value="Saída" {{ ($item->movimentacao ?? '') == 'Saída' ? 'selected' : '' }}>Saída</option>
+                                            </select>
+                                        </td>
                                         <td>
                                             <input type="number" name="produtos[{{ $item->codprod }}][quantidade]" value="{{ $item->quantidade }}" min="1" class="browser-default" style="width: 80px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                                         </td>
@@ -209,7 +243,7 @@
 <script>
 $(document).ready(function() {
     if ($.fn.formSelect) {
-        $('select').not('#produto_select').formSelect();
+        $('select').not('#produto_select, #movimentacao_input').formSelect();
     }
 
     if ($.fn.select2) {
@@ -219,8 +253,10 @@ $(document).ready(function() {
         });
     }
 
+    // Variável de controle do contador global da tabela
     let contadorItem = $('#tabela-produtos-corpo tr').length + 1;
 
+    // LÓGICA DE INSERÇÃO MANUAL
     $('#btn-adicionar-produto').on('click', function(e) {
         e.preventDefault();
 
@@ -230,6 +266,7 @@ $(document).ready(function() {
         const grupo = $opcao.data('grupo');
         const subgrupo = $opcao.data('subgrupo');
         const qtd = $('#quantidade_input').val();
+        const mov = $('#movimentacao_input').val();
 
         if (!codprod) { alert('Por favor, selecione um produto.'); return; }
         if (!qtd || qtd <= 0) { alert('Insira uma quantidade válida superior a 0.'); return; }
@@ -248,11 +285,15 @@ $(document).ready(function() {
                 descricao: descri,
                 grupo: grupo,
                 subgrupo: subgrupo,
-                quantidade: qtd
+                quantidade: qtd,
+                movimentacao: mov
             },
             success: function(response) {
                 if (response.success) {
                     const badgeIndicador = `<span class="badge-item-numero">${contadorItem}</span>`;
+                    const selEntrada = (mov === 'Entrada') ? 'selected' : '';
+                    const selSaida = (mov === 'Saída') ? 'selected' : '';
+
                     const novaLinha = `
                         <tr data-codprod="${codprod}">
                             <td style="text-align: center; vertical-align: middle;">${badgeIndicador}</td>
@@ -261,6 +302,12 @@ $(document).ready(function() {
                                 <input type="hidden" name="produtos[${codprod}][codprod]" value="${codprod}">
                             </td>
                             <td style="font-size: 14px; color: #212121;">${descri}</td>
+                            <td>
+                                <select name="produtos[${codprod}][movimentacao]" class="browser-default" style="border: 1px solid #ccc; border-radius: 4px; padding: 5px; height: auto;">
+                                    <option value="Entrada" ${selEntrada}>Entrada</option>
+                                    <option value="Saída" ${selSaida}>Saída</option>
+                                </select>
+                            </td>
                             <td>
                                 <input type="number" name="produtos[${codprod}][quantidade]" value="${qtd}" min="1" class="browser-default" style="width: 80px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
                             </td>
@@ -287,6 +334,79 @@ $(document).ready(function() {
         });
     });
 
+    // LÓGICA DE IMPORTAÇÃO EM MASSA VIA CSV (Muda para cá de forma a partilhar o contadorItem)
+    $('#btn-importar-csv-itens').on('click', function(e) {
+        e.preventDefault();
+        
+        const fileInput = $('#csv_itens_input')[0].files[0];
+        if (!fileInput) {
+            alert('Por favor, selecione um arquivo CSV primeiro.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('arquivo_csv', fileInput);
+        formData.append('_token', "{{ csrf_token() }}");
+
+        $.ajax({
+            url: "{{ route('implantacao_saldo.importar_csv_temp') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    
+                    response.itens.forEach(function(item) {
+                        if ($(`tr[data-codprod="${item.codprod}"]`).length === 0) {
+                            const badgeIndicador = `<span class="badge-item-numero">${contadorItem}</span>`;
+                            const selEntrada = (item.mov === 'Entrada') ? 'selected' : '';
+                            const selSaida = (item.mov === 'Saída') ? 'selected' : '';
+
+                            const novaLinha = `
+                                <tr data-codprod="${item.codprod}">
+                                    <td style="text-align: center; vertical-align: middle;">${badgeIndicador}</td>
+                                    <td>
+                                        <span class="chip text-weight-bold grey lighten-2" style="border-radius: 4px; font-weight: bold;">${item.codprod}</span>
+                                        <input type="hidden" name="produtos[${item.codprod}][codprod]" value="${item.codprod}">
+                                    </td>
+                                    <td style="font-size: 14px; color: #212121;">${item.descri}</td>
+                                    <td>
+                                        <select name="produtos[${item.codprod}][movimentacao]" class="browser-default" style="border: 1px solid #ccc; border-radius: 4px; padding: 5px; height: auto;">
+                                            <option value="Entrada" ${selEntrada}>Entrada</option>
+                                            <option value="Saída" ${selSaida}>Saída</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="produtos[${item.codprod}][quantidade]" value="${item.qtd}" min="1" class="browser-default" style="width: 80px; text-align: center; border: 1px solid #ccc; border-radius: 4px; padding: 5px;">
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn-remove-item btn-floating btn-small red waves-effect waves-light" data-codprod="${item.codprod}">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                            $('#tabela-produtos-corpo').append(novaLinha);
+                            contadorItem++;
+                        }
+                    });
+
+                    // Limpa corretamente os inputs visuais do Materialize CSS
+                    $('.file-path').val('');
+                    $('#csv_itens_input').val('');
+                } else {
+                    alert('Erro ao processar lote: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Erro de comunicação ao processar o arquivo CSV.');
+            }
+        });
+    });
+
+    // LÓGICA DE REMOÇÃO DE ITEM
     $(document).on('click', '.btn-remove-item', function() {
         const $linha = $(this).closest('tr');
         const codprod = $(this).data('codprod');
@@ -316,15 +436,14 @@ $(document).ready(function() {
         }
     });
 
-    // 🌟 NOVO SISTEMA DE FILTRO DE GESTORES BLINDADO (NÃO BLOQUEIA SE FALHAR)
-
+    // SISTEMA DE FILTRO DE GESTORES
     $('#unidade').on('change', function() {
         const unidadeCodigo = String($(this).val()).trim();
         const unidadeTexto = $("#unidade option:selected").text().trim().toUpperCase();
         const $gestores = $('#gestor_filial, #gestor_regional, #diretor');
 
         if (!unidadeCodigo) {
-            $gestores.val('');
+            $gestores.val('').prop('disabled', false);
             if ($.fn.formSelect) $gestores.formSelect();
             return;
         }
@@ -344,8 +463,6 @@ $(document).ready(function() {
                 const setorGestor = $(this).attr('data-setor');
                 if (setorGestor) {
                     const setorNormalizado = normalizar(setorGestor);
-
-                    // Divide as palavras para testar correspondências parciais por aproximação
                     const palavrasChave = setorNormalizado.split(' ').filter(p => p.length > 2);
                     let bateuPalavra = false;
                     
@@ -362,27 +479,30 @@ $(document).ready(function() {
                         bateuPalavra
                     ) {
                         $selectGestor.val($(this).val());
-                        $selectGestor.prop('readonly', true);
-                        $gestores.formSelect();
+                        $selectGestor.prop('disabled', true);
                         encontrado = true;
                         return false; 
                     }
                 }
             });
 
-            // Se a automação falhar, mantém a opção padrão vazia para o usuário escolher manualmente
             if (!encontrado) {
-                $selectGestor.val('');
+                $selectGestor.val('').prop('disabled', false);
             }
         });
 
-        // Atualiza os componentes visuais do Materialize
         if ($.fn.formSelect) {
             $gestores.formSelect();
         }
     });
+
+    $('form').on('submit', function() {
+        $('#gestor_filial, #gestor_regional, #diretor').prop('disabled', false);
+    });
 });
 </script>
+
+
 
 <style>
 .style-flex { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }

@@ -9,5 +9,9 @@ class Produto_Arla extends Model
 {
     use HasFactory;
     protected $table = 'produto_arla';
+    protected $fillable = [
+        'nome',
+        'id',
+    ];
 
 }

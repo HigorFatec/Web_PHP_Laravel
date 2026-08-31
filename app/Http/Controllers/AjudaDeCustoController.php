@@ -116,7 +116,7 @@ class AjudaDeCustoController extends Controller
         }
 
 
-        $ajudaCusto->load('unidades', 'centroGasto', 'centroCusto', 'user');
+        $ajudaCusto->load('unidades', 'centroGasto', 'centroCusto', 'user','financeiro');
 
 
 
@@ -144,12 +144,15 @@ class AjudaDeCustoController extends Controller
             'user_id'          => $ajudaCusto->user_id,
             'fornecedor'       => $ajudaCusto->fornecedor,
             'tem_nota_fiscal'  => 'nao',
-            'email'            => $ajudaCusto->user?->email
+            'email'            => $ajudaCusto->user?->email,
+            'relatorio_id'     => $ajudaCusto->id,
         ]);
+
+        $financeiro->update(['id_raz' => $financeiro->fornecedor. '-A-' . $financeiro->id]);
 
         try {
             // Chama o método pagdoc para processar o pagamento
-            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,'LETICIA CARVALHO', 60, 52);
+            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,'LETICIA CARVALHO', 60, 52, 'FOL');
         } catch (\Exception $e) {
             // Log do erro para análise posterior
             \Log::error('Erro ao processar pagamento via pagdoc: ' . $e->getMessage(), [

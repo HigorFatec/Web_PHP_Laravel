@@ -63,6 +63,35 @@ class FinanceiroFrController extends Controller
         return view('financeiro_fr.reprovar', compact('r'));
     }
 
+    public function buscar(Request $request)
+    {
+        $busca = $request->input('busca');
+        $tipo = $request->input('tipo', 'pedido');
+
+        if (empty($busca)) {
+            return response()->json([]);
+        }
+
+        $resultados = Financeiro::where(function ($q) {
+                $q->where('status', 'aprovado_gestor')
+                ->orWhere(function ($sub) {
+                    $sub->where('status', 'aprovado')
+                        ->where('tipo', 'reembolso');
+                });
+            })
+            ->when($tipo === 'id', function ($q) use ($busca) {
+                return $q->where('id', $busca);
+            })
+            ->when($tipo === 'pedido', function ($q) use ($busca) {
+                return $q->where('pedido', 'like', "%{$busca}%");
+            })
+            ->orderBy('created_at', 'desc')
+            ->get(); // Traz todos os correspondentes do banco sem paginar
+
+        return response()->json($resultados);
+    }
+
+
     public function resumo(Request $request)
     {
         $user = auth()?->user();
@@ -74,14 +103,61 @@ class FinanceiroFrController extends Controller
         //if (auth()->user()?->admin == 5 || auth()->user()?->admin == 100){
         if ($user->temSetor(['financeiro','admin','suprimentos'])){
 
-            $financeiro = Financeiro::where('status', 'aprovado_gestor')
-            ->orWhere(function ($query) {
-                $query->where('status', 'aprovado')
-                    ->where('tipo', 'reembolso');
-            })
-            ->orderBy('created_at', 'desc')->paginate(500);
+            // 1. Inicia a Query base
+            $query = Financeiro::query();
+
+            // Regra de status existente
+            $query->where(function ($q) {
+                $q->where('status', 'aprovado_gestor')
+                ->orWhere(function ($q2) {
+                    $q2->where('status', 'aprovado')
+                        ->where('tipo', 'reembolso');
+                });
+            });
+
+            // 2. Aplica a busca via Server-side se o campo 'busca' foi preenchido
+            if ($request->filled('busca')) {
+                $termo = trim($request->input('busca'));
+                $tipo  = $request->input('tipo', 'pedido');
+
+                if ($tipo === 'id') {
+                    $query->where('id', $termo);
+                } else {
+                    $query->where('pedido', 'LIKE', "%{$termo}%");
+                }
+            }
+
+
+            // 3. Executa a paginação e preserva os parâmetros na URL do paginate
+            $financeiro = $query->orderBy('created_at', 'desc')
+                                ->paginate(100)
+                                ->appends($request->all());
 
             $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
+
+
+
+
+            // 1. Extrai todos os números de pedidos da lista atual
+        $pedidosNumeros = $financeiro->pluck('pedido')->filter()->toArray();
+
+        // 2. Busca no SQL Server os códigos de filial para todos os pedidos de uma só vez
+        $filiaisPedidos = DB::connection('sqlsrv')
+            ->table('ESTPED')
+            ->whereIn('NUMPED', $pedidosNumeros)
+            ->pluck('CODFIL', 'NUMPED') // Retorna um array [NUMPED => CODFIL]
+            ->toArray();
+
+        // 3. Injeta a filial encontrada direto no objeto $r do $financeiro
+        $financeiro->getCollection()->transform(function ($item) use ($filiaisPedidos) {
+            $item->cod_filial = $filiaisPedidos[$item->pedido] ?? null;
+            return $item;
+        });
+
+
+
+
+        
 
             $finalizados = Financeiro::where('status', 'finalizado')->orderBy('created_at', 'desc')->paginate(500);
 
@@ -89,7 +165,14 @@ class FinanceiroFrController extends Controller
                     ->where('chave', 'status_pix_fr')
                     ->value('valor') ?? 0;
 
-            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados', 'status_pix_fr'));
+            // Obter a filial do pedido (exemplo de lógica)
+
+            // 4. Busca todas as contas ativas do MySQL
+            $contasBancarias = DB::table('contas_bancarias')
+                ->where('ativo', 1)
+                ->get();
+                
+            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados', 'status_pix_fr','contasBancarias'));
 
         } else {
             $financeiro = Financeiro::where(function($query) {
@@ -106,7 +189,7 @@ class FinanceiroFrController extends Controller
                         });
                 })
                 ->orderBy('created_at', 'desc')
-                ->paginate(500);
+                ->paginate(100);
 
             $financeiro->load('unidades', 'centroGasto', 'centroCusto', 'gestorFinanceiro','unidadeAprovadora.gestorRegional');
 
@@ -117,7 +200,12 @@ class FinanceiroFrController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(500);
 
-            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados'));
+            
+            $status_pix_fr = \Illuminate\Support\Facades\DB::table('configuracoes_sistema')
+                    ->where('chave', 'status_pix_fr')
+                    ->value('valor') ?? 0;
+
+            return view('financeiro_fr.resumo', compact('financeiro', 'finalizados', 'status_pix_fr'));
 
         }
 
@@ -809,7 +897,7 @@ public function dispararEmailsAtrasados()
                 ->where('chave', 'status_pix_fr')
                 ->value('valor') ?? 0;
 
-        if ($status_pix_fr == 1) {
+        if ($status_pix_fr == 1 && Carbon::parse($financeiro->created_at)->greaterThanOrEqualTo(now()->subDay())) {
             try {
                 // Captura o array de retorno produzido pelo PixFlowService
                 $retornoPix = $this->processarPix(
@@ -947,7 +1035,7 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
                 // Assuntos dinâmicos
                 $message->subject( 'COMPROVANTE DISPONÍVEL - REEMBOLSO; PROTOCOLO:'. $financeiro->id  . ' FORNECEDOR: ' . $financeiro->name . ' FILIAL: ' . $financeiro->unidades?->unidade_negocio );
 
-            
+        
                 // Anexo do Comprovante
                 if (Storage::disk('public')->exists($financeiro->comprovante_pagamento)) {
                     $message->attach(storage_path('app/public/' . $financeiro->comprovante_pagamento), [
@@ -955,7 +1043,7 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
                     ]);
                 }
             });
-        }
+        } 
         }
         
 
@@ -977,6 +1065,11 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
         if ($financeiro->status !== 'aprovado_gestor') {
             return 'Solicitação já foi processada.';
         }
+
+        // Armazena o número da conta diretamente na variável
+        $contaOrigem = $request->input('conta_origem');
+
+        // dd($contaOrigem);
 
         $fileUrl = null;
 
@@ -1093,11 +1186,11 @@ if ($request->hasFile('comprovante') && $request->file('comprovante')->isValid()
 
         // 6. EXECUÇÃO DE PROCEDURES FINANCEIRAS
         if($financeiro->tem_nota_fiscal == 'sim' && $financeiro->tipo == 'avista'){
-            $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->unidadeAprovadora?->nome_gestor, $financeiro->cod_unidade, $financeiro->unidades->conta);
+            $financeiro->financeiroAvista($financeiro->id, $financeiro->valor, $financeiro->solicitante, $financeiro->fornecedor, $financeiro->pedido,$financeiro->placa,$financeiro->unidadeAprovadora?->nome_gestor, $financeiro->cod_unidade, $contaOrigem);
         // } elseif ($financeiro->tipo == 'ajuda_de_custo') {
         //     $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,'LETICIA CARVALHO', 60, 52);
         } else{
-            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora?->nome_gestor, 376 , 83 );
+            $financeiro->pagdoc($financeiro->fornecedor, $financeiro->valor, $financeiro->id, $financeiro->cod_unidade, $financeiro->cod_custo, $financeiro->cod_gasto,$financeiro->unidadeAprovadora?->nome_gestor, 376 , 83, 'RCB');
         }
 
         // 7. ATUALIZAÇÃO FINAL
@@ -1372,7 +1465,9 @@ public function consultarPedido(Request $request, $valor)
             'tipo' => $registro->tipo,
             'socorro_em_rota' => $registro->socorro_em_rota,
             'frota_bloqueada' => $registro->frota_bloqueada,
-            'gestor_aprovador' => $registro->gestor_aprovador
+            'gestor_aprovador' => $registro->gestor_aprovador,
+            'created_at' => $registro->created_at->format('d/m/Y H:i:s'),
+            'updated_at' => $registro->updated_at->format('d/m/Y H:i:s')
         ]);
     }
 

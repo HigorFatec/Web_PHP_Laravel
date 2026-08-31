@@ -66,7 +66,7 @@ class TransfVeiculoController extends Controller
 
         // Envia o email com os dados do formulário
         Mail::send('emails.transf_veiculo', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $foto_2, $foto_3, $foto_4, $transfVeiculo){
-            $message->to([$validatedData['email'],'transferenciaveiculo@grupocargopolo.com.br','liderdeturno@grupocargopolo.com.br','celularisco@grupocargopolo.com.br','celulalogistica@grupocargopolo.com.br']);
+            $message->to([$validatedData['email'],'transferenciaveiculo@grupocargopolo.com.br','liderdeturno@grupocargopolo.com.br','celularisco@grupocargopolo.com.br','celulalogistica@grupocargopolo.com.br','carlos.silva@grupocargopolo.com.br']);
             //$message->to('higor.05@hotmail.com');
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
             $message->cc([$validatedData['email_responsavel']]);

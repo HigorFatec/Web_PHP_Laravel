@@ -306,19 +306,23 @@
     </select><br>
 
     Gestor Aprovador: <br>
-       <i><span>Não encontrou o gestor? <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">Clique aqui para abrir um chamado para cadastro</a></span></i>
-    <select name="gestor_aprovador"  class="browser-default" required>
-        {{-- id="gestor_aprovador" --}}
+    <i><span>Não encontrou o gestor? <a href="https://suporte.grupocargopolo.com.br:13004/WOListView.do">Clique aqui para abrir um chamado para cadastro</a></span></i>
+    <select name="gestor_aprovador" id="gestor_aprovador" class="browser-default" required>
         <option value=""></option>
-        @foreach ($filiais->unique('nome_gestor') as $filial)
-            <option value="{{ $filial->email_gestor }}" 
-                    data-unidade="{{ $filial->cod_unidade }}" 
-                    data-custo="{{ $filial->cod_custo }}">
-                {{ $filial->nome_gestor }}
+        @foreach ($filiais->groupBy('email_gestor') as $email => $itens)
+            @php
+                // Junta todos os códigos de unidade e centros de custo deste gestor separados por vírgula
+                $unidades = $itens->pluck('cod_unidade')->map(fn($v) => trim($v))->unique()->implode(',');
+                $custos = $itens->pluck('cod_custo')->map(fn($v) => trim($v))->unique()->implode(',');
+                $nomeGestor = $itens->first()->nome_gestor;
+            @endphp
+            <option value="{{ $email }}" 
+                    data-unidade="{{ $unidades }}" 
+                    data-custo="{{ $custos }}">
+                {{ $nomeGestor }}
             </option>
         @endforeach
     </select><br><br>
-
 
 
 
@@ -637,38 +641,7 @@ $(function() {
 
 
 
-<script>
-document.getElementById('unidade_negocio_select').addEventListener('change', function () {
-    // 1. Pega o valor da Unidade de Negócio selecionada (CODUNN)
-    let unidadeSelecionada = this.value; 
-    
-    // 2. Referência para o select de Gestores
-    let gestorSelect = document.getElementById('gestor_aprovador');
-    let optionsGestor = gestorSelect.querySelectorAll('option');
 
-    // 3. Itera sobre as opções de gestores
-    optionsGestor.forEach(opt => {
-        // Ignora a opção vazia (Ex: "Selecione...")
-        if (opt.value === "") return;
-
-        // Pega o código da unidade que está no data-unidade do Gestor
-        let unidadeDoGestor = opt.getAttribute('data-unidade');
-
-        // Compara os valores. Se for igual, mostra. Se não, esconde.
-        // Usamos '==' para que '01' seja igual a 1, caso haja diferença de tipos.
-        if (unidadeDoGestor == unidadeSelecionada) {
-            opt.hidden = false;
-            opt.disabled = false;
-        } else {
-            opt.hidden = true;
-            opt.disabled = true;
-        }
-    });
-
-    // 4. Reseta o valor do gestor para vazio toda vez que a unidade mudar
-    gestorSelect.value = ""; 
-});
-</script>
 
 
 
@@ -720,37 +693,77 @@ $(document).ready(function() {
 
 
 
-
 <script>
 $(document).ready(function() {
-    // 1. Função para filtrar o Gestor Aprovador manualmente
-    function filtrarGestorAutomatico(unidade, custo) {
-        const selectGestor = $('#gestor_aprovador');
-        const options = selectGestor.find('option');
-        let encontrou = false;
+function atualizarFiltroGestor() {
+    let unidadeSelecionada = $.trim($('#unidade_negocio_select').val());
+    let custoSelecionado = $.trim($('#centro_custo_select').val());
+    let $gestorSelect = $('#gestor_aprovador');
+    let $options = $gestorSelect.find('option');
+    
+    console.log("[DEBUG] Unidade da Tela:", unidadeSelecionada);
+    console.log("[DEBUG] Centro de Custo da Tela:", custoSelecionado);
 
-        options.each(function() {
-            const opt = $(this);
-            if (opt.val() === "") return;
-
-            const gestorUnidade = opt.attr('data-unidade');
-            const gestorCusto = opt.attr('data-custo');
-
-            if (gestorUnidade == unidade && gestorCusto == custo) {
-                opt.show().prop('disabled', false);
-                if (!encontrou) {
-                    selectGestor.val(opt.val());
-                    encontrou = true;
-                }
-            } else {
-                opt.hide().prop('disabled', true);
-            }
+    if (!unidadeSelecionada) {
+        $options.each(function() {
+            if ($(this).val() !== "") $(this).hide().prop('disabled', true);
         });
-
-        if (!encontrou) selectGestor.val("");
+        $gestorSelect.val("");
+        return;
     }
 
-    // 2. Evento ao sair do campo Pedido
+    let totalVisiveis = 0;
+
+    $options.each(function() {
+        let $opt = $(this);
+        if ($opt.val() === "") return;
+
+        // Transforma as listas de strings do HTML em Arrays do JS
+        let unidadesDoGestor = ($opt.attr('data-unidade') || '').split(',');
+        let custosDoGestor = ($opt.attr('data-custo') || '').split(',');
+
+        // ---- REGRA ESPECIAL: SE FOR A FILIAL 19 ----
+        if (unidadeSelecionada === "19") {
+            // O gestor precisa ter a unidade 19 E o centro de custo selecionado associados a ele
+            if (unidadesDoGestor.includes("19") && custosDoGestor.includes(custoSelecionado)) {
+                $opt.show().prop('disabled', false);
+                totalVisiveis++;
+            } else {
+                $opt.hide().prop('disabled', true);
+            }
+        } 
+        // ---- REGRA PADRÃO: OUTRAS FILIAIS (Ex: 70) ----
+        else {
+            // Ignora o centro de custo. Só valida se a unidade da tela está na lista do gestor
+            if (unidadesDoGestor.includes(unidadeSelecionada)) {
+                $opt.show().prop('disabled', false);
+                totalVisiveis++;
+            } else {
+                $opt.hide().prop('disabled', true);
+            }
+        }
+    });
+
+    console.log("[DEBUG] Total de gestores encontrados:", totalVisiveis);
+    $gestorSelect.val("");
+
+    if (typeof $.fn.formSelect === 'function') {
+        $gestorSelect.formSelect();
+    }
+}
+
+    // Eventos de mudança
+    $('#unidade_negocio_select').on('change', function() {
+        atualizarFiltroGestor();
+    });
+
+    $('#centro_custo_select').on('change', function() {
+        if ($('#unidade_negocio_select').val() == "19") {
+            atualizarFiltroGestor();
+        }
+    });
+
+    // Evento ao sair do campo Pedido (Busca automática do Rodopar)
     $('#pedido_1').on('blur', function() {
         const numPed = $(this).val();
         const tipo = $('#tipo').val();
@@ -760,17 +773,20 @@ $(document).ready(function() {
             $.ajax({
                 url: '/financeiro/buscar-pedido/' + numPed,
                 method: 'GET',
-                beforeSend: function() {
-                    console.log('Buscando pedido: ' + numPed);
-                },
                 success: function(data) {
-                    // Preenche e trava
                     $('#unidade_negocio_select').val(data.CODUNN).addClass('select-travado');
                     $('#centro_custo_select').val(data.CODCUS).addClass('select-travado');
                     $('#centro_gasto_select').val(data.CODCGA).addClass('select-travado');
 
-                    // Filtra o gestor
-                    filtrarGestorAutomatico(data.CODUNN, data.CODCUS);
+                    atualizarFiltroGestor();
+                    
+                    if (data.CODUNN != "19") {
+                        let primeiroGestor = $('#gestor_aprovador option:not(:disabled)[value!=""]').first().val();
+                        if (primeiroGestor) {
+                            $('#gestor_aprovador').val(primeiroGestor);
+                            if (typeof $.fn.formSelect === 'function') $('#gestor_aprovador').formSelect();
+                        }
+                    }
                 },
                 error: function(xhr) {
                     console.error(xhr.responseText);
@@ -781,7 +797,7 @@ $(document).ready(function() {
         }
     });
 
-    // 3. Reset ao mudar "Tem Nota Fiscal" (Proteção contra burla)
+    // Reset ao mudar "Tem Nota Fiscal"
     $('#tem_nota_fiscal').on('change', function() {
         const temNota = $(this).val();
         const selects = $('#unidade_negocio_select, #centro_custo_select, #centro_gasto_select, #gestor_aprovador');
@@ -790,6 +806,7 @@ $(document).ready(function() {
             $('#pedido_1').val('');
             selects.removeClass('select-travado').val('');
             $('#gestor_aprovador option').show().prop('disabled', false);
+            if (typeof $.fn.formSelect === 'function') $('#gestor_aprovador').formSelect();
         } else {
             $('#pedido_1').val('').focus();
             selects.val('');
@@ -798,6 +815,7 @@ $(document).ready(function() {
     });
 });
 </script>
+
 
 <style>
     .select-travado {

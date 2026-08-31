@@ -428,6 +428,52 @@
 
 
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectGestor = document.getElementById('email_gestor');
+    const emailVanderlei = 'vanderlei.nascimento@grupocargopolo.com.br';
+
+    // Event Delegation: escuta o evento de mudança em qualquer lugar do formulário
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'tipo_de_venda') {
+            const tipoVenda = e.target.value;
+
+            if (tipoVenda === 'veiculo') {
+                // 1. Tenta selecionar a opção do Vanderlei
+                selectGestor.value = emailVanderlei;
+
+                // Caso o e-mail não esteja cadastrado na lista $aprovadores, cria dinamicamente
+                if (selectGestor.value !== emailVanderlei) {
+                    const novaOpcao = new Option("Vanderlei Nascimento", emailVanderlei, true, true);
+                    selectGestor.add(novaOpcao);
+                    selectGestor.value = emailVanderlei;
+                }
+
+                // 2. Aplica trava visual e impede cliques/foco
+                selectGestor.style.pointerEvents = 'none';
+                selectGestor.style.backgroundColor = '#e9ecef';
+                selectGestor.setAttribute('tabindex', '-1');
+
+                // Impede alteração via teclado se o usuário forçar o foco
+                selectGestor.onkeydown = function(evt) { evt.preventDefault(); };
+
+            } else {
+                // Destrava o campo se for "peca" ou vazio
+                selectGestor.style.pointerEvents = 'auto';
+                selectGestor.style.backgroundColor = '';
+                selectGestor.removeAttribute('tabindex');
+                selectGestor.onkeydown = null;
+            }
+
+            // 3. Se estiver usando Materialize CSS (re-inicializa a renderização visual do select)
+            if (typeof M !== 'undefined' && M.FormSelect) {
+                M.FormSelect.init(selectGestor);
+            }
+        }
+    });
+});
+</script>
+
 
 
 @endsection

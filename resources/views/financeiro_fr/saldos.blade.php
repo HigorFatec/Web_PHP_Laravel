@@ -125,6 +125,7 @@
                         <thead>
                             <tr>
                                 <th>Unidade</th>
+                                <th>Centro de Custo</th>
                                 <th>Gestor Responsável</th>
                                 <th>E-mail</th>
                                 <th>Sincronizado</th>
@@ -134,6 +135,7 @@
                             @foreach($unidades as $u)
                             <tr>
                                 <td><b>{{ $u->unidade_negocio }}</b></td>
+                                <td><b>{{ $u->descri_custo }}</b></td>
                                 <td><input type="text" class="gestor-nome-input clean-input" data-id="{{ $u->id }}" value="{{ $u->nome_gestor }}"></td>
                                 <td><input type="email" class="gestor-email-input clean-input" data-id="{{ $u->id }}" value="{{ $u->email_gestor }}"></td>
                                 <td class="updated_at">

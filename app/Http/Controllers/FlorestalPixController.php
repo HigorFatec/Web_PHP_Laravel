@@ -67,7 +67,7 @@ class FlorestalPixController extends Controller
 
         // Envia o email com os dados do formulário
         Mail::send('emails.florestal_pix', ['dados' => $validatedData], function($message) use ($validatedData, $foto, $pagamentoPix){
-            $message->to(['felipe.brito@grupocargopolo.com.br','silvio.moura@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br','michel.plevka@grupocargopolo.com.br','ludmylla.gomes@grupocargopolo.com.br','jenival.sampaio@grupocargopolo.com.br','jaine.paula@grupocargopolo.com.br','combustivel@grupocargopolo.com.br','taisa.pereira@grupocargopolo.com.br','wagner.mosna@grupocargopolo.com.br']);
+            $message->to(['jose.mourao@grupocargopolo.com.br','silvio.moura@grupocargopolo.com.br','contasapagar@grupocargopolo.com.br','michel.plevka@grupocargopolo.com.br','ludmylla.gomes@grupocargopolo.com.br','jenival.sampaio@grupocargopolo.com.br','patricia.oliveira@grupocargopolo.com.br','combustivel@grupocargopolo.com.br','taisa.pereira@grupocargopolo.com.br','wagner.mosna@grupocargopolo.com.br']);
             //$message->to('higor.05@hotmail.com');
             //$message->to(['cadastro.suprimentos@grupocargopolo.com.br', 'amanda.bellomo@grupocargopolo.com.br' ]);
             $message->cc([$validatedData['email'],$validatedData['email_gestor']]);

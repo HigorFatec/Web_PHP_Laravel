@@ -83,6 +83,10 @@ public static function produtos(){
         ->get();
 }
 
+
+
+
+
 public static function filial () {
     return DB::connection('sqlsrv')
         ->table('ESTLOC')
@@ -92,6 +96,17 @@ public static function filial () {
         )
         ->where('LOCDES', '=',  'N')
         ->whereIn('CODIGO', [21,22,20,25,26,51])
+        ->get();
+}
+
+public static function filial_geral () {
+    return DB::connection('sqlsrv')
+        ->table('ESTLOC')
+        ->select(
+            'CODIGO',
+            'DESCRI'
+        )
+        ->where('LOCDES', '=',  'N')
         ->get();
 }
 

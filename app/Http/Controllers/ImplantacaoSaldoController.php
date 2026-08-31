@@ -39,6 +39,8 @@ class ImplantacaoSaldoController extends Controller
         return response()->json($produtos);
     }
 
+
+
     /**
      * Show the form for creating a new resource.
      */
@@ -54,7 +56,6 @@ class ImplantacaoSaldoController extends Controller
     {
         $request->validate([
             'cod_localizacao'   => 'required',
-            'movimentacao'      => 'required',
             'observacao'        => 'required',
             'gestor_filial'     => 'required',
             'gestor_regional'   => 'required',
@@ -80,6 +81,9 @@ class ImplantacaoSaldoController extends Controller
             // 2. Limpeza rigorosa do código do produto
             $codprod = trim($item['codprod']);
             $quantidade = (float) $item['quantidade'];
+            
+            // 🌟 CAPTURA DIRETO DO INPUT DA TELA: Se o usuário alterou no select da tabela, você pega o valor real
+            $movimentacaoItem = isset($item['movimentacao']) ? $item['movimentacao'] : 'Entrada';
 
             // Recupera grupo e subgrupo do rascunho temporário local
             $dadosProdTemporario = DB::table('itens_temporarios_lote')
@@ -87,14 +91,21 @@ class ImplantacaoSaldoController extends Controller
                 ->where('codprod', $codprod)
                 ->first();
 
-            // 3. Consulta de Saldo Físico usando parâmetros limpos
+            // 3.1 Busca o Preço Médio diretamente da tabela ESTPRO
+            $produtoEstpro = DB::connection('sqlsrv')
+                ->table('ESTPRO')
+                ->select('PREMED')
+                ->where('CODPROD', $codprod)
+                ->first();
+
+            $valorMedio = $produtoEstpro ? (float) $produtoEstpro->PREMED : 0.0;
+            // Agora sim: Valor Total = Quantidade multiplicada pelo Valor Médio
+            $valorTotal = $quantidade * $valorMedio;
+
+            // 3.2 Busca o Saldo Físico na tabela ESTPRL
             $saldoFisico = DB::connection('sqlsrv')
                 ->table('ESTPRL AS PRL')
-                ->select(
-                    'SALFIS', 
-                    DB::raw("CASE WHEN SALFIS > 0 THEN (SALFIN / SALFIS) ELSE 0 END AS VALOR_MEDIO"),
-                    DB::raw("CASE WHEN SALFIS > 0 THEN (SALFIN / SALFIS) * $quantidade ELSE 0 END AS VALOR_TOTAL")
-                )
+                ->select('SALFIS')
                 ->where('CODPROD', $codprod)
                 ->where('CODLOC', $codlocGeral)
                 ->first();
@@ -115,7 +126,9 @@ class ImplantacaoSaldoController extends Controller
             //         'Produto_Buscado' => $codprod,
             //         'Localizacao_Buscada' => $codlocGeral,
             //         'Retorno_Saldo_Objeto' => $saldoFisico,
-            //         'Retorno_Posicao_Objeto' => $posicao
+            //         'Retorno_Posicao_Objeto' => $posicao,
+            //         'Valor Medio' => $valorMedio,
+            //         'Valor Total' => $valorTotal
             //     ]);
             // }
             
@@ -125,7 +138,9 @@ class ImplantacaoSaldoController extends Controller
                 'codigo_lote'           => $codigoLote, 
                 'cod_localizacao'       => $request->cod_localizacao,
                 'descricao_localizacao' => $descricao_localizacao ? $descricao_localizacao->DESCRI : null,
-                'movimentacao'          => $request->movimentacao,
+
+                'movimentacao'          => $movimentacaoItem,
+
                 'observacao'            => $request->observacao,
                 'gestor_filial'         => $request->gestor_filial,
                 'gestor_regional'       => $request->gestor_regional,
@@ -137,8 +152,8 @@ class ImplantacaoSaldoController extends Controller
                 'quantidade'            => $quantidade,
                 'posicao'               => $posicao ? $posicao->POSICA : null,
                 'saldo_fisico'          => $saldoFisico ? $saldoFisico->SALFIS : 0,
-                'valor_medio'           => $saldoFisico ? $saldoFisico->VALOR_MEDIO : 0,
-                'valor_total'           => $saldoFisico ? $saldoFisico->VALOR_TOTAL : 0,
+                'valor_medio'           => $valorMedio ? $valorMedio : 0,
+                'valor_total'           => $valorTotal ? $valorTotal : 0,
                 'status'                => 'em análise'
             ]);
         }
@@ -198,7 +213,7 @@ class ImplantacaoSaldoController extends Controller
      * Se o gestor vier pelo link (GET) sem confirmar, mostramos a tela de decisão.
      * Se ele clicar no botão para confirmar, nós processamos a aprovação de todos os itens do lote de uma vez só!
      */
-    public function aprovar(Request $request, $id) {
+public function aprovar(Request $request, $id) {
         $user = auth()?->user();
 
         if(!$user) {
@@ -255,18 +270,19 @@ class ImplantacaoSaldoController extends Controller
             ]);
         }
 
-        // Se o lote inteiro foi finalizado nesta ação, notifica o setor fiscal uma única vez
+        // 🌟 CORREÇÃO 1: Consultar o banco de dados atualizado de forma limpa
         $loteCompletoFinalizado = ImplantacaoSaldo::where('codigo_lote', $dadosGerais->codigo_lote)
                                     ->where('status', '!=', 'finalizado')
                                     ->count() === 0;
 
         if ($loteCompletoFinalizado) {
-            $this->notificarSetorNF($dadosGerais);
+            // 🌟 CORREÇÃO 2: Busca TODOS OS ITENS finalizados do lote para enviar no e-mail, não apenas o primeiro produto
+            $loteCompletoAtualizado = ImplantacaoSaldo::where('codigo_lote', $dadosGerais->codigo_lote)->get();
+            $this->notificarSetorNF($loteCompletoAtualizado);
         }
 
         return view('implantacao_saldo.feedback', ['mensagem' => 'Lote aprovado com sucesso!', 'tipo' => 'success']);
     }
-
     /**
      * 🌟 Reprovação em Lote adaptada
      */
@@ -302,12 +318,35 @@ class ImplantacaoSaldoController extends Controller
     private function notificarSetorNF($implantacao)
     {
         $destinatario = 'fiscal@grupocargopolo.com.br';
-        $implantacao->load('user');
+
+        // Detecta se recebeu uma coleção de múltiplos itens ou um objeto único
+        $dadosGerais = $implantacao instanceof \Illuminate\Support\Collection ? $implantacao->first() : $implantacao;
+
+        if (!$dadosGerais) {
+            \Log::error("Tentativa de envio de e-mail de NF sem dados válidos.");
+            return false;
+        }
+
+        $dadosGearsLoaded = $dadosGerais->loadMissing('user');
+
+        // Consolida e limpa a lista de cópias (evita nulos, vazios e duplicados no CC)
+        $ccList = array_filter(array_unique([
+            $dadosGerais->gestor_filial,
+            $dadosGerais->gestor_regional,
+            $dadosGerais->diretor,
+            $dadosGerais->user?->email
+        ]));
 
         try {
-            Mail::send('emails.implantacao_finalizada', ['dados' => $implantacao], function ($message) use ($implantacao, $destinatario) {
-                $message->to($destinatario)
-                        ->subject('✅ LIBERADO: Implantação de Saldo Aprovada - Lote ' . $implantacao->codigo_lote);
+            // Enviamos a coleção completa ($implantacao) para permitir um @foreach($dados as $item) na view do e-mail
+            Mail::send('emails.implantacao_finalizada', ['dados' => $implantacao, 'dadosGerais' => $dadosGerais], function ($message) use ($dadosGerais, $destinatario, $ccList) {
+                $message->to($destinatario);
+                
+                if (!empty($ccList)) {
+                    $message->cc($ccList);
+                }
+                
+                $message->subject('✅ LIBERADO: Implantação de Saldo Aprovada - Lote ' . $dadosGerais->codigo_lote);
             });
             return true;
         } catch (\Exception $e) {
@@ -343,6 +382,7 @@ class ImplantacaoSaldoController extends Controller
             'codprod' => 'required',
             'descricao' => 'required',
             'quantidade' => 'required|numeric|min:1',
+            'movimentacao' => 'required|in:Entrada,Saída' // 🌟 Validação do novo campo
         ]);
 
         DB::table('itens_temporarios_lote')->updateOrInsert(
@@ -355,6 +395,7 @@ class ImplantacaoSaldoController extends Controller
                 'grupo' => $request->grupo ?? 0,
                 'subgrupo' => $request->subgrupo ?? 0,
                 'quantidade' => $request->quantidade,
+                'movimentacao' => $request->movimentacao, // 🌟 Grava no banco
                 'created_at' => now(),
                 'updated_at' => now()
             ]
@@ -388,5 +429,131 @@ class ImplantacaoSaldoController extends Controller
             abort(403, 'Acesso negado.');
         }
     }
+
+
+
+public function importarCsvTemp(Request $request)
+{
+    $request->validate([
+        'arquivo_csv' => 'required|file|mimes:csv,txt|max:5120',
+    ]);
+
+    try {
+        $path = $request->file('arquivo_csv')->getRealPath();
+        if (($handle = fopen($path, 'r')) === false) {
+            return response()->json(['success' => false, 'message' => 'Não foi possível ler o arquivo.']);
+        }
+
+        $header = fgetcsv($handle, 1000, ';');
+        if (!$header) {
+            fclose($handle);
+            return response()->json(['success' => false, 'message' => 'O arquivo CSV está vazio.']);
+        }
+
+        $header = array_map(function($item) {
+            return trim(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', str_replace('"', '', $item)));
+        }, $header);
+
+        $itensAdicionados = [];
+
+        while (($row = fgetcsv($handle, 1000, ';')) !== false) {
+            if (count($row) < count($header)) continue;
+
+            $linha = array_combine($header, $row);
+            
+            $codprod = trim($linha['CODPROD'] ?? '');
+            $mov     = trim($linha['MOVIMENTACAO'] ?? 'Entrada');
+            $qtd     = intval($linha['QUANTIDADE'] ?? 0);
+
+            if (empty($codprod) || $qtd <= 0) continue;
+
+            // 🔍 Busca o produto no SQL Server
+            $produto = DB::connection('sqlsrv')->table('ESTPRO as PRO')
+                ->lock('WITH (NOLOCK)') 
+                ->join('ESTGRP as GCP', 'PRO.CODGPP', '=', 'GCP.CODGPP')
+                ->join('ESTSGP as SGP', 'PRO.CODSGP', '=', 'SGP.CODSGP')
+                ->select([
+                    'PRO.CODPROD as codprod', 
+                    'PRO.DESCRI as descri',
+                    'GCP.CODGPP as codgpp',
+                    'SGP.CODSGP as codsgp'
+                ])
+                ->where('PRO.CODPROD', $codprod)
+                ->first();
+
+            if ($produto) {
+                // 💾 SALVA COM O NOME CORRETO DA TABELA: itens_temporarios_lote
+                DB::connection('mysql')->table('itens_temporarios_lote')->updateOrInsert(
+                    ['user_id' => auth()->id(), 'codprod' => $produto->codprod],
+                    [
+                        'descricao'    => $produto->descri,
+                        'grupo'        => $produto->codgpp,
+                        'subgrupo'     => $produto->codsgp,
+                        'quantidade'   => $qtd, // Atualiza ou insere a quantidade do CSV
+                        'updated_at'   => now()
+                    ]
+                );
+
+                $itensAdicionados[] = [
+                    'codprod' => $produto->codprod,
+                    'descri'  => $produto->descri,
+                    'qtd'     => $qtd,
+                    'mov'     => $mov // Retorna para o JavaScript aplicar na tabela da tela
+                ];
+            }
+        }
+
+        fclose($handle);
+
+        return response()->json([
+            'success' => true, 
+            'message' => count($itensAdicionados) . ' itens carregados com sucesso!',
+            'itens'   => $itensAdicionados
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => 'Erro crítico: ' . $e->getMessage()]);
+    }
+}
+
+
+
+/**
+ * Gera e descarrega um ficheiro CSV de exemplo para ajuste de saldo.
+ */
+public function exemploCsv()
+{
+    $headers = [
+        'Content-Type' => 'text/csv; charset=UTF-8',
+        'Content-Disposition' => 'attachment; filename="exemplo_ajuste_saldo.csv"',
+    ];
+
+    // Cabeçalhos exatos esperados pelo validador
+    $cabecalhos = ['CODPROD', 'MOVIMENTACAO', 'QUANTIDADE'];
+
+    // Exemplos práticos (Entrada e Saída)
+    $dadosExemplo = [
+        ['1001', 'Entrada', '50'],
+        ['1002', 'Saída', '12']
+    ];
+
+    $callback = function() use ($cabecalhos, $dadosExemplo) {
+        $file = fopen('php://output', 'w');
+        
+        // Adiciona o BOM para o Microsoft Excel abrir os acentos corretamente
+        fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+        
+        // Escreve os cabeçalhos separados por ponto e vírgula ';'
+        fputcsv($file, $cabecalhos, ';');
+        
+        foreach ($dadosExemplo as $linha) {
+            fputcsv($file, $linha, ';');
+        }
+        
+        fclose($file);
+    };
+
+    return response()->stream($callback, 200, $headers);
+}
 
 }

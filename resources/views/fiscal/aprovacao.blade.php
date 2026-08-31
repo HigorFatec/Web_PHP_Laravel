@@ -143,10 +143,10 @@
                                 <td>{{ $aprovado->id }}</td>
                                 <td>{{ $aprovado->tipo_de_venda }}</td>
                                 <td>{{ $aprovado->codigo_fornecedor_rodopar }}</td>
-                                <td>{{ Str::limit($aprovado->fornecedor, 10) }}</td>
+                                <td>{{ $aprovado->filial }}</td>
                                 <td>R$ {{ $aprovado->valor_nf }}</td>
                                 <td>{{ \Carbon\Carbon::parse($aprovado->created_at)->format('d/m/Y H:i') }}</td>
-                                <td>{{ $aprovado->filial }}</td>
+                                <td>{{ Str::limit($aprovado->fornecedor, 10) }}</td>
                                 <td>{{ $aprovado->gestor->nome }}</td>
                                 <td style="display: flex; gap: 4px; justify-content: center;">
                                     {{-- Ações exclusivas de Admin e Auxiliar Fiscal --}}

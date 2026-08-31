@@ -50,24 +50,25 @@
 
 
 {{-- <div class="container" style="margin-top: 30px; margin-bottom: 20px;">
-  <div class="anniversary-banner" style="border: 2px solid rgba(255,193,7,0.3);">
+  <!-- O fundo continua o azul e o design original do seu sistema -->
+  <div class="anniversary-banner" style="border: 2px solid rgba(255,193,7,0.4); background: linear-gradient(135deg, #003366 0%, #005bb6 100%) !important;">
     <div class="anniversary-content">
       <div class="icon-box" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 50%;">
-        <i class="fa-solid fa-cake-candles" style="font-size: 2rem;"></i>
+        <!-- Ícone de Troféu em Dourado para destacar a Copa -->
+        <i class="fa-solid fa-trophy" style="font-size: 1.8rem; color: #ffc107 !important;"></i>
       </div>
       <div style="display: flex; flex-direction: column;">
-          <span style="font-size: 1.2rem;">Comemorando <strong class="highlight-years">16 Anos</strong> de excelência</span>
-        <small style="opacity: 0.8; font-style: italic;">Grupo Cargo Polo: Conectando caminhos desde 2010</small>
+          <span style="font-size: 1.2rem; color: #fff;">Central de Formulários <strong style="color: #ffc107;">- Clima de Copa!</strong></span>
+        <small style="opacity: 0.8; font-style: italic; color: #fff;">Grupo Cargo Polo: Jogando juntos pelo melhor resultado.</small>
       </div>
     </div>
   </div>
 </div> --}}
 
 
-
 </div>
 
-<div class="container my-5" style="padding-top: 90px;">
+<div class="container my-5" style="padding-top: 100px;">
   
   <div class="dashboard-grid">
 
@@ -382,6 +383,9 @@
     50% { transform: translateY(-10px) rotate(20deg); }
 }
 </style>
+
+
+
 
 
 

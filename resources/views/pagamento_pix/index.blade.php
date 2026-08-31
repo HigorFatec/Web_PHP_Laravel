@@ -53,44 +53,62 @@
         </select><br><br>
 
         <input type="text" id="cnpj_input" name="cpf" placeholder="CNPJ/CPF" readonly>
-        <input type="text" id="name_input" name="name" placeholder="Nome do Fornecedor">
+        <input type="text" id="name_input" name="name" placeholder="Nome do Fornecedor" readonly>
 
 
         <span class="card-title center"><b>Valores R$</b></span>
 
-        Valor (R$): <br>
+        Produto: <br>
+        <select name="produto" id="produto" required>
+
+            <option value=" "></option>
+            @foreach ($produtos as $produto)
+                <option value="{{$produto->id}}">{{$produto->nome}}</option>
+            @endforeach
+
+
+        </select> <br>
+
+        Valor Total (R$): <br>
         <input type="text" id="valor" name="valor" placeholder="Valor R$"><br>
 
         Quantidade (L): <br>
         <input type="text" id="valor_1" name="litragem" placeholder="Litragem"><br>
 
         Veiculo: <br>
-        <select name="placa" class="browser-default" required>
-            <option value=""></option>
+        <input type="text" id="search_veiculo" placeholder="Digite a placa para buscar... (Ex: ABC1234)">
+
+        <select name="placa" id="veiculo_select" class="browser-default" required>
+            <option value="">Selecione um veículo...</option>
             @foreach ($veiculos->unique('NUMVEI') as $v)
-                <option value="{{ $v->CODVEI }}">
+                <option value="{{ $v->CODVEI }}" data-numvei="{{ strtoupper($v->NUMVEI) }}">
                     {{ $v->NUMVEI }}
                 </option>
             @endforeach
-        </select><br>
+        </select>
+        <span id="veiculo_erro" style="color: red; display: none; font-weight: bold;">Veículo não encontrado!</span>
+        <br>
 
         Posto: <br>
-        <select name="cnpj" class="browser-default" required>
-            <option value=""></option>
+        <input type="text" id="search_posto" placeholder="Digite o CNPJ do posto para buscar... (Apenas números ou com pontos)">
+
+        <select name="cnpj" id="posto_select" class="browser-default" required>
+            <option value="">Selecione um posto...</option>
             @foreach ($postos->unique('CODCGC') as $p)
-                <option value="{{ $p->CODPON }}">
+                <option value="{{ $p->CODPON }}" data-codcgc="{{ preg_replace('/\D/', '', $p->CODCGC) }}">
                     {{ $p->CODCGC }} - {{ $p->DESCRI }}
                 </option>
             @endforeach
-        </select><br>
-
+        </select>
+        <span id="posto_erro" style="color: red; display: none; font-weight: bold;">Posto não encontrado!</span>
+        <br>
 
     <br>
     E-mail: <br> <input type="email" name="email" id="email" required><br>
     E-mail do Gestor: <br> <input type="email" name="email_gestor" id="email_gestor" required>
     Data/Hora: <br> <input type="text" name="data" id="data" required> <br>
     Número do Cupom: <br> <input type="text" name="cupom" id="cupom" required> <br>
-    KM do veiculo: <br> <input type="number" name="km" id="km" required> <br>
+    KM do veiculo: <br> <input type="text" name="km" id="km" required> <br>
     Nome do posto: <br><input type="text" name="posto" id="posto" required><br>
 
     Filial: <br>
@@ -104,21 +122,43 @@
 
     </select> <br>
 
-    Produto: <br>
-    <select name="produto" id="produto" required>
-
-        <option value=" "></option>
-        @foreach ($produtos as $produto)
-            <option value="{{$produto}}">{{$produto}}</option>
-        @endforeach
 
 
-    </select> <br>
+    <div class="row" style="margin-top: 20px; margin-bottom: 20px;">
+        <div class="col s12">
+            <label style="font-size: 16px; color: #000; font-weight: bold;">
+                Possui abastecimento de produto ARLA-32?
+            </label>
+            <div class="switch" style="margin-top: 10px;">
+                <label>
+                    Não
+                    <input type="checkbox" id="possui_arla">
+                    <span class="lever"></span>
+                    Sim
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="container_arla" style="display: none;">
+        Produto ARLA-32: <br>
+        <select name="produto_arla" id="produto_arla">
+
+            <option value=" "></option>
+            @foreach ($produtos as $produto)
+                <option value="{{$produto->id}}">{{$produto->nome}}</option>
+            @endforeach
 
 
-    Produto ARLA-32 (caso não haja informar "0"): <br><input type="text" name="produto_arla" id="produto_arla" required>
-    Litragem ARLA-32 (caso não haja informar "0") : <br><input type="text" name="litragem_arla" id="litragem_arla" required>
-    Valor ARLA-32 (caso não haja informar "0"): <br><input type="text" name="valor_arla" id="valor_arla" required>
+        </select> <br>
+
+
+        Litragem ARLA-32: <br>
+        <input type="text" name="litragem_arla" id="litragem_arla"><br>
+
+        Valor ARLA-32: <br>
+        <input type="text" name="valor_arla" id="valor_arla"><br>
+    </div>
 
     <span class="card-title center"><b>Dados Bancários</b></span><br>
 
@@ -128,7 +168,7 @@
     CNPJ: <br><input type="text" name="cnpj_2" id="cnpj_2" maxlength="14" pattern="\d{14}"  oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 14);"  required>
     Favorecido: <br><input type="text" name="favorecido" id="favorecido" required>
     Chave Pix: <br><input type="text" name="pix" id="pix" required>
-    Valor: <br><input type="text" name="valor_3" id="valor_3" required><br><br><br>
+    Valor Total: <br><input type="text" name="valor_3" id="valor_3" required><br><br><br>
 
     Anexar Nota Fiscal: <br>
     <input type="file" name="foto" id="foto" accept="image/*" ><br><br>
@@ -186,7 +226,7 @@ $(function () {
         if (termo.length < 2) return;
 
         $.ajax({
-            url: '/adiantamentos/buscar',
+            url: '/pagamento_pix/buscar',
             method: 'GET',
             data: { search: termo },
             success: function (data) {
@@ -203,16 +243,10 @@ $(function () {
 
                 data.forEach(f => {
                     $select.append(`
-                        <option value="${f.codclifor}"
-                            data-cnpj="${f.cnpj ?? ''}"
-                            data-razsoc="${f.razsoc ?? ''}"
-                            data-banco="${f.banco ?? ''}"
-                            data-agencia="${f.agencia ?? ''}"
-                            data-conta="${f.conta ?? ''}"
-                            data-favorecido="${f.favorecido ?? ''}"
-                            data-pix="${f.pix ?? ''}"
-                            data-tipo_pix="${f.tipo_pix ?? ''}">
-                            ${f.codclifor} - ${f.razsoc} - ${f.cnpj}
+                        <option value="${f.codmot}"
+                            data-numcpf="${f.numcpf ?? ''}"
+                            data-nommot="${f.nommot ?? ''}">
+                            ${f.codmot} - ${f.nommot} - ${f.numcpf}
                         </option>
                     `);
                 });
@@ -252,22 +286,10 @@ $(function() {
         var $sel = $(el);
         // pega option selecionada (compatível com select2 e select normal)
         var $opt = $sel.find('option:selected');
-        var cnpj = $opt.data('cnpj') || '';
+        var cnpj = $opt.data('numcpf') || '';
         $('#cnpj_input').val(cnpj);
-        var name = $opt.data('razsoc') || '';
+        var name = $opt.data('nommot') || '';
         $('#name_input').val(name);
-        var banco = $opt.data('banco') || '';
-        $('#banco_input').val(banco);
-        var agencia = $opt.data('agencia') || '';
-        $('#agencia_input').val(agencia);
-        var conta = $opt.data('conta') || '';
-        $('#conta_input').val(conta);
-        var favorecido = $opt.data('favorecido') || '';
-        $('#favorecido_input').val(favorecido);
-        var pix = $opt.data('pix') || '';
-        $('#pix_input').val(pix);
-        var tipo_pix = $opt.data('tipo_pix') || '';
-        $('#tipo_pix_input').val(tipo_pix);
     
     }
 
@@ -319,7 +341,10 @@ $(function() {
     // Inicializa os campos
     aplicarMascaraDecimal('valor');
     aplicarMascaraDecimal('valor_1');
-
+    aplicarMascaraDecimal('litragem_arla');
+    aplicarMascaraDecimal('valor_3');
+    aplicarMascaraDecimal('valor_arla');
+    aplicarMascaraDecimal('km');
 </script>
 
 
@@ -346,5 +371,158 @@ $(document).ready(function() {
     });
 });
 </script>
+
+
+
+<script>
+
+$(function () {
+    const $inputVeiculo = $('#search_veiculo');
+    const $selectVeiculo = $('#veiculo_select');
+    const $erroVeiculo = $('#veiculo_erro');
+
+    // Guarda todas as opções originais do select para não perdê-las ao filtrar
+    const $opcoesOriginais = $selectVeiculo.find('option').clone();
+
+    $inputVeiculo.on('input', function () {
+        // Pega o texto digitado e transforma em maiúsculo (padrão de placa)
+        let termo = $(this).val().trim().toUpperCase();
+
+        // Se o campo estiver vazio, restaura o select original e limpa erros
+        if (termo === "") {
+            $selectVeiculo.empty().append($opcoesOriginais.clone());
+            $selectVeiculo.val(""); // Reseta a seleção
+            $erroVeiculo.hide();
+            return;
+        }
+
+        // Filtra as opções originais que correspondem ao que foi digitado
+        // Procura tanto no atributo data-numvei quanto no texto visível
+        let $opcoesFiltradas = $opcoesOriginais.filter(function () {
+            let numvei = $(this).data('numvei') || '';
+            let texto = $(this).text().toUpperCase();
+            return numvei.includes(termo) || texto.includes(termo) || $(this).val() === "";
+        });
+
+        // Atualiza o select com as opções filtradas
+        $selectVeiculo.empty().append($opcoesFiltradas);
+
+        // Se encontrou apenas 1 veículo (além da opção vazia "Selecione..."), já seleciona ele automaticamente
+        if ($opcoesFiltradas.length === 2 && $opcoesFiltradas.eq(1).val() !== "") {
+            $selectVeiculo.val($opcoesFiltradas.eq(1).val());
+            $erroVeiculo.hide();
+        } 
+        // Se não encontrou nenhum veículo correspondente
+        else if ($opcoesFiltradas.length <= 1) { 
+            $selectVeiculo.val(""); // Força o select a ficar vazio (ativando o 'required')
+            $erroVeiculo.show();    // Exibe a mensagem de erro na tela
+        } 
+        // Se achou múltiplos, deixa o usuário escolher na lista filtrada
+        else {
+            $selectVeiculo.val("");
+            $erroVeiculo.hide();
+        }
+    });
+});
+
+
+$(function () {
+    const $inputPosto = $('#search_posto');
+    const $selectPosto = $('#posto_select');
+    const $erroPosto = $('#posto_erro');
+
+    // Salva as opções originais do select de postos
+    const $opcoesPostosOriginais = $selectPosto.find('option').clone();
+
+    $inputPosto.on('input', function () {
+        // Limpa o termo digitado mantendo apenas os números para comparar perfeitamente
+        let termo = $(this).val().replace(/\D/g, '');
+
+        // Se o campo de busca for limpo, restaura o select original
+        if (termo === "") {
+            $selectPosto.empty().append($opcoesPostosOriginais.clone());
+            $selectPosto.val(""); 
+            $erroPosto.hide();
+            return;
+        }
+
+        // Filtra as opções originais comparando o CODCGC salvo no data-codcgc
+        let $opcoesFiltradas = $opcoesPostosOriginais.filter(function () {
+            let codcgc = $(this).data('codcgc') ? String($(this).data('codcgc')) : '';
+            return codcgc.includes(termo) || $(this).val() === "";
+        });
+
+        // Atualiza o select de postos com o resultado do filtro
+        $selectPosto.empty().append($opcoesFiltradas);
+
+        // Se encontrar exatamente 1 posto correspondente, já seleciona ele automaticamente
+        if ($opcoesFiltradas.length === 2 && $opcoesFiltradas.eq(1).val() !== "") {
+            $selectPosto.val($opcoesFiltradas.eq(1).val());
+            $erroPosto.hide();
+        } 
+        // Se digitou algo e não achou nada, zera o select e exibe erro (o required vai travar o envio)
+        else if ($opcoesFiltradas.length <= 1) {
+            $selectPosto.val("");
+            $erroPosto.show();
+        } 
+        // Se houver mais de um resultado parcial, deixa aberto para o usuário escolher no select
+        else {
+            $selectPosto.val("");
+            $erroPosto.hide();
+        }
+    });
+});
+
+</script>
+
+<script>
+$(function () {
+    const $checkboxArla = $('#possui_arla');
+    const $containerArla = $('#container_arla');
+    
+    const $inputProduto = $('#produto_arla');
+    const $inputLitragem = $('#litragem_arla');
+    const $inputValor = $('#valor_arla');
+
+    // Escuta a mudança no switch/checkbox
+    $checkboxArla.on('change', function () {
+        if ($(this).is(':checked')) {
+            // Se SIM: Mostra os campos
+            $containerArla.fadeIn();
+            
+            // Limpa o "0" padrão se o usuário for digitar, ou deixa em branco para ele preencher
+            if ($inputProduto.val() === "0") $inputProduto.val("");
+            if ($inputLitragem.val() === "0") $inputLitragem.val("");
+            if ($inputValor.val() === "0") $inputValor.val("");
+
+            // Torna os campos obrigatórios
+            $inputProduto.prop('required', true);
+            $inputLitragem.prop('required', true);
+            $inputValor.prop('required', true);
+        } else {
+            // Se NÃO: Esconde os campos com efeito suave
+            $containerArla.fadeOut();
+            
+            // Preenche automaticamente com "0" para não quebrar o backend
+            $inputProduto.val("0");
+            $inputLitragem.val("0");
+            $inputValor.val("0");
+
+            // Remove o 'required' para o HTML5 permitir o envio do formulário
+            $inputProduto.prop('required', false);
+            $inputLitragem.prop('required', false);
+            $inputValor.prop('required', false);
+        }
+    });
+
+    // Aplica a máscara decimal que você já tem criada no projeto para os novos campos de valor/litragem do ARLA
+    if (typeof aplicarMascaraDecimal === 'function') {
+        aplicarMascaraDecimal('litragem_arla');
+        aplicarMascaraDecimal('valor_arla');
+    }
+});
+</script>
+
+
 
 @endsection

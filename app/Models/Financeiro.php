@@ -172,13 +172,13 @@ public function financeiroAvista($id, $valor, $solicitante, $fornecedor, $pedido
 
 
     // Agora sim, fazemos a lógica de padronização das contas
-    if (in_array($codFil, [37, 38])) {
-        $conta = '13202-4';
-    } elseif ($codFil == 40) {
-        $conta = '181646-2';
-    } else {
-        $conta = '39020-5';
-    }
+    // if (in_array($codFil, [37, 38])) {
+    //     $conta = '13202-4';
+    // } elseif ($codFil == 40) {
+    //     $conta = '181646-2';
+    // } else {
+    //     $conta = '39020-5';
+    // }
 
 
 
@@ -253,7 +253,7 @@ DB::connection('sqlsrv')->commit(); // Libera o cadeado para o próximo usuário
 }
 
 
-public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo,$analitica,$sintetica){
+public function pagdoc($fornecedor,$valor,$id,$codunn,$codcus,$codgas,$prazo,$analitica,$sintetica,$tipodoc){
 
 // 1. Inicia uma transação no SQL Server
 DB::connection('sqlsrv')->beginTransaction();
@@ -265,9 +265,21 @@ try{
     $codunn = (int) $codunn;
     $codcus = (string) $codcus;
     $codgas = (int) $codgas;
+    $tipdoc = (string) $tipodoc;
 
     $analitica = (int) $analitica;
     $sintetica = (int) $sintetica;
+
+    if ($tipdoc === 'RCB') {
+        if ($codunn == 23 || $codunn == 25 ) {
+            $filial = 37;
+        } else {
+        $filial = 5; // Filial fixa para RCB
+        }
+    } else {
+        // Para outros tipos de documento, você pode definir a lógica de escolha da filial aqui
+        $filial = 49; // Exemplo: usando a mesma filial para todos os casos
+    }
 
 
 
@@ -275,8 +287,8 @@ try{
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
         'NUMDOC' => $id,
-        'TIPDOC' => 'RCB',
-        'CODFIL' => 5,
+        'TIPDOC' => $tipdoc,
+        'CODFIL' => $filial,
         'CODPAD' => 1,
         'CODTAX' => 1,
         'CODBCO' => 237,
@@ -300,7 +312,7 @@ try{
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
         'NUMDOC' => $id,
-        'CODFIL' => 5,
+        'CODFIL' => $filial,
         'USUATU' => 'IMPORTACAO',
         'DATATU' => DB::raw('GETDATE()'),
         'USUINC' => 'IMPORTACAO',
@@ -346,12 +358,12 @@ try{
         'CODCLIFOR' => $fornecedor,
         'SERIE' => 'A',
         'NUMDOC' => $id,
-        'CODFIL' => 5,
+        'CODFIL' => $filial,
         'CODHISPG' => 2,
         'DATLAN' => DB::raw('GETDATE()'),
         'SITUAC' => 'L',
         'NUMPAR' => 1,
-        'TIPDOC' => 'RCB',
+        'TIPDOC' => $tipdoc,
         'CODTAX' => 1,
         'DEBCRE' => 'C',
         'VLRLAN' => $valor,

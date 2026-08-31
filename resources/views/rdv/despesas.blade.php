@@ -124,7 +124,7 @@
                 </div>
                 <div class="col s12 m6">
                     Valor:
-                    <input type="text" name="valor[]" class="valor-mask" required>
+                    <input type="text" name="valor[]" class="valor-mask" autocomplete="new-password" required>
                 </div>
                 <div class="col s12 m6">
                     Nota Fiscal/Recibo:

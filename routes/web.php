@@ -68,6 +68,7 @@ use App\Http\Controllers\AjudaDeCustoController;
 use Illuminate\Support\Facades\DB;
 
 
+use App\Http\Controllers\AbastecimentoController;
 
 
 Route::view('/login', 'login.form')->name('login.form');
@@ -206,7 +207,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/produtos/buscar', [ImplantacaoSaldoController::class, 'buscarProdutos'])
         ->name('produtos.buscar');
 
-
+    Route::get('/pagamento_pix/buscar', [PagamentoPixController::class, 'buscarFornecedores'])
+        ->name('pagamento_pix.buscar');
 
 
     Route::get('/financeiro_fr/saldo', [FinanceiroFrController::class, 'saldo'])->name('financeiro_fr.saldo');
@@ -313,6 +315,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/manutencao/indicadores', [DashboardController::class, 'exibirBI_MANUTENCAO'])->name('manutencao.bi');
 
+    Route::get('/florestal/indicadores', [DashboardController::class, 'exibirBI_florestal'])->name('florestal.bi');
 
 
 
@@ -437,11 +440,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/consultar-status/{numped}', function ($numped) {
         // Se não houver número de pedido, retorna N/A
         if (!$numped || $numped == 'N/I') {
-            return response()->json(['situacao' => '(N/A)']);
+            return response()->json(['situacao' => '(N/A)', 'codfil' => null]);
         }
 
         $resultado = DB::connection('sqlsrv')->select("
             SELECT 
+            CODFIL,
                 CASE SITUAC
                     WHEN 'A' THEN 'APROVADO'
                     WHEN 'B' THEN 'BAIXADO'
@@ -456,10 +460,21 @@ Route::middleware(['auth'])->group(function () {
             WHERE NUMPED = ?
         ", [$numped]);
 
-        $textoStatus = count($resultado) > 0 ? $resultado[0]->situacao : '(N/A)';
+        if (count($resultado) > 0) {
+            return response()->json([
+                'situacao' => $resultado[0]->situacao,
+                'codfil'   => $resultado[0]->CODFIL
+            ]);
+        }
 
-        return response()->json(['situacao' => $textoStatus]);
+        return response()->json(['situacao' => '(N/A)', 'codfil' => null]);
+
+        // $textoStatus = count($resultado) > 0 ? $resultado[0]->situacao : '(N/A)';
+
+        // return response()->json(['situacao' => $textoStatus, 'codfil' => null]);
     });
+
+    Route::get('/financeiro/buscar', [FinanceiroFrController::class, 'buscar'])->name('financeiro.buscar');
 
 
     Route::get('/notificacoes/buscar', [NotificationController::class, 'fetch'])->name('notifications.fetch');
@@ -641,6 +656,22 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/financeiro/disparar-pix', [FinanceiroFrController::class, 'processarPix'])->name('financeiro.dispararPix');
 
+
+    // Rota para exibir a página do formulário (GET)
+    Route::get('/abastecimento/importar', [AbastecimentoController::class, 'index'])->name('abastecimento.importar.index');
+
+    // Rota para processar o envio do arquivo CSV (POST)
+    Route::post('/abastecimento/importar', [AbastecimentoController::class, 'importar'])->name('abastecimento.importar');
+
+    // Rota para descarregar o CSV de exemplo
+    Route::get('/abastecimento/exemplo-csv', [AbastecimentoController::class, 'exemploCsv'])->name('abastecimento.exemploCsv');
+
+    Route::post('/implantacao-saldo/importar-csv-temp', [ImplantacaoSaldoController::class, 'importarCsvTemp'])->name('implantacao_saldo.importar_csv_temp');
+
+    // Rota para descarregar o modelo CSV de Ajuste de Saldo
+    Route::get('/implantacao-saldo/exemplo-csv', [ImplantacaoSaldoController::class, 'exemploCsv'])->name('implantacao_saldo.exemplo_csv');
+
+
 }); // Fim do grupo auth
 
 //ROTAS DA ORDEM DE SERVIÇO
@@ -656,7 +687,7 @@ Route::get('/os', function() {
 });
 
 // ROTAS PROTEGIDAS COM 'auth:os'
-Route::middleware('auth:os')->group(function () {
+Route::middleware('auth.os:os')->group(function () {
 
     // DASHBOARD
     Route::get('/os/dashboard', [OSController::class, 'index'])->name('dashboard');

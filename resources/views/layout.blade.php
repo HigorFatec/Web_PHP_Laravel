@@ -729,6 +729,74 @@ nav .nav-wrapper i {
         .balanced-grid { grid-template-columns: 1fr; }
         .premium-card { min-height: auto; padding: 30px; }
     }
+
+
+/* --- FILTROS PARA DALTONISMO --- */
+.daltonismo-protanopia {
+    filter: url('#protanopia-filter');
+}
+.daltonismo-deuteranopia {
+    filter: url('#deuteranopia-filter');
+}
+.daltonismo-tritanopia {
+    filter: url('#tritanopia-filter');
+}
+body.fonte-grande { font-size: 115% !important; }
+body.fonte-grande .sidenav li > a { font-size: 16px !important; } /* Ajuste fino para o menu */
+
+/* --- ALTO CONTRASTE REFINADO (DARK MODE PREMIUM) --- */
+body.alto-contraste {
+    background-color: #0d0e12 !important; /* Fundo escuro elegante */
+    color: #e2e8f0 !important;
+}
+
+/* Forçar os cards centrais a ficarem escuros com bordas e textos claros */
+body.alto-contraste .card,
+body.alto-contraste [class*="-card"], 
+body.alto-contraste .card-login,
+body.alto-contraste .supplier-card {
+    background-color: #1a1c23 !important;
+    border: 1px solid #3f4452 !important;
+    color: #ffffff !important;
+}
+
+/* Ajuste dos textos e ícones dentro dos cards centrais */
+body.alto-contraste .card i, 
+body.alto-contraste [class*="-card"] i,
+body.alto-contraste [class*="-card"] span,
+body.alto-contraste [class*="-card"] strong {
+    color: #ffffff !important;
+}
+
+/* Menu Lateral (Sidenav) e Topo do Usuário */
+body.alto-contraste .sidenav {
+    background-color: #111318 !important;
+}
+body.alto-contraste .sidenav li > a {
+    color: #cbd5e1 !important;
+}
+body.alto-contraste .sidenav li > a > i.material-icons {
+    color: #ffff00 !important; /* Mantém o amarelo vivo nos ícones do menu */
+}
+body.alto-contraste .sidenav .user-view .background {
+    background: #1a1c23 !important; /* Remove o azul do topo do menu */
+}
+
+/* Barras de Navegação, Banners e o Botão Admin PRO */
+body.alto-contraste nav.blue,
+body.alto-contraste .dashboard-header-zone,
+body.alto-contraste .admin-premium-btn,
+body.alto-contraste [class*="-wrapper"] {
+    background: #111318 !important;
+    border-bottom: 1px solid #2d3139 !important;
+}
+
+/* Ajuste para o Banner "Clima de Copa" */
+body.alto-contraste [style*="background: linear-gradient"],
+body.alto-contraste .blue {
+    background: #1a1c23 !important;
+    border: 1px solid #ffff00 !important;
+}
 </style>
 
 
@@ -928,6 +996,50 @@ nav .nav-wrapper i {
     <li><a class="waves-effect" href="{{route('financeiro.bi')}}"><i class="material-icons amber-text text-darken-3">insert_chart</i>Gestão Financeira</a></li>
     @endif
 
+<li><div class="divider"></div></li>
+<li class="no-padding">
+    <ul class="collapsible collapsible-accordion">
+        <li>
+            <a class="collapsible-header waves-effect">
+                <i class="material-icons blue-text text-darken-4">accessibility</i>
+                Acessibilidade
+                <i class="material-icons right">arrow_drop_down</i>
+            </a>
+            
+            <div class="collapsible-body" style="background-color: #fcfcfc; padding: 10px 0;">
+                <ul>
+                    <li style="padding: 0 32px;">
+                        <span class="grey-text text-darken-2" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">Filtro de Cores</span>
+                        <select id="seletor-daltonismo" class="browser-default" style="margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; height: 35px; width: 100%;">
+                            <option value="normal" selected>Cores Padrão</option>
+                            <option value="deuteranopia">Protetor Verde (Deuteranopia)</option>
+                            <option value="protanopia">Protetor Vermelho (Protanopia)</option>
+                            <option value="tritanopia">Protetor Azul (Tritanopia)</option>
+                        </select>
+                    </li>
+
+                    <li style="padding: 0 32px; margin-bottom: 15px;">
+                        <label>
+                            <input type="checkbox" id="chk-alto-contraste" class="filled-in" />
+                            <span style="color: #333; font-weight: 500;">Alto Contraste</span>
+                        </label>
+                    </li>
+
+                    <li style="padding: 0 32px;">
+                        <span class="grey-text text-darken-2" style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 5px;">Tamanho do Texto</span>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button id="btn-font-dec" class="btn-floating btn-small waves-effect waves-light grey darken-2" title="Diminuir texto"><i class="material-icons">remove</i></button>
+                            <button id="btn-font-res" class="btn-floating btn-small waves-effect waves-light grey darken-2" title="Texto padrão"><i class="material-icons">settings_backup_restore</i></button>
+                            <button id="btn-font-inc" class="btn-floating btn-small waves-effect waves-light grey darken-2" title="Aumentar texto"><i class="material-icons">add</i></button>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </li>
+    </ul>
+</li>
+    
+
     <li><div class="divider"></div></li>
     <li><a class="waves-effect grey-text" href="{{route('reserva.sobre')}}"><i class="material-icons">info_outline</i>Sobre</a></li>
     <li><a class="waves-effect red-text" href="{{route('login.logout')}}"><i class="material-icons red-text">power_settings_new</i>Sair</a></li>
@@ -950,6 +1062,36 @@ nav .nav-wrapper i {
     <li><a href="#!" class="grey-text center">Carregando...</a></li>
   </div>
 </ul>
+
+
+<!-- Filtros SVG invisíveis para correção de Daltonismo -->
+<svg id="daltonismo-svg-filters" style="position: absolute; height: 0; width: 0;">
+    <defs>
+        <!-- Protanopia (Deficiência no vermelho) -->
+        <filter id="protanopia-filter">
+            <feColorMatrix type="matrix" values="0.567, 0.433, 0,     0, 0,
+                                                 0.558, 0.442, 0,     0, 0,
+                                                 0,     0.242, 0.758, 0, 0,
+                                                 0,     0,     0,     1, 0"/>
+        </filter>
+        <!-- Deuteranopia (Deficiência no verde) -->
+        <filter id="deuteranopia-filter">
+            <feColorMatrix type="matrix" values="0.625, 0.375, 0,   0, 0,
+                                                 0.7,   0.3,   0,   0, 0,
+                                                 0,     0.3,   0.7, 0, 0,
+                                                 0,     0,     0,   1, 0"/>
+        </filter>
+        <!-- Tritanopia (Deficiência no azul) -->
+        <filter id="tritanopia-filter">
+            <feColorMatrix type="matrix" values="0.95, 0.05,  0,     0, 0,
+                                                 0,    0.433, 0.567, 0, 0,
+                                                 0,    0.475, 0.525, 0, 0,
+                                                 0,    0,     0,     1, 0"/>
+        </filter>
+    </defs>
+</svg>
+
+
 
   <main>
 
@@ -1230,6 +1372,65 @@ nav .nav-wrapper i {
 
         carregarNotificacoes();
     });
+
+    $(document).ready(function() {
+        // ... seus códigos existentes de notificações, sidenav, etc ...
+
+        // Recupera o filtro salvo anteriormente no LocalStorage
+        const filtroSalvo = localStorage.getItem('filtro-daltonismo');
+        if (filtroSalvo && filtroSalvo !== 'normal') {
+            $('body').addClass('daltonismo-' + filtroSalvo);
+            $('#seletor-daltonismo').val(filtroSalvo);
+        }
+
+        // Monitora a troca de opções no select
+        $('#seletor-daltonismo').on('change', function() {
+            const tipoFiltro = $(this).val();
+
+            // Limpa todas as classes de daltonismo aplicadas no body
+            $('body').removeClass('daltonismo-protanopia daltonismo-deuteranopia daltonismo-tritanopia');
+
+            if (tipoFiltro !== 'normal') {
+                // Aplica a classe correspondente
+                $('body').addClass('daltonismo-' + tipoFiltro);
+                localStorage.setItem('filtro-daltonismo', tipoFiltro);
+            } else {
+                localStorage.removeItem('filtro-daltonismo');
+            }
+        });
+    });
+
+    const tamanhoSalvo = localStorage.getItem('fonte-acessivel');
+    if (tamanhoSalvo === 'grande') {
+        $('body').addClass('fonte-grande');
+    }
+
+    $('#btn-font-inc').on('click', function() {
+        $('body').addClass('fonte-grande');
+        localStorage.setItem('fonte-acessivel', 'grande');
+    });
+
+    $('#btn-font-dec, #btn-font-res').on('click', function() {
+        $('body').removeClass('fonte-grande');
+        localStorage.removeItem('fonte-acessivel');
+    });
+
+    if (localStorage.getItem('alto-contraste') === 'ativado') {
+        $('body').addClass('alto-contraste');
+        $('#chk-alto-contraste').prop('checked', true);
+    }
+
+    $('#chk-alto-contraste').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('body').addClass('alto-contraste');
+            localStorage.setItem('alto-contraste', 'ativado');
+        } else {
+            $('body').removeClass('alto-contraste');
+            localStorage.removeItem('alto-contraste');
+        }
+    });
+
+
     </script>
 
 

@@ -146,6 +146,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Código</th>
                             <th>Produto</th>
                             <th>Grupo</th>
                             <th>Subgrupo</th>
@@ -160,6 +161,9 @@
                         @foreach($solicitacoes as $s)
                         <tr>
                             <td>#{{ $s->id }}</td>
+
+                            <td> {{ $s->produto }} </td>
+
                             <td> <small> {{ $s->descricao_produto }} </small> </td>
 
                             <td>
@@ -171,7 +175,7 @@
                             </td>
 
                             <td>
-                                {{ $s->quantidade }}
+                                {{ number_format($s->quantidade, 2, ',', '.') }}
                             </td>
                             <td>
                                 R$ {{ number_format($s->valor_medio, 2, ',', '.') }}

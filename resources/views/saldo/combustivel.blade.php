@@ -50,6 +50,27 @@
 
     {{-- GRID PREMIUM --}}
     <div class="balanced-grid">
+
+        {{-- CARD NOVO: IMPORTAÇÃO DE ABASTECIMENTOS --}}
+        <a href="{{ route('abastecimento.importar.index') }}" class="premium-card visa-card">
+            <div class="shimmer"></div>
+            <div class="card-top">
+                <div class="main-icon">
+                    <i class="fa-solid fa-file-csv"></i>
+                </div>
+                <div class="live-indicator">
+                    <span class="dot"></span> NOVO
+                </div>
+            </div>
+            <div class="card-info">
+                <h4 class="item-title">Importação de Abastecimentos</h4>
+                <p class="item-desc">Realize a integração em massa de abastecimentos (arquivos .CSV) de forma automatizada no sistema.</p>
+            </div>
+            <div class="card-action">
+                <span>Acessar Importador</span>
+                <i class="fa-solid fa-arrow-right-long"></i>
+            </div>
+        </a>
         
         {{-- CARD 1: PAGAMENTO PIX --}}
         <a href="{{ route('pagamento_pix.index') }}" class="premium-card request-card">

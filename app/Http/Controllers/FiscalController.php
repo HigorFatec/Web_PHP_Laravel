@@ -24,7 +24,7 @@ class FiscalController extends Controller
         $filiais = Filial::orderBy('filial')->pluck('filial');
         $aprovadores = FiscalAprovador::orderBy('filial')->get(['id','nome','email','filial']);
 
-        $estoque = ImplantacaoSaldo::filial();
+        $estoque = ImplantacaoSaldo::filial_geral();
 
         return view('fiscal.index', compact('filiais', 'aprovadores','estoque'));
         //

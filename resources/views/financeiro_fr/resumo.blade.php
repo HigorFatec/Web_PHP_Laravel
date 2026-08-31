@@ -87,37 +87,68 @@
 
 
 
+{{-- BARRA DE BUSCA RÁPIDA CORPORATIVA --}}
+<div class="card card-filter-container">
+    <div class="card-content" style="padding: 16px 20px;">
+        <form id="form-busca-financeiro" method="GET" action="{{ url()->current() }}">
+            <div class="row" style="margin-bottom: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 0;">
+                
+                {{-- Título da Seção --}}
+                <div class="col s12 m4">
+                    <span class="filter-title">
+                        <i class="fa-solid fa-magnifying-glass"></i> Consultar na Base / Filtrar
+                    </span>
+                </div>
 
-                    {{-- BARRA DE BUSCA RÁPIDA ATUALIZADA --}}
-                    <div class="card shadow-btn" style="border-radius: 15px; margin-bottom: 20px; background: #f8f9fa;">
-                        <div class="card-content" style="padding: 15px 20px;">
-                            <div class="row" style="margin-bottom: 0; display: flex; align-items: center; flex-wrap: wrap;">
-                                <div class="col s12 m4">
-                                    <span style="font-weight: bold; color: #1a237e;">
-                                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Consultar na Base
-                                    </span>
-                                </div>
-                                <div class="col s12 m8">
-                                    <div style="display: flex; gap: 10px;">
-                                        <select id="tipo-busca" class="browser-default" style="width: 120px; border-radius: 8px; border: 1px solid #ccc; height: 40px;">
-                                            <option value="pedido">PEDIDO</option>
-                                            <option value="id">ID (Sistema)</option>
-                                        </select>
+                {{-- Controles de Busca e Ações --}}
+                <div class="col s12 m8">
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                        
+                        {{-- Grouped Select + Input --}}
+                        <div class="search-input-group">
+                            <select name="tipo" id="tipo-busca" class="browser-default search-select-custom" onchange="filtrarTabelaLocal()">
+                                <option value="pedido" {{ request('tipo') == 'pedido' ? 'selected' : '' }}>PEDIDO</option>
+                                <option value="id" {{ request('tipo') == 'id' ? 'selected' : '' }}>ID (Sistema)</option>
+                            </select>
+                            
+                            <div class="search-divider"></div>
 
-                                        <input type="number" id="input-busca-valor" placeholder="Digite o número..." 
-                                            style="background: white; border: 1px solid #ccc; border-radius: 8px; padding: 0 15px; height: 40px; margin: 0; flex-grow: 1;">
-                                        
-                                        <button type="button" onclick="consultarBase()" class="btn blue darken-4 shadow-btn" style="border-radius: 8px; height: 40px;">
-                                            CONSULTAR
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <input type="text" name="busca" id="input-busca-valor" value="{{ request('busca') }}" 
+                                oninput="filtrarTabelaLocal()" 
+                                placeholder="Digite o número e pressione Enter..." 
+                                class="search-input-custom" autocomplete="off">
                         </div>
+                        
+                        {{-- Botão 1: Filtrar Tabela (GET) --}}
+                        <button type="submit" class="btn btn-corp blue darken-4 tooltipped" data-position="top" data-tooltip="Filtrar registros na tabela abaixo">
+                            <i class="fa-solid fa-filter"></i> FILTRAR
+                        </button>
+
+                        {{-- Botão 2: Resumo Completo via AJAX (Modal) --}}
+                        <button type="button" id="btn-detalhes-ajax" onclick="consultarBase()" class="btn btn-corp teal darken-3 tooltipped" data-position="top" data-tooltip="Exibir ficha completa do registro">
+                            <i class="fa-solid fa-circle-info"></i> DETALHES
+                        </button>
+
+                        {{-- Botão Limpar FiltroAtivo --}}
+                        @if(request()->filled('busca'))
+                            <a href="{{ url()->current() }}" class="btn-clear-filter tooltipped" data-position="top" data-tooltip="Limpar filtro aplicado">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        @endif
+
                     </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 
 
+
+
+
+            
 
 
                     {{-- TABELA 1: PAGAMENTOS AGUARDANDO --}}
@@ -212,7 +243,7 @@
                                                         <div class="sub-info">{{ $r->unidades->unidade_negocio ?? 'N/I' }}</div>
                                                     </td>
 
-                                                    @if(strtolower($r->tipo) != 'reembolso' || strtolower($r->tipo) != 'ajuda_de_custo')
+                                                    @if(strtolower($r->tipo) != 'reembolso' && strtolower($r->tipo) != 'ajuda_de_custo')
 
                                                     <td class="flex-actions">
                                                         <button class="btn-action-detail modal-trigger tooltipped" data-target="modal-detalhes-{{ $r->id }}" data-tooltip="Ver Dados Bancários" onclick="buscarStatusPedido('{{ $r->pedido }}', '{{ $r->id }}')">
@@ -238,7 +269,7 @@
                                                         <td class="flex-actions"> {{-- Adicionada a TD para manter o layout --}}
                                                             <form action="{{ route('financeiro.finalizar_reembolso', $r->id) }}" method="POST">
                                                                 @csrf
-                                                                <button type="submit" class="btn-action-blue tooltipped" data-tooltip="Finalizar Reembolso" onclick="return confirm('Confirmar finalização de reembolso?')">
+                                                                <button type="submit" class="btn-action-blue tooltipped" data-tooltip="Finalizar" onclick="return confirm('Confirmar finalização?')">
                                                                     <i class="fa-solid fa-hand-holding-dollar"></i>
                                                                 </button> {{-- Tag de abertura do botão adicionada aqui --}}
                                                             </form>
@@ -248,8 +279,12 @@
 
                                                 {{-- MODAL DE PAGAMENTO (AJUSTADO PARA MÚLTIPLOS ARQUIVOS) --}}
                                                 <div id="modal-pay-{{ $r->id }}" class="modal" style="max-width: 500px; border-radius: 15px;">
-                                                    <form action="{{ route('financeiro.aprovar_financeiro', $r->id) }}" method="POST" enctype="multipart/form-data">
+                                                    <form id="form-pay-{{ $r->id }}" action="{{ route('financeiro.aprovar_financeiro', $r->id) }}" method="POST" enctype="multipart/form-data">
                                                         @csrf
+
+                                                        <input type="hidden" name="conta_origem" id="hidden-conta-origem-{{ $r->id }}" value="{{ $r->conta_origem ?? '' }}">
+
+
                                                         <div class="modal-content">
                                                             <h5 class="login-title center">Finalizar Pagamento</h5>
                                                             <p class="center login-subtitle">ID Solicitação: <strong>#{{ $r->id }}</strong></p>
@@ -295,39 +330,93 @@
                 <p style="font-size: 1.3rem; font-weight: bold; color: #1a237e; margin: 0;">{{ $r->favorecido }}</p>
             </div>
 
-            {{-- Coluna 1: Identificação --}}
-            <div class="col s12 m6" style="margin-bottom: 20px;">
-                <h6 class="grey-text uppercase" style="font-size: 0.75rem; font-weight: bold; letter-spacing: 1px;">Identificação</h6>
-                <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 1px solid #eceff1;">
-                    <p style="margin: 0; color: #555;"><b>CNPJ/CPF:</b> <br> {{ $r->cnpj ?: 'N/I' }}</p>
-                    <p style="margin: 10px 0 0 0; color: #555;"><b>Nº Pedido:</b> <br> <span class="blue-text" style="font-weight: bold;">{{ $r->pedido ?: 'N/I' }}</span></p>
-                    {{-- Dentro da Coluna 1 do Modal --}}
-                    <p style="margin: 10px 0 0 0; color: #555;">
-                        <b>Status do Pedido:</b> <br> 
-                        <span id="status-pedido-{{ $r->id }}" class="blue-text" style="font-weight: bold;">
-                            Buscando...
-                        </span>
-                    </p>
-                    <p style="margin: 0; color: #555;"><b>Valor:</b> <br> <span class="green-text" style="font-weight: bold;"> 
-                        
-                        @if ($r->status === 'aprovado_gestor')
-                        R$ {{ number_format($r->valor, 2, ',', '.') }}
-                        @else
-                        R$ {{$r->valor}}
-                        @endif
-                    </span></p>
-                </div>
-            </div>
+    {{-- Coluna 1: Identificação --}}
+    <div class="col s12 m6" style="margin-bottom: 20px;">
+        <h6 class="grey-text uppercase" style="font-size: 0.75rem; font-weight: bold; letter-spacing: 1px;">Identificação</h6>
+        <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 1px solid #eceff1;">
+            <p style="margin: 0; color: #555;"><b>CNPJ/CPF:</b> <br> {{ $r->cnpj ?: 'N/I' }}</p>
+            <p style="margin: 10px 0 0 0; color: #555;"><b>Nº Pedido:</b> <br> <span class="blue-text" style="font-weight: bold;">{{ $r->pedido ?: 'N/I' }}</span></p>
+            
+            {{-- CAMPO DA FILIAL ADICIONADO AQUI --}}
+            <p style="margin: 10px 0 0 0; color: #555;">
+                <b>Filial:</b> <br> 
+                <span id="filial-pedido-{{ $r->id }}" class="grey-text text-darken-2" style="font-weight: bold;">
+                    Buscando...
+                </span>
+            </p>
 
-            {{-- Coluna 2: Dados Bancários --}}
-            <div class="col s12 m6" style="margin-bottom: 20px;">
-                <h6 class="grey-text uppercase" style="font-size: 0.75rem; font-weight: bold; letter-spacing: 1px;">Transferência TED/DOC</h6>
-                <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 1px solid #eceff1;">
-                    <p style="margin: 0; color: #555;"><b>Banco:</b> {{ $r->banco ?: 'N/I' }}</p>
-                    <p style="margin: 5px 0 0 0; color: #555;"><b>Agência:</b> {{ $r->agencia ?: 'N/I' }}</p>
-                    <p style="margin: 5px 0 0 0; color: #555;"><b>Conta:</b> {{ $r->conta ?: 'N/I' }}</p>
-                </div>
-            </div>
+            {{-- Status do Pedido --}}
+            <p style="margin: 10px 0 0 0; color: #555;">
+                <b>Status do Pedido:</b> <br> 
+                <span id="status-pedido-{{ $r->id }}" class="blue-text" style="font-weight: bold;">
+                    Buscando...
+                </span>
+            </p>
+            
+            <p style="margin: 10px 0 0 0; color: #555;"><b>Valor:</b> <br> <span class="green-text" style="font-weight: bold;"> 
+                @if ($r->status === 'aprovado_gestor')
+                    R$ {{ number_format($r->valor, 2, ',', '.') }}
+                @else
+                    R$ {{$r->valor}}
+                @endif
+            </span></p>
+        </div>
+    </div>
+
+
+{{-- Coluna 2: Dados Bancários --}}
+<div class="col s12 m6" style="margin-bottom: 20px;">
+    <h6 class="grey-text uppercase" style="font-size: 0.75rem; font-weight: bold; letter-spacing: 1px;">
+        <i class="fa-solid fa-building-columns blue-text mr-1"></i> Transferência & Conta Pagadora
+    </h6>
+    <div style="background: #fdfdfd; padding: 15px; border-radius: 10px; border: 1px solid #eceff1;">
+        
+        {{-- Dados do Favorecido (Destino) --}}
+        <div style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed #cfd8dc;">
+            <span style="font-size: 0.7rem; font-weight: bold; color: #90a4ae; text-transform: uppercase; letter-spacing: 0.5px;">Dados do Favorecido</span>
+            <p style="margin: 4px 0 0 0; color: #555; font-size: 0.85rem;"><b>Banco:</b> {{ $r->banco ?: 'N/I' }}</p>
+            <p style="margin: 2px 0 0 0; color: #555; font-size: 0.85rem;"><b>Agência:</b> {{ $r->agencia ?: 'N/I' }}</p>
+            <p style="margin: 2px 0 0 0; color: #555; font-size: 0.85rem;"><b>Conta:</b> {{ $r->conta ?: 'N/I' }}</p>
+        </div>
+
+        {{-- Seleção da Conta de Origem/Débito --}}
+        <div>
+            <label style="font-weight: 700; color: #1a237e; font-size: 0.8rem; display: block; margin-bottom: 4px;">
+                Conta de Origem para Débito:
+            </label>
+
+            @if(auth()->user()->temSetor(['admin','financeiro']))
+            
+            <select name="conta_origem" form="form-pay-{{ $r->id }}" class="browser-default" 
+                    id="select-conta-origem-{{ $r->id }}"
+                    style="width: 100%; height: 38px; border-radius: 8px; border: 1px solid #cfd8dc; background: #ffffff; padding: 0 10px; font-size: 0.85rem; color: #374151; font-weight: 500; cursor: pointer;"
+                    onchange="document.getElementById('hidden-conta-origem-{{ $r->id }}').value = this.value;">
+
+                <option value="" disabled selected>Selecione a conta bancária...</option>
+
+                @foreach($contasBancarias as $cb)
+                    {{-- 
+                        Regra de Exibição:
+                        1. Se o pedido não tem filial ($r->cod_filial é NULL), exibe todas as contas.
+                        2. Se a conta for global ($cb->cod_filial é NULL), exibe para qualquer pedido.
+                        3. Se as filiais forem iguais ($cb->cod_filial == $r->cod_filial), exibe a conta.
+                    --}}
+                    @if(is_null($r->cod_filial) || is_null($cb->cod_filial) || $cb->cod_filial == $r->cod_filial)
+                        <option value="{{ $cb->numero_conta }}" {{ (isset($r->conta_origem) && $r->conta_origem == $cb->numero_conta) ? 'selected' : '' }}>
+                            {{ $cb->banco }} - <b>{{ $cb->numero_conta }}</b> {{ $cb->cod_filial ? "(Filial {$cb->cod_filial})" : '(Matriz / Todas)' }}
+                        </option>
+                    @endif
+                @endforeach
+            </select>
+
+            @endif
+            
+        </div>
+
+    </div>
+</div>
+
+
 
             {{-- Linha PIX (Destaque para cópia) --}}
             <div class="col s12" style="margin-bottom: 25px;">
@@ -664,7 +753,124 @@
     transition: all 0.3s ease;
 }
 </style>
+<style>
+    /* Estilização Corporativa da Barra de Consulta */
+    .card-filter-container {
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        margin-bottom: 24px;
+    }
 
+    .filter-title {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .filter-title i {
+        color: #1e3a8a;
+    }
+
+    /* Container Unificado (Input + Select) */
+    .search-input-group {
+        display: flex;
+        align-items: center;
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 2px 4px;
+        transition: all 0.2s ease-in-out;
+        flex-grow: 1;
+    }
+
+    .search-input-group:focus-within {
+        border-color: #1e3a8a;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
+    }
+
+    .search-select-custom {
+        border: none !important;
+        background: transparent !important;
+        font-weight: 600;
+        color: #334155;
+        font-size: 0.85rem;
+        padding: 0 8px !important;
+        height: 36px !important;
+        cursor: pointer;
+        outline: none;
+        width: 125px !important;
+    }
+
+    .search-divider {
+        width: 1px;
+        height: 22px;
+        background-color: #cbd5e1;
+        margin: 0 6px;
+    }
+
+    .search-input-custom {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        height: 36px !important;
+        margin: 0 !important;
+        padding: 0 10px !important;
+        color: #0f172a;
+        font-size: 0.9rem;
+        flex-grow: 1;
+    }
+
+    .search-input-custom:focus {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Botões Padrão Corporativo */
+    .btn-corp {
+        border-radius: 8px !important;
+        height: 42px !important;
+        line-height: 42px !important;
+        font-weight: 600 !important;
+        font-size: 0.8rem !important;
+        letter-spacing: 0.4px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 16px !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        transition: all 0.15s ease-in-out !important;
+    }
+
+    .btn-corp:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.12) !important;
+    }
+
+    .btn-clear-filter {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+        width: 42px;
+        border-radius: 8px;
+        color: #ef4444;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        transition: all 0.15s ease;
+    }
+
+    .btn-clear-filter:hover {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+</style>
 
 
 
@@ -726,10 +932,12 @@ function updateFiscalStatus(id, value) {
 <script>
     function buscarStatusPedido(numped, idRegistro) {
     const spanStatus = document.getElementById('status-pedido-' + idRegistro);
+    const spanFilial = document.getElementById('filial-pedido-' + idRegistro); // Opcional: elemento para a filial
     
     // Se o pedido for vazio ou 'N/I'
     if (!numped || numped === 'N/I') {
         spanStatus.innerText = '(N/A)';
+        if (spanFilial) spanFilial.innerText = '(N/A)'; // Opcional: atualiza a filial também
         return;
     }
 
@@ -737,6 +945,13 @@ function updateFiscalStatus(id, value) {
     fetch(`/consultar-status/${numped}`)
         .then(response => response.json())
         .then(data => {
+
+            if(spanFilial) {
+                spanFilial.innerText = data.codfil ?? '(N/A)'; // Atualiza a filial se existir
+            }
+
+
+
             spanStatus.innerText = data.situacao;
             
             // Dica: mudar a cor dependendo do texto
@@ -759,43 +974,99 @@ function updateFiscalStatus(id, value) {
 
 <script>
 function consultarBase() {
-    const valor = document.getElementById('input-busca-valor').value;
-    const tipo = document.getElementById('tipo-busca').value; // 'pedido' ou 'id'
+    const input = document.getElementById('input-busca-valor');
+    const valor = input.value.trim();
+    const tipo = document.getElementById('tipo-busca').value;
+    const btnDetails = document.getElementById('btn-detalhes-ajax');
 
     if (!valor) {
-        M.toast({html: 'Digite um valor para busca', classes: 'rounded orange'});
+        M.toast({html: '<i class="fa-solid fa-triangle-exclamation style="margin-right:8px;"></i> Informe o número para consulta', classes: 'rounded orange darken-3'});
+        input.focus();
         return;
     }
 
-    M.toast({html: `Consultando por ${tipo.toUpperCase()}...`, classes: 'rounded blue'});
+    // Feedback visual de carregamento
+    const originalHtml = btnDetails.innerHTML;
+    btnDetails.disabled = true;
+    btnDetails.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> BUSCANDO...`;
 
-    // Enviamos o tipo via query string (?tipo=id ou ?tipo=pedido)
     fetch(`/financeiro/consultar-pedido/${valor}?tipo=${tipo}`)
         .then(response => response.json())
         .then(data => {
             if (data.sucesso) {
-                const infoText = `ID: ${data.id}\nFavorecido: ${data.favorecido}\nStatus: ${data.status}\nValor: R$ ${data.valor}\nTipo: ${data.tipo}\nSocorro: ${data.socorro_em_rota}\nFrota Bloqueada: ${data.frota_bloqueada}\nGestor: ${data.gestor_aprovador || 'N/I'}`;
+                const isUrgent = data.socorro_em_rota === 'sim' || data.frota_bloqueada === 'sim';
+                
+                const modalHtml = `
+                    <div style="text-align: left; font-size: 0.9rem; color: #334155;">
+                        ${isUrgent ? `
+                            <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 12px; border-radius: 6px; margin-bottom: 14px; color: #991b1b; font-weight: 600; font-size: 0.85rem;">
+                                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Registro com Alerta de Urgência Operacional
+                            </div>
+                        ` : ''}
+                        
+                        <table style="width: 100%; border-collapse: collapse; line-height: 1.8;">
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="font-weight: 600; color: #64748b; width: 40%;">ID Registro:</td>
+                                <td style="font-weight: 700; color: #0f172a; text-align: right;">#${data.id}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="font-weight: 600; color: #64748b;">Nº Pedido:</td>
+                                <td style="font-weight: 700; color: #0f172a; text-align: right;">${data.pedido || 'N/I'}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="font-weight: 600; color: #64748b;">Favorecido:</td>
+                                <td style="color: #0f172a; text-align: right;">${data.favorecido || '-'}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="font-weight: 600; color: #64748b;">Valor:</td>
+                                <td style="font-weight: 700; color: #15803d; text-align: right;">R$ ${parseFloat(data.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="font-weight: 600; color: #64748b;">Status:</td>
+                                <td style="text-align: right;">
+                                    <span style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 12px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase;">
+                                        ${data.status}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="font-weight: 600; color: #64748b;">Gestor Responsável:</td>
+                                <td style="color: #0f172a; text-align: right;">${data.gestor_aprovador || 'Pendente'}</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600; color: #64748b;">Data de Criação:</td>
+                                <td style="color: #0f172a; text-align: right;">${data.created_at || '-'}</td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
 
-                if (typeof swal !== 'undefined') {
-                    swal({
-                        title: `Resultado Encontrado (${tipo.toUpperCase()} #${valor})`,
-                        text: infoText,
-                        icon: (data.socorro_em_rota === 'sim' || data.frota_bloqueada === 'sim') ? 'warning' : 'info',
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: `<span style="color: #1e3a8a; font-size: 1.2rem; font-weight: 700;">Ficha do Registro</span>`,
+                        html: modalHtml,
+                        confirmButtonText: 'Fechar',
+                        confirmButtonColor: '#1e3a8a',
+                        width: '450px'
                     });
-                } else {
-                    alert(`--- DADOS ENCONTRADOS ---\n${infoText}`);
-                }
-
-                if (data.socorro_em_rota === 'sim') {
-                    M.toast({html: '⚠️ URGÊNCIA: Socorro em Rota!', classes: 'rounded red'});
+                } else if (typeof swal !== 'undefined') {
+                    swal({
+                        title: `Ficha do Registro #${data.id}`,
+                        text: `ID: ${data.id}\nFavorecido: ${data.favorecido}\nStatus: ${data.status}\nValor: R$ ${data.valor}\nTipo: ${data.tipo}\nSocorro: ${data.socorro_em_rota}\nFrota Bloqueada: ${data.frota_bloqueada}\nGestor: ${data.gestor_aprovador || 'N/I'}\nData de Criação: ${data.created_at}\nÚltima Atualização: ${data.updated_at}`,
+                        icon: isUrgent ? 'warning' : 'info'
+                    });
                 }
             } else {
-                M.toast({html: `Nenhum registro com ${tipo.toUpperCase()} ${valor}`, classes: 'rounded red'});
+                M.toast({html: `<i class="fa-solid fa-circle-xmark" style="margin-right:8px;"></i> Nenhum registro localizado para ${tipo.toUpperCase()}: ${valor}`, classes: 'rounded red darken-2'});
             }
         })
         .catch(error => {
-            console.error('Erro:', error);
-            M.toast({html: 'Erro na consulta.', classes: 'rounded red'});
+            console.error('Erro na requisição:', error);
+            M.toast({html: 'Erro interno ao realizar consulta.', classes: 'rounded red darken-2'});
+        })
+        .finally(() => {
+            btnDetails.disabled = false;
+            btnDetails.innerHTML = originalHtml;
         });
 }
 </script>
@@ -848,6 +1119,55 @@ function alternarStatusPixFR() {
     });
 }
 </script>
+
+
+
+
+
+
+
+<script>
+// Função para filtrar as linhas já carregadas na tela em tempo real
+function filtrarTabelaLocal() {
+    const tipo = document.getElementById('tipo-busca').value;
+    const termoBusca = document.getElementById('input-busca-valor').value.trim().toLowerCase();
+    
+    // Pega todas as linhas da tabela
+    const linhas = document.querySelectorAll('.custom-finance-table tbody tr');
+
+    linhas.forEach(linha => {
+        // Se apagar tudo ou estiver vazio, mostra todas as linhas
+        if (termoBusca === '') {
+            linha.style.display = '';
+            return;
+        }
+
+        let textoAlvo = '';
+
+        if (tipo === 'id') {
+            // Busca o texto na tag .sub-info da 1ª coluna (#ID)
+            const divId = linha.querySelector('td:first-child .sub-info');
+            textoAlvo = divId ? divId.textContent.replace('#', '').trim().toLowerCase() : '';
+        } else if (tipo === 'pedido') {
+            // Busca o texto na tag .sub-info da 3ª coluna (Ped: XXX)
+            const celulaPedido = linha.children[2];
+            if (celulaPedido) {
+                const subInfoPed = celulaPedido.querySelector('.sub-info');
+                textoAlvo = subInfoPed ? subInfoPed.textContent.replace(/ped:/i, '').trim().toLowerCase() : '';
+            }
+        }
+
+        // Exibe ou oculta dependendo do termo digitado
+        if (textoAlvo.includes(termoBusca)) {
+            linha.style.display = '';
+        } else {
+            linha.style.display = 'none';
+        }
+    });
+}
+</script>
+
+
 
 @else
     <script>

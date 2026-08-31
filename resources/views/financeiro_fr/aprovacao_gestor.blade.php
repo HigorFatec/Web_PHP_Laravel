@@ -146,7 +146,7 @@
                             <div class="col s8">
                                 <span class="card-title"><b>{{ $despesa->descricao_despesa }}</b></span>
                                 <p><b>Fornecedor:</b> {{ $despesa->descricao_fornecedor }}</p>
-                                <p><b>Data:</b> {{ date('d/m/Y', strtotime($despesa->data_despesa ?? now())) }}</p>
+                                <p><b>Data:</b> {{ date('d/m/Y', strtotime($despesa->date ?? now())) }}</p>
                             </div>
                             <div class="col s4 right-align">
                                 <h5 class="green-text text-darken-2" style="margin: 0;">R$ {{ number_format($despesa->valor, 2, ',', '.') }}</h5>

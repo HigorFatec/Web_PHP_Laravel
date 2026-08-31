@@ -19,7 +19,8 @@
             <p>Sua solicitação de ajuda de custo para <strong>{{ $ajuda_custo->name }}</strong> foi **APROVADA** pela gestão e enviada ao setor financeiro para processamento de pagamento.</p>
             
             <p><strong>Detalhes do Protocolo:</strong> #{{ $ajuda_custo->id }}<br>
-            <strong>Valor Aprovado:</strong> R$ {{ number_format($ajuda_custo->valor_proporcional, 2, ',', '.') }}</p>
+            <strong>Valor Aprovado:</strong> R$ {{ number_format($ajuda_custo->valor_proporcional, 2, ',', '.') }}
+            <strong>ID do Lançamento Bancário (RODOPAR): </strong> {{ $ajuda_custo->financeiro?->id_raz ?? 'Não disponível' }}</p>
         </div>
         <div class="footer">
             Este é um e-mail automático enviado pelo sistema de Gestão Cargo Polo.

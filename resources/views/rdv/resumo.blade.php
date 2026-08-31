@@ -86,8 +86,8 @@
                         <td>{{ \Carbon\Carbon::parse($r->created_at)->format('d/m/Y H:m:s') }}</td>
                         <td>{{ $r->unidades->unidade_negocio}}</td>
                         <td>R${{ $r->valor }}</td>
-                        <td>{{ \Carbon\Carbon::parse($r->ida)->format('d/m/Y') }}</td>
-                        <td>{{ \Carbon\Carbon::parse($r->volta)->format('d/m/Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($r->inicio_viagem)->format('d/m/Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($r->fim_viagem)->format('d/m/Y') }}</td>
 
 
                         <td>{{ $r->id_rodopar }}</td>

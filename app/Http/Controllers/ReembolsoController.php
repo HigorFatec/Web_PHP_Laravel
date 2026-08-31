@@ -390,7 +390,7 @@ class ReembolsoController extends Controller
             ], function ($message) use ($relatorio) {
                 $message->to('contasapagar@grupocargopolo.com.br');
                 //$message->to('higor.machado@grupocargopolo.com.br');
-                $message->cc([$relatorio->unidades?->email_gestor ?? null,$relatorio->user?->email ?? null]);
+                $message->cc([$relatorio->gestor_aprovador ,$relatorio->user?->email ?? null]);
                 $message->subject('Relatório de Reembolso Aprovado - Protocolo: ' . $relatorio->id);
             });
         } catch (\Exception $e) { }
